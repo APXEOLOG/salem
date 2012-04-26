@@ -42,29 +42,12 @@ public class SWidgetOptions extends Window {
 		body = new Tabs(Coord.z, new Coord(400, 300), this);
 
 		Widget tab;
-		{ /* GENERAL TAB */
-			tab = body.new Tab(new Coord(0, 0), 60, "General");
-
-			new Button(new Coord(10, 40), 125, tab, "Quit") {
-				public void click() {
-					HackThread.tg().interrupt();
-				}
-			};
-			new Button(new Coord(10, 70), 125, tab, "Log out") {
-				public void click() {
-					ui.sess.close();
-				}
-			};
-		}
 
 		{ /* Highlight TAB */
-			tab = body.new Tab(new Coord(140, 0), 60, "Highlight");
+			tab = body.new Tab(new Coord(0, 0), 60, "Highlight");
 
-			new Label(new Coord(10, 40), tab, "Highlight...");
-
-			new Frame(new Coord(10, 65), new Coord(20, 206), tab);
-
-			int counter = 0;
+			int xc = 15, yc = 25;
+			
 			for (Entry<String, Boolean> entry : SUtils.herbResourceNames
 					.entrySet()) {
 				Resource resBuf = Resource.load("gfx/invobjs/herbs/"
@@ -72,7 +55,7 @@ public class SWidgetOptions extends Window {
 				if (resBuf == null)
 					continue;
 
-				CheckBox buf = new CheckBox(new Coord(10, counter * 15), tab,
+				CheckBox buf = new CheckBox(new Coord(xc, yc), tab,
 						entry.getKey(), entry.getKey()) {
 					public void changed(boolean val) {
 						SUtils.herbResourceNames.put(additionalInfo, val);
@@ -85,37 +68,18 @@ public class SWidgetOptions extends Window {
 				if (bool != null)
 					buf.set(bool);
 
-				counter++;
+				yc += buf.sz.y;
+				
+				if (yc >= tab.sz.y) {
+					xc += 100;
+					yc = 25;
+				}
 			}
-		}
-
-		new Frame(new Coord(-10, 20), new Coord(420, 330), this);
-		String last = Utils.getpref("optwndtab", "");
-		for (Tabs.Tab t : body.tabs) {
-			if (t.btn.text.text.equals(last))
-				body.showtab(t);
 		}
 	}
 
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (sender == cbtn)
-			super.wdgmsg(sender, msg, args);
-	}
-
-	public class Frame extends Widget {
-		private IBox box;
-
-		public Frame(Coord c, Coord sz, Widget parent) {
-			super(c, sz, parent);
-			box = new IBox("gfx/hud", "tl", "tr", "bl", "br", "extvl", "extvr",
-					"extht", "exthb");
-		}
-
-		public void draw(GOut og) {
-			super.draw(og);
-			GOut g = og.reclip(Coord.z, sz);
-			g.chcolor(150, 200, 125, 255);
-			box.draw(g, Coord.z, sz);
-		}
+			unlink();
 	}
 }

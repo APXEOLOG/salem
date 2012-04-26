@@ -26,10 +26,24 @@
 
 package haven;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.Dimension;
+import java.awt.DisplayMode;
+import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.Image;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.Writer;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apxeolog.salem.HConfig;
 
@@ -180,7 +194,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 	}
 
 	public MainFrame(Coord isz) {
-		super("Salem :: [APX BUILD 1.3]");
+		super("Salem :: BDSM 1.3");
 		Coord sz;
 		if (isz == null) {
 			sz = Utils.getprefc("wndsz", new Coord(800, 600));

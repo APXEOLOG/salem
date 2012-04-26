@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 
 import org.apxeolog.salem.SUtils;
+import org.apxeolog.salem.SWidgetOptions;
 
 import static haven.Inventory.invsq;
 
@@ -231,7 +232,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 					SUtils.minimapMarkerRealCoords = null;
 				}
 			};
-			new MenuButton(new Coord(72, 0), mapmenu, "chat", 3,
+			new MenuButton(new Coord(72, 0), mapmenu, "tow", -1,
+					"Minimap options") {
+				public void click() {
+					new SWidgetOptions(new Coord(200, 200), ui.root);
+				}
+			};
+			new MenuButton(new Coord(90, 0), mapmenu, "chat", 3,
 					"Chat (Ctrl+C)") {
 				public void click() {
 					chat.toggle();

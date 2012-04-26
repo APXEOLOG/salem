@@ -1,13 +1,6 @@
 package org.apxeolog.salem;
 
 import static haven.MCache.tilesz;
-
-import java.awt.Color;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-
 import haven.Coord;
 import haven.GOut;
 import haven.Gob;
@@ -15,6 +8,10 @@ import haven.LocalMiniMap;
 import haven.MapView;
 import haven.Resource;
 import haven.Tex;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SUtils {
 	public static Coord minimapMarkerRealCoords = null;
@@ -33,7 +30,6 @@ public class SUtils {
 		herbResourceNames.put("crowberry", true);
 		herbResourceNames.put("driftwood", true);
 		herbResourceNames.put("flint", true);
-		herbResourceNames.put("herbs", true);
 		herbResourceNames.put("lavenderblewit", true);
 		herbResourceNames.put("lilypad", true);
 		herbResourceNames.put("lime", true);
@@ -55,7 +51,8 @@ public class SUtils {
 		// Precache gobs and free sync block
 		synchronized (mv.ui.sess.glob.oc) {
 			for (Gob gob : mv.ui.sess.glob.oc) {
-				String lastPart = gob.resname().substring(gob.resname().lastIndexOf("/"));
+				if (gob.resname().lastIndexOf("/") <= 0) continue;
+				String lastPart = gob.resname().substring(gob.resname().lastIndexOf("/") + 1);
 				if (gob.resname().contains("gfx/terobjs/herbs/")) {
 					Boolean use = herbResourceNames.get(lastPart);
 					if (use != null && use == true)	gobSyncCache.add(gob);
@@ -103,7 +100,7 @@ public class SUtils {
 		// wdgmsg("click", pc, mc, clickb, ui.modflags());
 		mv.parent.wdgmsg(mv, "click", mv.ui.mc, realCoord, 1, 0);
 	}
-	
+
 	public static Coord strictInRect(Coord pointCoord, Coord rectLeftTopCorner, Coord rectSize) {
 		Coord returnCoord = new Coord(pointCoord);
 		if (pointCoord.x < rectLeftTopCorner.x) returnCoord.x = rectLeftTopCorner.x;
