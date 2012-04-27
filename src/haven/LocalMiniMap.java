@@ -34,12 +34,14 @@ import java.awt.image.BufferedImage;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apxeolog.salem.SMapper;
 import org.apxeolog.salem.SUtils;
 
 public class LocalMiniMap extends Widget {
 	public final MapView mv;
 	private MapTile cur = null;
 	private final BufferedImage[] texes = new BufferedImage[256];
+	@SuppressWarnings("serial")
 	private final Map<Coord, Defer.Future<MapTile>> cache = new LinkedHashMap<Coord, Defer.Future<MapTile>>(
 			5, 0.75f, true) {
 		protected boolean removeEldestEntry(
@@ -120,6 +122,9 @@ public class LocalMiniMap extends Widget {
 			return;
 		final Coord plt = pl.rc.div(tilesz);
 		final Coord plg = plt.div(cmaps);
+		
+		SMapper.getInstance().checkMapperSession(pl.rc);
+		
 		if ((cur == null) || !plg.equals(cur.c)) {
 			Defer.Future<MapTile> f;
 			synchronized (cache) {
@@ -128,8 +133,9 @@ public class LocalMiniMap extends Widget {
 					final Coord ul = plg.mul(cmaps).sub(cmaps).add(1, 1);
 					f = Defer.later(new Defer.Callable<MapTile>() {
 						public MapTile call() {
-							return (new MapTile(new TexI(drawmap(ul,
-									cmaps.mul(3).sub(2, 2))), ul, plg));
+							BufferedImage img = drawmap(ul, cmaps.mul(3).sub(2, 2));
+							SMapper.getInstance().dumpMinimap(img, plg);
+							return (new MapTile(new TexI(img), ul, plg));
 						}
 					});
 					cache.put(plg, f);
@@ -139,13 +145,13 @@ public class LocalMiniMap extends Widget {
 				cur = f.get();
 		}
 		if (cur != null) {
-			GOut g2 = g.reclip(Window.swbox.tloff(),
-					sz.sub(Window.swbox.bisz()));
-			g2.image(cur.img, cur.ul.sub(plt).add(sz.div(2)));
-			Window.swbox.draw(g, Coord.z, sz);
+//			GOut g2 = g.reclip(Window.swbox.tloff(),
+//					sz.sub(Window.swbox.bisz()));
+			g.image(cur.img, cur.ul.sub(plt).add(sz.div(2)));
+//			Window.swbox.draw(g, Coord.z, sz);
 			try {
 				
-				SUtils.drawMinimapGob(g2, mv, plt, sz);
+				SUtils.drawMinimapGob(g, mv, plt, sz);
 				
 				synchronized (ui.sess.glob.party.memb) {
 					for (Party.Member m : ui.sess.glob.party.memb.values()) {
@@ -158,11 +164,11 @@ public class LocalMiniMap extends Widget {
 						if (ptc == null)
 							continue;
 						ptc = ptc.div(tilesz).sub(plt).add(sz.div(2));
-						g2.chcolor(m.col.getRed(), m.col.getGreen(),
+						g.chcolor(m.col.getRed(), m.col.getGreen(),
 								m.col.getBlue(), 255);
-						g2.image(MiniMap.plx.layer(Resource.imgc).tex(), ptc
+						g.image(MiniMap.plx.layer(Resource.imgc).tex(), ptc
 								.add(MiniMap.plx.layer(Resource.negc).cc.inv()));
-						g2.chcolor();
+						g.chcolor();
 					}
 				}
 				

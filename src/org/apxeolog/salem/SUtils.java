@@ -55,7 +55,11 @@ public class SUtils {
 				String lastPart = gob.resname().substring(gob.resname().lastIndexOf("/") + 1);
 				if (gob.resname().contains("gfx/terobjs/herbs/")) {
 					Boolean use = herbResourceNames.get(lastPart);
-					if (use != null && use == true)	gobSyncCache.add(gob);
+					if (use != null && use == false) {
+						continue;
+					} else if (!lastPart.equals("herbs")){
+						gobSyncCache.add(gob);
+					}
 				}
 			}
 		}

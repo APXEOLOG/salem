@@ -32,6 +32,7 @@ import java.awt.event.KeyEvent;
 
 import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.SWidgetOptions;
+import org.apxeolog.salem.SWindow;
 
 import static haven.Inventory.invsq;
 
@@ -184,8 +185,12 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				ui.destroy(mmap);
 				ui.destroy(mapmenu);
 			}
-			mmap = new LocalMiniMap(new Coord(sz.x - 250, 18), new Coord(250,
-					250), this, map);
+			
+			{ // Minimap
+				SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18), new Coord(250, 250), this, "Minimap");
+				mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow, map);
+			}
+			
 			mapmenu = new Widget(mmap.c.add(0, -18), new Coord(mmap.sz.x, 18),
 					this) {
 				public void draw(GOut g) {
@@ -704,8 +709,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			gobble.c = new Coord((sz.x - gobble.sz.x) / 2, 0);
 		if (map != null)
 			map.resize(sz);
+		
 		if (mmap != null)
-			mmap.c = new Coord(sz.x - 250, 18);
+			mmap.parent.c = new Coord(sz.x - 250, 18);
+		
 		if (mapmenu != null)
 			mapmenu.c = mmap.c.add(0, -18);
 		if (fv != null)
