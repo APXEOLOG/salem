@@ -26,7 +26,9 @@
 
 package haven;
 
-public class Chatwindow extends Window {
+import org.apxeolog.salem.SWindow;
+
+public class Chatwindow extends SWindow {
     TextEntry in;
     Textlog out;
 	

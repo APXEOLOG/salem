@@ -26,7 +26,9 @@
 
 package haven;
 
-public class Logout extends Window {
+import org.apxeolog.salem.SWindow;
+
+public class Logout extends SWindow {
     Button y, n;
 	
     public Logout(Coord c, Widget parent) {

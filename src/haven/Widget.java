@@ -124,13 +124,15 @@ public class Widget {
 	}
 
 	public Widget(Coord c, Coord sz, Widget parent) {
-		synchronized (parent.ui) {
-			this.ui = parent.ui;
-			this.c = c;
-			this.sz = sz;
-			this.parent = parent;
-			link();
-			parent.newchild(this);
+		if (parent != null) {
+			synchronized (parent.ui) {
+				this.ui = parent.ui;
+				this.c = c;
+				this.sz = sz;
+				this.parent = parent;
+				link();
+				parent.newchild(this);
+			}
 		}
 	}
 

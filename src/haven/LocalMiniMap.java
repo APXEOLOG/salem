@@ -29,18 +29,25 @@ package haven;
 import static haven.MCache.cmaps;
 import static haven.MCache.tilesz;
 
+import haven.MCache.Grid;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apxeolog.salem.SMapper;
 import org.apxeolog.salem.SUtils;
 
+import com.sun.corba.se.impl.ior.ByteBuffer;
+
 public class LocalMiniMap extends Widget {
 	public final MapView mv;
 	private MapTile cur = null;
-	private final BufferedImage[] texes = new BufferedImage[256];
+	
 	@SuppressWarnings("serial")
 	private final Map<Coord, Defer.Future<MapTile>> cache = new LinkedHashMap<Coord, Defer.Future<MapTile>>(
 			5, 0.75f, true) {
@@ -69,33 +76,19 @@ public class LocalMiniMap extends Widget {
 		}
 	}
 
-	private BufferedImage tileimg(int t) {
-		BufferedImage img = texes[t];
-		if (img == null) {
-			Resource r = ui.sess.glob.map.sets[t];
-			if (r == null)
-				return (null);
-			Resource.Image ir = r.layer(Resource.imgc);
-			if (ir == null)
-				return (null);
-			img = ir.img;
-			texes[t] = img;
-		}
-		return (img);
-	}
-
-	public BufferedImage drawmap(Coord ul, Coord sz) {
+	public BufferedImage drawmap(Coord ul, Coord sz, boolean simple) {
 		MCache m = ui.sess.glob.map;
 		BufferedImage buf = TexI.mkbuf(sz);
 		Coord c = new Coord();
+		Coord ulb = simple ? Coord.z : ul;
 		for (c.y = 0; c.y < sz.y; c.y++) {
 			for (c.x = 0; c.x < sz.x; c.x++) {
 				int t = m.gettile(ul.add(c));
-				BufferedImage tex = tileimg(t);
+				BufferedImage tex = m.tileimg(t);
 				if (tex != null)
 					buf.setRGB(c.x, c.y, tex.getRGB(
-							Utils.floormod(c.x + ul.x, tex.getWidth()),
-							Utils.floormod(c.y + ul.y, tex.getHeight())));
+							Utils.floormod(c.x + ulb.x, tex.getWidth()),
+							Utils.floormod(c.y + ulb.y, tex.getHeight())));
 			}
 		}
 		for (c.y = 0; c.y < sz.y; c.y++) {
@@ -123,7 +116,7 @@ public class LocalMiniMap extends Widget {
 		final Coord plt = pl.rc.div(tilesz);
 		final Coord plg = plt.div(cmaps);
 		
-		SMapper.getInstance().checkMapperSession(pl.rc);
+		SMapper.getInstance().checkMapperSession(pl.rc, ui.sess.glob.map);
 		
 		if ((cur == null) || !plg.equals(cur.c)) {
 			Defer.Future<MapTile> f;
@@ -133,8 +126,11 @@ public class LocalMiniMap extends Widget {
 					final Coord ul = plg.mul(cmaps).sub(cmaps).add(1, 1);
 					f = Defer.later(new Defer.Callable<MapTile>() {
 						public MapTile call() {
-							BufferedImage img = drawmap(ul, cmaps.mul(3).sub(2, 2));
-							SMapper.getInstance().dumpMinimap(img, plg);
+							for (int i = -1; i < 2; i++)
+								for (int j = -1; j < 2; j++)
+									SMapper.getInstance().dumpMinimap(plg.add(i, j));
+							
+							BufferedImage img = drawmap(ul, cmaps.mul(3).sub(2, 2), false);
 							return (new MapTile(new TexI(img), ul, plg));
 						}
 					});
@@ -145,10 +141,7 @@ public class LocalMiniMap extends Widget {
 				cur = f.get();
 		}
 		if (cur != null) {
-//			GOut g2 = g.reclip(Window.swbox.tloff(),
-//					sz.sub(Window.swbox.bisz()));
 			g.image(cur.img, cur.ul.sub(plt).add(sz.div(2)));
-//			Window.swbox.draw(g, Coord.z, sz);
 			try {
 				
 				SUtils.drawMinimapGob(g, mv, plt, sz);

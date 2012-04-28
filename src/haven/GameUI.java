@@ -51,7 +51,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 					192, 0, 0));
 	private Text lasterr;
 	private long errtime;
-	private Window invwnd, equwnd, makewnd;
+	private SWindow invwnd, equwnd, makewnd;
 	private Widget mainmenu, menumenu, mapmenu;
 	public BuddyWnd buddies;
 	public CharWnd chrwdg;
@@ -149,7 +149,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 	}
 
-	static class Hidewnd extends Window {
+	static class Hidewnd extends SWindow {
 		Hidewnd(Coord c, Coord sz, Widget parent, String cap) {
 			super(c, sz, parent, cap);
 		}
@@ -188,6 +188,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			
 			{ // Minimap
 				SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18), new Coord(250, 250), this, "Minimap");
+				mmapWindow.setClosable(false);
 				mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow, map);
 			}
 			
@@ -275,7 +276,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (g);
 		} else if (place == "craft") {
 			final Widget[] mk = { null };
-			makewnd = new Window(new Coord(200, 100), Coord.z, this, "Crafting") {
+			makewnd = new SWindow(new Coord(200, 100), Coord.z, this, "Crafting") {
 				public void wdgmsg(Widget sender, String msg, Object... args) {
 					if ((sender == this) && msg.equals("close")) {
 						mk[0].wdgmsg("close");

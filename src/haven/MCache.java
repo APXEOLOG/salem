@@ -27,6 +27,8 @@
 package haven;
 
 import java.util.*;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.lang.reflect.*;
 import haven.Resource.Tileset;
 import haven.Resource.Tile;
@@ -48,7 +50,23 @@ public class MCache {
 	Random gen = new Random();
 	Map<Integer, Defrag> fragbufs = new TreeMap<Integer, Defrag>();
 	long lastctick = System.currentTimeMillis();
-
+	private final BufferedImage[] texes = new BufferedImage[256];
+	
+	public BufferedImage tileimg(int t) {
+		BufferedImage img = texes[t];
+		if (img == null) {
+			Resource r = sets[t];
+			if (r == null)
+				return (null);
+			Resource.Image ir = r.layer(Resource.imgc);
+			if (ir == null)
+				return (null);
+			img = ir.img;
+			texes[t] = img;
+		}
+		return (img);
+	}
+	
 	public static class LoadingMap extends Loading {
 	}
 
@@ -93,7 +111,8 @@ public class MCache {
 		public final Coord gc, ul;
 		public final long id;
 		String mnm;
-
+		protected BufferedImage gridImage;
+		
 		private class Flavobj extends Gob {
 			private Flavobj(Coord c, double a) {
 				super(sess.glob, c);
@@ -207,6 +226,36 @@ public class MCache {
 						fo.ctick(dt);
 				}
 			}
+		}
+		
+		public BufferedImage getGridImage() {
+			if (gridImage != null) return gridImage;
+			
+			gridImage = TexI.mkbuf(cmaps);
+			
+			Coord c = new Coord();
+			for (c.y = 0; c.y < cmaps.y; c.y++) {
+				for (c.x = 0; c.x < cmaps.x; c.x++) {
+					int t = gettile(c);
+					BufferedImage tex = tileimg(t);
+					if (tex != null)
+						gridImage.setRGB(c.x, c.y, tex.getRGB(
+								Utils.floormod(c.x, tex.getWidth()),
+								Utils.floormod(c.y, tex.getHeight())));
+				}
+			}
+			for (c.y = 1; c.y < cmaps.y - 1; c.y++) {
+				for (c.x = 1; c.x < cmaps.x - 1; c.x++) {
+					int t = gettile(c);
+					if ((gettile(c.add(-1, 0)) > t)
+							|| (gettile(c.add(1, 0)) > t)
+							|| (gettile(c.add(0, -1)) > t)
+							|| (gettile(c.add(0, 1)) > t))
+						gridImage.setRGB(c.x, c.y, Color.BLACK.getRGB());
+				}
+			}
+			
+			return gridImage;
 		}
 	}
 

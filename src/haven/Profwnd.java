@@ -28,7 +28,9 @@ package haven;
 
 import java.util.*;
 
-public class Profwnd extends Window {
+import org.apxeolog.salem.SWindow;
+
+public class Profwnd extends SWindow {
     public final Profile prof;
     public long mt = 50000000;
     private static final int h = 80;

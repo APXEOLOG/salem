@@ -27,11 +27,15 @@
 package org.apxeolog.salem;
 
 import haven.*;
+import haven.CharWnd.Skill;
 
 import java.awt.font.TextAttribute;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map.Entry;
 
-public class SWidgetOptions extends Window {
+public class SWidgetOptions extends SWindow {
 	public static final RichText.Foundry foundry = new RichText.Foundry(
 			TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 10);
 	private Tabs body;
@@ -77,9 +81,111 @@ public class SWidgetOptions extends Window {
 			}
 		}
 	}
+	
+	public static class HideList extends Widget {
+		private int h;
+		private Scrollbar sb;
+		private int sel;
+		public Skill[] skills = new Skill[0];
+		private boolean loading = false;
+		private final Comparator<Skill> skcomp = new Comparator<Skill>() {
+			public int compare(Skill a, Skill b) {
+				String an, bn;
+				try {
+					an = a.res.get().layer(Resource.action).name;
+				} catch (Loading e) {
+					loading = true;
+					an = "\uffff";
+				}
+				try {
+					bn = b.res.get().layer(Resource.action).name;
+				} catch (Loading e) {
+					loading = true;
+					bn = "\uffff";
+				}
+				return (an.compareTo(bn));
+			}
+		};
 
-	public void wdgmsg(Widget sender, String msg, Object... args) {
-		if (sender == cbtn)
-			unlink();
+		public HideList(Coord c, Coord sz, Widget parent) {
+			super(c, sz, parent);
+			h = sz.y / 20;
+			sel = -1;
+			sb = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
+		}
+
+		public void draw(GOut g) {
+			if (loading) {
+				loading = false;
+				Arrays.sort(skills, skcomp);
+			}
+			g.chcolor(0, 0, 0, 255);
+			g.frect(Coord.z, sz);
+			g.chcolor();
+			for (int i = 0; i < h; i++) {
+				if (i + sb.val >= skills.length)
+					continue;
+				Skill sk = skills[i + sb.val];
+				if (i + sb.val == sel) {
+					g.chcolor(255, 255, 0, 128);
+					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));
+					g.chcolor();
+				}
+				int astate = sk.afforded();
+				if (astate == 3)
+					g.chcolor(255, 128, 128, 255);
+				else if (astate == 2)
+					g.chcolor(255, 192, 128, 255);
+				else if (astate == 1)
+					g.chcolor(255, 255, 128, 255);
+				try {
+					g.image(sk.res.get().layer(Resource.imgc).tex(), new Coord(
+							0, i * 20), new Coord(20, 20));
+					g.atext(sk.res.get().layer(Resource.action).name,
+							new Coord(25, i * 20 + 10), 0, 0.5);
+				} catch (Loading e) {
+					WItem.missing.loadwait();
+					g.image(WItem.missing.layer(Resource.imgc).tex(),
+							new Coord(0, i * 20), new Coord(20, 20));
+					g.atext("...", new Coord(25, i * 20 + 10), 0, 0.5);
+				}
+				g.chcolor();
+			}
+			super.draw(g);
+		}
+
+		public void pop(Collection<Skill> nsk) {
+			Skill[] skills = nsk.toArray(new Skill[0]);
+			sb.val = 0;
+			sb.max = skills.length - h;
+			sel = -1;
+			this.skills = skills;
+		}
+
+		public boolean mousewheel(Coord c, int amount) {
+			sb.ch(amount);
+			return (true);
+		}
+
+		public boolean mousedown(Coord c, int button) {
+			if (super.mousedown(c, button))
+				return (true);
+			if (button == 1) {
+				sel = (c.y / 20) + sb.val;
+				if (sel >= skills.length)
+					sel = -1;
+				changed((sel < 0) ? null : skills[sel]);
+				return (true);
+			}
+			return (false);
+		}
+
+		protected void changed(Skill sk) {
+		}
+
+		public void unsel() {
+			sel = -1;
+			changed(null);
+		}
 	}
 }
