@@ -29,39 +29,40 @@ package haven;
 import java.awt.event.KeyEvent;
 
 public class RootWidget extends ConsoleHost {
-    public static Resource defcurs = Resource.load("gfx/hud/curs/arw");
-    Logout logout = null;
-    Profile gprof;
-    boolean afk = false;
-	
-    public RootWidget(UI ui, Coord sz) {
-	super(ui, new Coord(0, 0), sz);
-	setfocusctl(true);
-	cursor = defcurs;
-    }
-	
-    public boolean globtype(char key, KeyEvent ev) {
-	if(!super.globtype(key, ev)) {
-	    if(Config.profile && (key == '`')) {
-		new Profwnd(new Coord(100, 100), this, gprof, "Glob prof");
-	    } else if(Config.profile && (key == '~')) {
-		GameUI gi = findchild(GameUI.class);
-		if((gi != null) && (gi.map != null))
-		    new Profwnd(new Coord(100, 100), this, gi.map.prof, "MV prof");
-	    } else if(key == ':') {
-		entercmd();
-	    } else if(key != 0) {
-		wdgmsg("gk", (int)key);
-	    }
-	}
-	return(true);
-    }
+	public static Resource defcurs = Resource.load("gfx/hud/curs/arw");
+	Logout logout = null;
+	Profile gprof;
+	boolean afk = false;
 
-    public void draw(GOut g) {
-	super.draw(g);
-	drawcmd(g, new Coord(20, sz.y - 20));
-    }
-    
-    public void error(String msg) {
-    }
+	public RootWidget(UI ui, Coord sz) {
+		super(ui, new Coord(0, 0), sz);
+		setfocusctl(true);
+		cursor = defcurs;
+	}
+
+	public boolean globtype(char key, KeyEvent ev) {
+		if (!super.globtype(key, ev)) {
+			if (Config.profile && (key == '`')) {
+				new Profwnd(new Coord(100, 100), this, gprof, "Glob prof");
+			} else if (Config.profile && (key == '~')) {
+				GameUI gi = findchild(GameUI.class);
+				if ((gi != null) && (gi.map != null))
+					new Profwnd(new Coord(100, 100), this, gi.map.prof,
+							"MV prof");
+			} else if (key == ':') {
+				entercmd();
+			} else if (key != 0) {
+				wdgmsg("gk", (int) key);
+			}
+		}
+		return (true);
+	}
+
+	public void draw(GOut g) {
+		super.draw(g);
+		drawcmd(g, new Coord(20, sz.y - 20));
+	}
+
+	public void error(String msg) {
+	}
 }

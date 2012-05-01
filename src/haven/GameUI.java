@@ -30,6 +30,7 @@ import java.util.*;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 
+import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.SWidgetOptions;
 import org.apxeolog.salem.SWindow;
@@ -155,7 +156,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 
 		public void wdgmsg(Widget sender, String msg, Object... args) {
-			if ((sender == this) && msg.equals("close")) {
+			if (msg.equals("swindow_close") || msg.equals("close")) {
 				this.hide();
 				return;
 			}
@@ -186,13 +187,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				ui.destroy(mapmenu);
 			}
 			
-			{ // Minimap
-				SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18), new Coord(250, 250), this, "Minimap");
-				mmapWindow.setClosable(false);
-				mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow, map);
-			}
+			// Minimap
+			SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18), new Coord(250, 250), this, "Minimap");
+			mmapWindow.setClosable(false);
+			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow, map);
 			
-			mapmenu = new Widget(mmap.c.add(0, -18), new Coord(mmap.sz.x, 18),
+			
+			mapmenu = new Widget(mmapWindow.c.add(0, -18), new Coord(mmapWindow.sz.x, 18),
 					this) {
 				public void draw(GOut g) {
 					draw(g, false);

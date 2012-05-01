@@ -29,85 +29,88 @@ package haven;
 import java.util.*;
 
 public class Inventory extends Widget implements DTarget {
-    public static final Tex invsq = Resource.loadtex("gfx/hud/invsq");
-    public static final Tex refl = Resource.loadtex("gfx/hud/invref");
-    public static final Coord sqsz = new Coord(33, 33);
-    Coord isz;
-    Map<GItem, WItem> wmap = new HashMap<GItem, WItem>();
+	public static final Tex invsq = Resource.loadtex("gfx/hud/invsq");
+	public static final Tex refl = Resource.loadtex("gfx/hud/invref");
+	public static final Coord sqsz = new Coord(33, 33);
+	Coord isz;
+	Map<GItem, WItem> wmap = new HashMap<GItem, WItem>();
 
-    static {
-	Widget.addtype("inv", new WidgetFactory() {
-		public Widget create(Coord c, Widget parent, Object[] args) {
-		    return(new Inventory(c, (Coord)args[0], parent));
+	static {
+		Widget.addtype("inv", new WidgetFactory() {
+			public Widget create(Coord c, Widget parent, Object[] args) {
+				return (new Inventory(c, (Coord) args[0], parent));
+			}
+		});
+	}
+
+	public void draw(GOut g) {
+		Coord c = new Coord();
+		for (c.y = 0; c.y < isz.y; c.y++) {
+			for (c.x = 0; c.x < isz.x; c.x++) {
+				invsq(g, c.mul(sqsz));
+			}
 		}
-	    });
-    }
+		super.draw(g);
+	}
 
-    public void draw(GOut g) {
-	Coord c = new Coord();
-	for(c.y = 0; c.y < isz.y; c.y++) {
-	    for(c.x = 0; c.x < isz.x; c.x++) {
-		invsq(g, c.mul(sqsz));
-	    }
+	public Inventory(Coord c, Coord sz, Widget parent) {
+		super(c,
+				invsq.sz().add(new Coord(-1, -1)).mul(sz).add(new Coord(1, 1)),
+				parent);
+		isz = sz;
 	}
-	super.draw(g);
-    }
-	
-    public Inventory(Coord c, Coord sz, Widget parent) {
-	super(c, invsq.sz().add(new Coord(-1, -1)).mul(sz).add(new Coord(1, 1)), parent);
-	isz = sz;
-    }
-    
-    public static void invsq(GOut g, Coord c) {
-	g.image(invsq, c);
-	Coord ul = g.ul.sub(g.ul.div(2)).mod(refl.sz()).inv();
-	Coord rc = new Coord();
-	for(rc.y = ul.y; rc.y < c.y + invsq.sz().y; rc.y += refl.sz().y) {
-	    for(rc.x = ul.x; rc.x < c.x + invsq.sz().x; rc.x += refl.sz().x) {
-		g.image(refl, rc, c.add(1, 1), invsq.sz().sub(2, 2));
-	    }
+
+	public static void invsq(GOut g, Coord c) {
+		g.image(invsq, c);
+		Coord ul = g.ul.sub(g.ul.div(2)).mod(refl.sz()).inv();
+		Coord rc = new Coord();
+		for (rc.y = ul.y; rc.y < c.y + invsq.sz().y; rc.y += refl.sz().y) {
+			for (rc.x = ul.x; rc.x < c.x + invsq.sz().x; rc.x += refl.sz().x) {
+				g.image(refl, rc, c.add(1, 1), invsq.sz().sub(2, 2));
+			}
+		}
 	}
-    }
-    
-    public boolean mousewheel(Coord c, int amount) {
-	if(amount < 0)
-	    wdgmsg("xfer", -1, ui.modflags());
-	if(amount > 0)
-	    wdgmsg("xfer", 1, ui.modflags());
-	return(true);
-    }
-    
-    public Widget makechild(String type, Object[] pargs, Object[] cargs) {
-	Coord c = (Coord)pargs[0];
-	Widget ret = gettype(type).create(c, this, cargs);
-	if(ret instanceof GItem) {
-	    GItem i = (GItem)ret;
-	    wmap.put(i, new WItem(c.mul(sqsz).add(1, 1), this, i));
+
+	public boolean mousewheel(Coord c, int amount) {
+		if (amount < 0)
+			wdgmsg("xfer", -1, ui.modflags());
+		if (amount > 0)
+			wdgmsg("xfer", 1, ui.modflags());
+		return (true);
 	}
-	return(ret);
-    }
-    
-    public void cdestroy(Widget w) {
-	super.cdestroy(w);
-	if(w instanceof GItem) {
-	    GItem i = (GItem)w;
-	    ui.destroy(wmap.remove(i));
+
+	public Widget makechild(String type, Object[] pargs, Object[] cargs) {
+		Coord c = (Coord) pargs[0];
+		Widget ret = gettype(type).create(c, this, cargs);
+		if (ret instanceof GItem) {
+			GItem i = (GItem) ret;
+			wmap.put(i, new WItem(c.mul(sqsz).add(1, 1), this, i));
+		}
+		return (ret);
 	}
-    }
-    
-    public boolean drop(Coord cc, Coord ul) {
-	wdgmsg("drop", ul.add(sqsz.div(2)).div(invsq.sz()));
-	return(true);
-    }
-	
-    public boolean iteminteract(Coord cc, Coord ul) {
-	return(false);
-    }
-	
-    public void uimsg(String msg, Object... args) {
-	if(msg == "sz") {
-	    isz = (Coord)args[0];
-	    sz = invsq.sz().add(new Coord(-1, -1)).mul(isz).add(new Coord(1, 1));
+
+	public void cdestroy(Widget w) {
+		super.cdestroy(w);
+		if (w instanceof GItem) {
+			GItem i = (GItem) w;
+			ui.destroy(wmap.remove(i));
+		}
 	}
-    }
+
+	public boolean drop(Coord cc, Coord ul) {
+		wdgmsg("drop", ul.add(sqsz.div(2)).div(invsq.sz()));
+		return (true);
+	}
+
+	public boolean iteminteract(Coord cc, Coord ul) {
+		return (false);
+	}
+
+	public void uimsg(String msg, Object... args) {
+		if (msg == "sz") {
+			isz = (Coord) args[0];
+			sz = invsq.sz().add(new Coord(-1, -1)).mul(isz)
+					.add(new Coord(1, 1));
+		}
+	}
 }

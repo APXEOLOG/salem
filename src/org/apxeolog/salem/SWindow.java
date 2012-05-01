@@ -7,6 +7,8 @@ import haven.Tex;
 import haven.TexI;
 import haven.Text;
 import haven.Widget;
+import haven.WidgetFactory;
+import haven.Window;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -225,6 +227,18 @@ public class SWindow extends Widget {
 		}
 	}
 	
+	static {
+		Widget.addtype("wnd", new WidgetFactory() {
+			public Widget create(Coord c, Widget parent, Object[] args) {
+				if (args.length < 2)
+					return (new SWindow(c, (Coord) args[0], parent, null));
+				else
+					return (new SWindow(c, (Coord) args[0], parent,
+							(String) args[1]));
+			}
+		});
+	}
+	
 	protected SWindowHeader windowHeader = null;
 	protected SSimpleBorderBox windowBox = null;
 	protected boolean isMinimized = false;
@@ -238,6 +252,7 @@ public class SWindow extends Widget {
 		windowHeader = new SWindowHeader(Coord.z, Coord.z, this, cap, minimizable, closeable);
 		windowBox = new SSimpleBorderBox(sz, 0, 2, 1);
 		windowBox.marginTop = windowHeader.sz.y;
+		loadPosition();
 		resize(sz);
 		setfocustab(true);
 		parent.setfocus(this);
@@ -245,6 +260,32 @@ public class SWindow extends Widget {
 
 	public SWindow(Coord c, Coord sz, Widget parent, String cap) {
 		this(c, sz, parent, cap, true, true);
+	}
+	
+	public void loadPosition() {
+		try {
+			if (windowHeader.headerText == null) return;
+			Object obj = HConfig.getValue("swnd_pos_" + windowHeader.headerText.text, String.class);
+			if (obj instanceof String) {
+				Coord cc = Coord.fromString((String) obj);
+				if (cc != null) c = cc;
+			}
+		} catch (Exception ex) {
+		}
+	}
+	
+	public void savePosition() {
+		try {
+			HConfig.addValue("swnd_pos_" + windowHeader.headerText.text, c);
+			HConfig.saveConfig();
+		} catch (NullPointerException ex) {
+		}
+	}
+	
+	@Override
+	public void unlink() {
+		//savePosition();
+		super.unlink();
 	}
     
 	public void setText(String text) {

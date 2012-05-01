@@ -28,6 +28,11 @@ package haven;
 
 import static java.lang.Math.PI;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apxeolog.salem.ALS;
+
 public class Coord implements Comparable<Coord>, java.io.Serializable {
 	public int x, y;
 	public static Coord z = new Coord(0, 0);
@@ -125,7 +130,7 @@ public class Coord implements Comparable<Coord>, java.io.Serializable {
 	}
 
 	public String toString() {
-		return ("(" + x + ", " + y + ")");
+		return (String.format("(%d, %d)", x, y));
 	}
 
 	public double angle(Coord o) {
@@ -168,5 +173,15 @@ public class Coord implements Comparable<Coord>, java.io.Serializable {
 	
 	public Coord abs() {
 		return new Coord(Math.abs(x), Math.abs(y));
+	}
+	
+	protected static final Pattern parseCoordPattern = Pattern.compile("\\(([\\d\\-]+), ([\\d\\-])+\\)");
+	
+	public static Coord fromString(String str) {
+		Matcher matcher = parseCoordPattern.matcher(str);
+		if (matcher.matches()) {
+			return new Coord(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+		}
+		return null;
 	}
 }

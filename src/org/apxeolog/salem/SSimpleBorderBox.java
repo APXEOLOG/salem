@@ -41,4 +41,8 @@ public class SSimpleBorderBox {
 	public Coord getContentPosition() {
 		return new Coord(marginLeft + borderWidth + paddingLeft, marginTop + borderWidth + paddingTop);
 	}
+	
+	public Coord getContentSize() {
+		return contentSize;
+	}
 }

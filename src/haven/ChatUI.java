@@ -31,6 +31,8 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 
+import org.apxeolog.salem.ALS;
+
 public class ChatUI extends Widget {
 	public static final RichText.Foundry fnd = new RichText.Foundry(
 			TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 9,

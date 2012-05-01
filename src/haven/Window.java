@@ -53,17 +53,17 @@ public class Window extends Widget implements DTarget {
 	public Coord doff;
 	public IButton cbtn;
 
-	static {
-		Widget.addtype("wnd", new WidgetFactory() {
-			public Widget create(Coord c, Widget parent, Object[] args) {
-				if (args.length < 2)
-					return (new Window(c, (Coord) args[0], parent, null));
-				else
-					return (new Window(c, (Coord) args[0], parent,
-							(String) args[1]));
-			}
-		});
-	}
+//	static {
+//		Widget.addtype("wnd", new WidgetFactory() {
+//			public Widget create(Coord c, Widget parent, Object[] args) {
+//				if (args.length < 2)
+//					return (new Window(c, (Coord) args[0], parent, null));
+//				else
+//					return (new Window(c, (Coord) args[0], parent,
+//							(String) args[1]));
+//			}
+//		});
+//	}
 
 	private void placecbtn() {
 		cbtn.c = xlate(

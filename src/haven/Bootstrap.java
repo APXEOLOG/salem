@@ -26,9 +26,12 @@
 
 package haven;
 
+import java.awt.Color;
 import java.net.*;
 import java.util.*;
 
+import org.apxeolog.salem.SChat;
+import org.apxeolog.salem.SChatWindow;
 import org.apxeolog.salem.SWindow;
 
 public class Bootstrap implements UI.Receiver {
@@ -74,6 +77,14 @@ public class Bootstrap implements UI.Receiver {
 		ui = hp.newui(null);
 		ui.setreceiver(this);
 		ui.bind(new LoginScreen(ui.root), 1);
+		SChatWindow chat = new SChatWindow(new Coord(200, 200), new Coord (300, 200), ui.root);
+		chat.getChat().addMessage("Let me speak from my hearth!!11");
+		chat.getChat().addMessage("Раз два три четыре пять, вышел зайчик погулять, вдруг охотник выбегает - прямо в зайчика стреляет!");
+		chat.getChat().addMessage("jkdhjkasdlkldsajdkajdklasjdkadsdfsafhdilfkjsadjsdbfaklsdsnvaskjdsnjfkasdnskjbfasjfdnbsajkdajkdasjkdnasd");
+		for (int i = 0; i < 15; i++) {
+			chat.getChat().addMessage(i + " человек на сундук мертвеца!");
+		}
+		
 		String loginname = getpref("loginname", "");
 		boolean savepw = false;
 		byte[] token = null;
