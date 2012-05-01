@@ -52,6 +52,7 @@ public class SChat extends Widget {
 	
 	protected ArrayList<ChatLine> chatLines;
 	protected int firstLineIndex = 0;
+	protected boolean appendMode = true;
 	
 	public SChat(Coord c, Coord sz, Widget parent) {
 		super(c, sz, parent);
@@ -104,10 +105,11 @@ public class SChat extends Widget {
 	public void draw(GOut initialGL) {
 		super.draw(initialGL);
 		
-		int last = Math.min(firstLineIndex + getLinesCount(), chatLines.size() - 1);
+		int first = appendMode ? chatLines.size() - getLinesCount() + 1 : firstLineIndex;
+		int last = Math.min(first + getLinesCount(), chatLines.size() - 1);
 		
 		for (int i = firstLineIndex; i <= last; i++) {
-			chatLines.get(i).render(initialGL, new Coord(0, (int)((i - firstLineIndex) * chatLineBound.getHeight())));
+			chatLines.get(i).render(initialGL, new Coord(0, (int)((i - first) * chatLineBound.getHeight())));
 		}
 	}
 	
@@ -117,8 +119,10 @@ public class SChat extends Widget {
 			if (amount > 0) {
 				// Scroll down
 				if (firstLineIndex <= chatLines.size() - getLinesCount()) firstLineIndex++;
+				else appendMode = true;
 			} else {
 				// Scroll up
+				appendMode = false;
 				if (firstLineIndex > 0) firstLineIndex--;
 			}
 			return true;

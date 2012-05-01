@@ -18,4 +18,11 @@ public class SChatWindow extends SWindow {
 		return chatWidget;
 	}
 
+	@Override
+	public void wdgmsg(Widget sender, String msg, Object... args) {
+		if (sender == lineEdit) {
+			chatWidget.addMessage(lineEdit.getText());
+			lineEdit.clear();
+		} else super.wdgmsg(sender, msg, args);
+	}
 }

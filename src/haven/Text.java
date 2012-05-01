@@ -98,6 +98,10 @@ public class Text {
 			return font;
 		}
 		
+		public FontMetrics getFontMetrics() {
+			return m;
+		}
+		
 		public Foundry(Font f, Color defcol) {
 			font = f;
 			this.defcol = defcol;
@@ -106,7 +110,7 @@ public class Text {
 			tmpl.setFont(f);
 			m = tmpl.getFontMetrics();
 		}
-
+		
 		public Foundry(Font f) {
 			this(f, Color.WHITE);
 		}
