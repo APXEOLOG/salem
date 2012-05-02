@@ -32,6 +32,12 @@ import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 
 import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.SChat.AreaChatType;
+import org.apxeolog.salem.SChat.ChatType;
+import org.apxeolog.salem.SChat.PMChatType;
+import org.apxeolog.salem.SChat.PartyChatType;
+import org.apxeolog.salem.SChat.UndefinedChatType;
+import org.apxeolog.salem.SChat.VillageChatType;
 
 public class ChatUI extends Widget {
 	public static final RichText.Foundry fnd = new RichText.Foundry(
@@ -58,6 +64,7 @@ public class ChatUI extends Widget {
 	}
 
 	public static abstract class Channel extends Widget {
+		protected ChatType chatType;
 		public final List<Message> msgs = new LinkedList<Message>();
 		private final Scrollbar sb;
 
@@ -69,6 +76,14 @@ public class ChatUI extends Widget {
 			public abstract Coord sz();
 		}
 
+		public String name(int bid) {
+			BuddyWnd.Buddy b = getparent(GameUI.class).buddies.find(bid);
+			if (b == null)
+				return "???";
+			else
+				return b.name;
+		}
+		
 		public static class SimpleMessage extends Message {
 			private final Text t;
 
@@ -263,9 +278,23 @@ public class ChatUI extends Widget {
 			super(parent);
 			this.name = name;
 			this.notify = notify;
+			if (name.equals("Area Chat")) {
+				chatType = new AreaChatType();
+			} else if (name.equals("Village")) {
+				chatType = new VillageChatType();
+			} else {
+				chatType = new UndefinedChatType();
+			}
 		}
 
 		public void uimsg(String msg, Object... args) {
+			if (msg == "msg") {
+				int from = (Integer) args[0];
+				String line = (String) args[1];
+				if (from > 0) line = String.format("%s: %s", name(from), line);
+				getparent(GameUI.class).bdsChat.reciveMessage(this, line, chatType);
+			}
+			
 			if (msg == "msg") {
 				int from = (Integer) args[0];
 				String line = (String) args[1];
@@ -289,9 +318,18 @@ public class ChatUI extends Widget {
 	public static class PartyChat extends MultiChat {
 		public PartyChat(Widget parent) {
 			super(parent, "Party", true);
+			chatType = new PartyChatType();
 		}
 
 		public void uimsg(String msg, Object... args) {
+			if (msg == "msg") {
+				int from = (Integer) args[0];
+				//int gobid = (Integer) args[1];
+				String line = (String) args[2];
+				
+				if (from != 0) line = String.format("%s: %s", name(from), line);
+				getparent(GameUI.class).bdsChat.reciveMessage(this, line, chatType);
+			}
 			if (msg == "msg") {
 				int from = (Integer) args[0];
 				int gobid = (Integer) args[1];
@@ -331,9 +369,15 @@ public class ChatUI extends Widget {
 		public PrivChat(Widget parent, int other) {
 			super(parent);
 			this.other = other;
+			chatType = new PMChatType(name(other));
 		}
 
 		public void uimsg(String msg, Object... args) {
+			if (msg == "msg") {
+				//String t = (String) args[0];
+				String line = (String) args[1];
+				getparent(GameUI.class).bdsChat.reciveMessage(this, line, chatType);
+			}
 			if (msg == "msg") {
 				String t = (String) args[0];
 				String line = (String) args[1];

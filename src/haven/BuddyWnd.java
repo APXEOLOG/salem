@@ -87,7 +87,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
     
     public class Buddy {
 	int id;
-	String name;
+	public String name;
 	Text rname = null;
 	int online;
 	int group;

@@ -28,6 +28,8 @@ package haven;
 
 import java.util.*;
 
+import org.apxeolog.salem.ALS;
+
 public class Inventory extends Widget implements DTarget {
 	public static final Tex invsq = Resource.loadtex("gfx/hud/invsq");
 	public static final Tex refl = Resource.loadtex("gfx/hud/invref");
@@ -111,6 +113,62 @@ public class Inventory extends Widget implements DTarget {
 			isz = (Coord) args[0];
 			sz = invsq.sz().add(new Coord(-1, -1)).mul(isz)
 					.add(new Coord(1, 1));
+		}
+	}
+	
+	public void wdgmsg(Widget sender, String msg, Object... args) {
+		for (Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
+			if (wdg.visible && wdg instanceof WItem) {
+				ALS.alDebugPrint(((WItem)wdg).item.getResourceName());
+			}
+		}
+		if (msg.equals("drop_such_all")) {
+			for (Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
+				if (wdg.visible && wdg instanceof WItem) {
+					WItem buf = (WItem) wdg;
+					if ((buf.item.getResourceName().equals((String) args[0])))
+							buf.item.wdgmsg(buf.item, "drop", Coord.z);
+				}
+			}
+		} else if (msg.equals("transfer_such_all")) {
+			for (Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
+				if (wdg.visible && wdg instanceof WItem) {
+					WItem buf = (WItem) wdg;
+					if ((buf.item.getResourceName().equals((String) args[0])))
+							buf.item.wdgmsg(buf.item, "transfer", Coord.z);
+				}
+			}
+		} else if (msg.equals("transfer_such_all_ql")) {
+			List<WItem> il = new ArrayList<WItem>();
+			WItem.ItemQualityComparator comp = new WItem.ItemQualityComparator();
+			for (Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
+				if (wdg.visible && wdg instanceof WItem) {
+					if (((WItem) wdg).item.getResourceName().equals((String) args[0]))
+						il.add((WItem) wdg);
+				}
+			}
+			Collections.sort(il, comp);
+			for (int i = 0; i < il.size(); i++) {
+				WItem buf = il.get(i);
+				buf.item.wdgmsg(buf.item, "transfer", Coord.z);
+			}
+		} else if (msg.equals("transfer_such_all_qldesc")) {
+			List<WItem> il = new ArrayList<WItem>();
+			WItem.ItemQualityComparator comp = new WItem.ItemQualityComparator(
+					true);
+			for (Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
+				if (wdg.visible && wdg instanceof WItem) {
+					if (((WItem) wdg).item.getResourceName().equals((String) args[0]))
+						il.add((WItem) wdg);
+				}
+			}
+			Collections.sort(il, comp);
+			for (int i = 0; i < il.size(); i++) {
+				WItem buf = il.get(i);
+				buf.item.wdgmsg(buf.item, "transfer", Coord.z);
+			}
+		} else {
+			super.wdgmsg(sender, msg, args);
 		}
 	}
 }

@@ -31,39 +31,54 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
 public class Alchemy extends GItem.Tip {
-    public static final Color[] colors = {
-	new Color(255, 0, 0),
-	new Color(0, 255, 0),
-	new Color(0, 128, 255),
-	new Color(255, 255, 0),
-    };
-    public final int[] a;
-    
-    public enum Element {
-	SALT, MERC, SULF, LEAD
-    }
+	public static final Color[] colors = { new Color(255, 0, 0),
+			new Color(0, 255, 0), new Color(0, 128, 255),
+			new Color(255, 255, 0), };
+	public final int[] a;
 
-    public Alchemy(GItem item, int salt, int merc, int sulf, int lead) {
-	item.super();
-	this.a = new int[]{salt, merc, sulf, lead};
-    }
-    
-    public BufferedImage longtip() {
-	return(Text.std.renderf("Salt: %.2f, Mercury: %.2f, Sulphur: %.2f, Lead: %.2f", a[0] / 100.0, a[1] / 100.0, a[2] / 100.0, a[3] / 100.0).img);
-    }
-    
-    public BufferedImage smallmeter() {
-	BufferedImage buf = TexI.mkbuf(new Coord(50, 12));
-	Graphics g = buf.getGraphics();
-	for(int i = 0; i < 4; i++) {
-	    g.setColor(colors[i]);
-	    g.fillRect(0, i * 3, a[i] / 200, 3);
+	public enum Element {
+		SALT, MERC, SULF, LEAD
 	}
-	g.dispose();
-	return(buf);
-    }
-    
-    public String toString() {
-	return(String.format("%d-%d-%d-%d", a[0], a[1], a[2], a[3]));
-    }
+
+	public Alchemy(GItem item, int salt, int merc, int sulf, int lead) {
+		item.super();
+		this.a = new int[] { salt, merc, sulf, lead };
+	}
+
+	public BufferedImage longtip() {
+		return (Text.std.renderf(
+				"Salt: %.2f, Mercury: %.2f, Sulphur: %.2f, Lead: %.2f",
+				a[0] / 100.0, a[1] / 100.0, a[2] / 100.0, a[3] / 100.0).img);
+	}
+	
+	public double getPurity() {
+		double Salt = a[0] / 10000.0;
+		double Merc = a[1] / 10000.0;
+		double Sulp = a[2] / 10000.0;
+		double Lead = a[3] / 10000.0;
+		return ((Math.pow(Salt, 2) + Math.pow(Merc, 2) + Math.pow(Sulp, 2) + Math.pow(Lead, 2)) - 0.25) * (4 / 3) * 100;
+	}
+	
+	public double getMultiplier() {
+		double Salt = a[0] / 10000.0;
+		double Merc = a[1] / 10000.0;
+		double Sulp = a[2] / 10000.0;
+		double Lead = a[3] / 10000.0;
+		return (Math.pow(Salt, 2) + Math.pow(Merc, 2) + Math.pow(Sulp, 2) + Math.pow(Lead, 2)) * 12 - 2;
+	}
+
+	public BufferedImage smallmeter() {
+		BufferedImage buf = TexI.mkbuf(new Coord(50, 12));
+		Graphics g = buf.getGraphics();
+		for (int i = 0; i < 4; i++) {
+			g.setColor(colors[i]);
+			g.fillRect(0, i * 3, a[i] / 200, 3);
+		}
+		g.dispose();
+		return (buf);
+	}
+
+	public String toString() {
+		return (String.format("%d-%d-%d-%d", a[0], a[1], a[2], a[3]));
+	}
 }

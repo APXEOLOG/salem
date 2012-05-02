@@ -1,5 +1,6 @@
 package org.apxeolog.salem;
 
+import haven.ChatUI.Channel;
 import haven.Coord;
 import haven.GOut;
 import haven.Text;
@@ -18,19 +19,55 @@ public class SChat extends Widget {
 	public static Rectangle2D chatLineBound = chatFont.getStringBounds("TEST", chatFontContext);
 	public static Text.Foundry textFoundry = new Text.Foundry(chatFont);
 	
-	protected static abstract class ChatType {
-		public abstract Color getChatColor();
-		public abstract String getChatHeader();
+	public static class ChatType {
+		protected String chatHeader;
+		protected Color chatColor;
+		
+		public ChatType(String header, Color color) {
+			chatHeader = header;
+			chatColor = color;
+		}
+		
+		public void sendMessage(String message) {
+			
+		}
+		
+		public Color getChatColor() {
+			return chatColor;
+		}
+		
+		public String getChatHeader() {
+			return chatHeader;
+		}
 	}
 	
-	protected static class AreaChatType extends ChatType {
-		@Override
-		public Color getChatColor() {
-			return Color.WHITE;
+	public static class AreaChatType extends ChatType {
+		public AreaChatType() {
+			super("[Area]: ", Color.WHITE);
 		}
-		@Override
-		public String getChatHeader() {
-			return "[Area]: ";
+	}
+	
+	public static class VillageChatType extends ChatType {
+		public VillageChatType() {
+			super("[Village]: ", Color.GREEN);
+		}
+	}
+	
+	public static class PartyChatType extends ChatType {
+		public PartyChatType() {
+			super("[Party]: ", Color.BLUE);
+		}
+	}
+	
+	public static class PMChatType extends ChatType {
+		public PMChatType(String name) {
+			super("[" + name + "]: ", Color.PINK);
+		}
+	}
+	
+	public static class UndefinedChatType extends ChatType {
+		public UndefinedChatType() {
+			super("[Undefined]: ", Color.RED);
 		}
 	}
 	
@@ -59,11 +96,8 @@ public class SChat extends Widget {
 		chatLines = new ArrayList<ChatLine>();
 	}
 	
-	public void addMessage(String msg) {
-		addMessage(new AreaChatType(), msg);
-	}
-	
 	public void addMessage(ChatType type, String msg) {
+		ALS.alDebugPrint(msg);
 		// Add chat header
 		String text = type.getChatHeader() + msg;
 		int headerLength = type.getChatHeader().length();
@@ -92,7 +126,7 @@ public class SChat extends Widget {
 			}
 		}
 		if (translateXIndex < (text.length() - 1)) {
-			chatLines.add(new ChatLine(type, text.substring(translateXIndex, text.length() - 1), isHeader));
+			chatLines.add(new ChatLine(type, text.substring(translateXIndex, text.length()), isHeader));
 			if (isHeader) isHeader = false;
 		}
 	}

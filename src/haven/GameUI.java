@@ -26,16 +26,25 @@
 
 package haven;
 
-import java.util.*;
+import static haven.Inventory.invsq;
+
+import haven.BuddyWnd.Buddy;
+
 import java.awt.Color;
 import java.awt.event.KeyEvent;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.TreeMap;
 
+import org.apxeolog.salem.SChat.*;
 import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.SChatWindow;
 import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.SWidgetOptions;
 import org.apxeolog.salem.SWindow;
 
-import static haven.Inventory.invsq;
+import com.sun.xml.internal.bind.v2.runtime.Name;
 
 public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		Console.Directory {
@@ -68,6 +77,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public Belt beltwdg;
 	public String polowner;
 
+	/* APXEOLOG */
+	public SChatWindow bdsChat;
+	
+	
 	public abstract class Belt {
 		public abstract int draw(GOut g, int by);
 
@@ -105,6 +118,9 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		new Bufflist(new Coord(95, 50), this);
 		tm = new Tempers(Coord.z, this);
 		chat = new ChatUI(Coord.z, 0, this);
+		
+		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200), this);
+		
 		syslog = new ChatUI.Log(chat, "System");
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {
 			StringBuilder buf = new StringBuilder();
@@ -312,7 +328,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			chrwdg.hide();
 			return (chrwdg);
 		} else if (place == "chat") {
-			return (chat.makechild(type, new Object[] {}, cargs));
+			return chat.makechild(type, new Object[] {}, cargs);
 		} else if (place == "party") {
 			return (gettype(type).create(new Coord(10, 95), this, cargs));
 		} else if (place == "misc") {
