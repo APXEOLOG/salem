@@ -43,6 +43,7 @@ public class SMapper {
 		if (!mapRootDirectory.exists()) mapRootDirectory.mkdir();
 		dumpedGrids = new ArrayList<Coord>();
 		gridsToDump = new ConcurrentLinkedQueue<Pair<Coord, Coord>>();
+		
 		mapperThread = new Thread(HackThread.tg(), new Runnable() {
 			@Override
 			public void run() {
@@ -51,18 +52,18 @@ public class SMapper {
 					while ((entry = gridsToDump.poll()) != null) {
 						Grid gridToDump = null;
 						BufferedImage img = null;
-						synchronized (mapCache) {
-							while (gridToDump == null) {
-								try {
+						while (gridToDump == null || img == null) {
+							try {
+								synchronized (mapCache) {
 									gridToDump = mapCache.getgrid(entry.getKey());
 									img = gridToDump.getGridImage();
-								} catch (Loading ex) {
-									gridToDump = null;
-									try {
-										Thread.sleep(100);
-									} catch (InterruptedException e) {
-										
-									}
+								}
+							} catch (Loading ex) {
+								gridToDump = null;
+								try {
+									Thread.sleep(100);
+								} catch (InterruptedException e) {
+
 								}
 							}
 						}
@@ -71,7 +72,7 @@ public class SMapper {
 								imgName = String.format("tile_%d_%d.png", 
 										entry.getKey().sub(entry.getValue()).x,
 										entry.getKey().sub(entry.getValue()).y);
-							
+							ALS.alDebugPrint("imgName go to dump");
 							File outputFile = new File(currentSessionDirectory, imgName);
 							ImageIO.write(img, "PNG", outputFile);
 						} catch (IOException ex) {
@@ -100,12 +101,12 @@ public class SMapper {
 	
 	public void startNewSession(Coord playerRealCoords, MCache mCache) {
 		currentSessionStartGrid = playerRealCoords.div(tilesz).div(cmaps);
+		dumpedGrids.clear();
 		mapCache = mCache;
 		String sessionName = getCurrentDateTimeString(System.currentTimeMillis());
 		try {
 			currentSessionDirectory = new File(mapRootDirectory, sessionName);
 			if (!currentSessionDirectory.exists()) currentSessionDirectory.mkdir();
-			dumpedGrids.clear();
 			FileWriter sessionFile = new FileWriter(new File(mapRootDirectory, "currentsession.js"));
 			sessionFile.write("var currentSession = '" + sessionName + "';\n");
 			sessionFile.close();
@@ -119,7 +120,7 @@ public class SMapper {
 		if (isGridDumped(gridCoord)) return;
 
 		dumpedGrids.add(gridCoord);
-		gridsToDump.add(new Pair<Coord, Coord>(gridCoord, currentSessionStartGrid));
+		gridsToDump.add(new Pair<Coord, Coord>(gridCoord, new Coord(currentSessionStartGrid)));
 	}
 	
 	public static String getCurrentDateTimeString(long session) {

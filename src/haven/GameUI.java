@@ -212,8 +212,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow,
 					map);
 
-			mapmenu = new Widget(mmapWindow.c.add(0, -18), new Coord(
-					mmapWindow.sz.x, 18), this);
+			mapmenu = new Widget(new Coord(sz.x - 250, 5), new Coord(250, 18), this);
 			new MenuButton(new Coord(0, 0), mapmenu, "cla", -1,
 					"Display personal claims") {
 				boolean v = false;
@@ -648,9 +647,28 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				togglesdw = true;
 			}
 		};
-		menumenu = new Widget(Coord.z, new Coord(66, 33), this) {
+		menumenu = new Widget(Coord.z, new Coord(132, 33), this) {
 			public void draw(GOut g) {
-				draw(g, false);
+				super.draw(g);
+				try {
+					if (catk != null)
+						g.image(catk.get().layer(Resource.imgc).tex(),
+								new Coord(33, 0));
+				} catch (Loading e) {
+				}
+				try {
+					if (lblk != null) {
+						Tex t = lblk.get().layer(Resource.imgc).tex();
+						g.image(t, new Coord(99, 0));
+						g.chcolor(0, 255, 0, 128);
+						g.frect(new Coord(99, 0), t.sz());
+						g.chcolor();
+					} else if (dblk != null) {
+						g.image(dblk.get().layer(Resource.imgc).tex(),
+								new Coord(99, 0));
+					}
+				} catch (Loading e) {
+				}
 			}
 		};
 		new MenuButton(new Coord(0, 0), menumenu, "atk", 1,
@@ -659,7 +677,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				GameUI.this.wdgmsg("atkm");
 			}
 		};
-		new MenuButton(new Coord(33, 0), menumenu, "blk", 19,
+		new MenuButton(new Coord(66, 0), menumenu, "blk", 19,
 				"Toggle maneuver (Ctrl+S)") {
 			public void click() {
 				act("blk");

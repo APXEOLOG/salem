@@ -28,6 +28,7 @@ package haven;
 
 import java.lang.reflect.*;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import javax.jnlp.*;
 
@@ -50,6 +51,26 @@ public class JnlpCache implements ResCache {
 	} catch(Exception e) {
 	    return(null);
 	}
+    }
+    
+    public static URL getConfigPath() {
+		try {
+			Class<? extends ServiceManager> cl = Class.forName(
+					"javax.jnlp.ServiceManager").asSubclass(
+					ServiceManager.class);
+			Method m = cl.getMethod("lookup", String.class);
+			BasicService basic = (BasicService) m.invoke(null,
+					"javax.jnlp.BasicService");
+			PersistenceService prs = (PersistenceService) m.invoke(null,
+					"javax.jnlp.PersistenceService");
+			return basic.getCodeBase();
+		} catch (Exception e) {
+			try {
+				return new URL("");
+			} catch (MalformedURLException e1) {
+				return null;
+			}
+		}
     }
     
     private static String mangle(String nm) {

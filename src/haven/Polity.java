@@ -29,7 +29,9 @@ package haven;
 import java.awt.Color;
 import java.util.*;
 
-public class Polity extends Window {
+import org.apxeolog.salem.SWindow;
+
+public class Polity extends SWindow {
 	public final String name;
 	public int auth, acap, adrain;
 	public boolean offline;
