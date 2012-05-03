@@ -254,7 +254,7 @@ public class SWindow extends Widget {
 		windowBox.marginTop = windowHeader.sz.y;
 		loadPosition();
 		resize(sz);
-		setfocustab(true);
+		//setfocustab(true);
 		parent.setfocus(this);
 	}
 
@@ -284,7 +284,7 @@ public class SWindow extends Widget {
 	
 	@Override
 	public void unlink() {
-		//savePosition();
+		savePosition();
 		super.unlink();
 	}
     

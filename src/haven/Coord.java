@@ -175,7 +175,7 @@ public class Coord implements Comparable<Coord>, java.io.Serializable {
 		return new Coord(Math.abs(x), Math.abs(y));
 	}
 	
-	protected static final Pattern parseCoordPattern = Pattern.compile("\\(([\\d\\-]+), ([\\d\\-])+\\)");
+	protected static final Pattern parseCoordPattern = Pattern.compile("\\(([\\d\\-]+), ([\\d\\-]+)\\)");
 	
 	public static Coord fromString(String str) {
 		Matcher matcher = parseCoordPattern.matcher(str);

@@ -164,7 +164,7 @@ public class UI {
 	public boolean isRWidget(Widget wdg) {
 		return rwidgets.containsKey(wdg);
 	}
-	
+
 	private void removeid(Widget wdg) {
 		if (rwidgets.containsKey(wdg)) {
 			int id = rwidgets.get(wdg);
@@ -181,8 +181,8 @@ public class UI {
 		if ((keygrab != null) && keygrab.hasparent(wdg))
 			keygrab = null;
 		removeid(wdg);
-		wdg.destroy();
 		wdg.unlink();
+		wdg.destroy();
 	}
 
 	public void destroy(int id) {
@@ -208,15 +208,14 @@ public class UI {
 	}
 
 	public void uimsg(int id, String msg, Object... args) {
-		Widget wdg;
 		synchronized (this) {
-			wdg = widgets.get(id);
+			Widget wdg = widgets.get(id);
+			if (wdg != null)
+				wdg.uimsg(msg.intern(), args);
+			else
+				throw (new UIException("Uimsg to non-existent widget " + id,
+						msg, args));
 		}
-		if (wdg != null)
-			wdg.uimsg(msg.intern(), args);
-		else
-			throw (new UIException("Uimsg to non-existent widget " + id, msg,
-					args));
 	}
 
 	private void setmods(InputEvent ev) {

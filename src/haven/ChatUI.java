@@ -83,7 +83,7 @@ public class ChatUI extends Widget {
 			else
 				return b.name;
 		}
-		
+
 		public static class SimpleMessage extends Message {
 			private final Text t;
 
@@ -288,13 +288,15 @@ public class ChatUI extends Widget {
 		}
 
 		public void uimsg(String msg, Object... args) {
-			if (msg == "msg") {
-				int from = (Integer) args[0];
-				String line = (String) args[1];
-				if (from > 0) line = String.format("%s: %s", name(from), line);
-				getparent(GameUI.class).bdsChat.reciveMessage(this, line, chatType);
-			}
-			
+//			if (msg == "msg") {
+//				int from = (Integer) args[0];
+//				String line = (String) args[1];
+//				if (from > 0)
+//					line = String.format("%s: %s", name(from), line);
+//				getparent(GameUI.class).bdsChat.reciveMessage(this, line,
+//						chatType);
+//			}
+
 			if (msg == "msg") {
 				int from = (Integer) args[0];
 				String line = (String) args[1];
@@ -322,14 +324,16 @@ public class ChatUI extends Widget {
 		}
 
 		public void uimsg(String msg, Object... args) {
-			if (msg == "msg") {
-				int from = (Integer) args[0];
-				//int gobid = (Integer) args[1];
-				String line = (String) args[2];
-				
-				if (from != 0) line = String.format("%s: %s", name(from), line);
-				getparent(GameUI.class).bdsChat.reciveMessage(this, line, chatType);
-			}
+//			if (msg == "msg") {
+//				int from = (Integer) args[0];
+//				// int gobid = (Integer) args[1];
+//				String line = (String) args[2];
+//
+//				if (from != 0)
+//					line = String.format("%s: %s", name(from), line);
+//				getparent(GameUI.class).bdsChat.reciveMessage(this, line,
+//						chatType);
+//			}
 			if (msg == "msg") {
 				int from = (Integer) args[0];
 				int gobid = (Integer) args[1];
@@ -373,11 +377,12 @@ public class ChatUI extends Widget {
 		}
 
 		public void uimsg(String msg, Object... args) {
-			if (msg == "msg") {
-				//String t = (String) args[0];
-				String line = (String) args[1];
-				getparent(GameUI.class).bdsChat.reciveMessage(this, line, chatType);
-			}
+//			if (msg == "msg") {
+//				// String t = (String) args[0];
+//				String line = (String) args[1];
+//				getparent(GameUI.class).bdsChat.reciveMessage(this, line,
+//						chatType);
+//			}
 			if (msg == "msg") {
 				String t = (String) args[0];
 				String line = (String) args[1];
@@ -608,10 +613,13 @@ public class ChatUI extends Widget {
 		}
 	}
 
+	public static final Resource notifsfx = Resource.load("sfx/tick");
+
 	public void notify(Channel chan, Channel.Message msg) {
 		synchronized (notifs) {
 			notifs.addFirst(new Notification(chan, msg));
 		}
+		Audio.play(notifsfx);
 	}
 
 	public void newchild(Widget w) {

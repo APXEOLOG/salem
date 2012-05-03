@@ -66,6 +66,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public BuddyWnd buddies;
 	public CharWnd chrwdg;
 	public Polity polity;
+	public HelpWnd help;
 	public Collection<GItem> hand = new LinkedList<GItem>();
 	private WItem vhand;
 	public ChatUI chat;
@@ -74,13 +75,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	private boolean afk = false;
 	@SuppressWarnings("unchecked")
 	public Indir<Resource>[] belt = new Indir[144];
+	public Indir<Resource> lblk, dblk, catk;
 	public Belt beltwdg;
 	public String polowner;
 
 	/* APXEOLOG */
-	public SChatWindow bdsChat;
-	
-	
+	//public SChatWindow bdsChat;
+
 	public abstract class Belt {
 		public abstract int draw(GOut g, int by);
 
@@ -118,9 +119,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		new Bufflist(new Coord(95, 50), this);
 		tm = new Tempers(Coord.z, this);
 		chat = new ChatUI(Coord.z, 0, this);
-		
-		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200), this);
-		
+
+//		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
+//				this);
+
 		syslog = new ChatUI.Log(chat, "System");
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {
 			StringBuilder buf = new StringBuilder();
@@ -202,19 +204,16 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				ui.destroy(mmap);
 				ui.destroy(mapmenu);
 			}
-			
+
 			// Minimap
-			SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18), new Coord(250, 250), this, "Minimap");
+			SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18),
+					new Coord(250, 250), this, "Minimap");
 			mmapWindow.setClosable(false);
-			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow, map);
-			
-			
-			mapmenu = new Widget(mmapWindow.c.add(0, -18), new Coord(mmapWindow.sz.x, 18),
-					this) {
-				public void draw(GOut g) {
-					draw(g, false);
-				}
-			};
+			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow,
+					map);
+
+			mapmenu = new Widget(mmapWindow.c.add(0, -18), new Coord(
+					mmapWindow.sz.x, 18), this);
 			new MenuButton(new Coord(0, 0), mapmenu, "cla", -1,
 					"Display personal claims") {
 				boolean v = false;
@@ -293,7 +292,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (g);
 		} else if (place == "craft") {
 			final Widget[] mk = { null };
-			makewnd = new SWindow(new Coord(200, 100), Coord.z, this, "Crafting") {
+			makewnd = new SWindow(new Coord(200, 100), Coord.z, this,
+					"Crafting") {
 				public void wdgmsg(Widget sender, String msg, Object... args) {
 					if ((sender == this) && msg.equals("close")) {
 						mk[0].wdgmsg("close");
@@ -470,6 +470,21 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				}
 				polowner = o;
 			}
+		} else if (msg == "dblk") {
+			int id = (Integer) args[0];
+			dblk = (id < 0) ? null : (ui.sess.getres(id));
+		} else if (msg == "lblk") {
+			int id = (Integer) args[0];
+			lblk = (id < 0) ? null : (ui.sess.getres(id));
+		} else if (msg == "catk") {
+			int id = (Integer) args[0];
+			catk = (id < 0) ? null : (ui.sess.getres(id));
+		} else if (msg == "showhelp") {
+			Indir<Resource> res = ui.sess.getres((Integer) args[0]);
+			if (help == null)
+				help = new HelpWnd(sz.div(2).sub(150, 200), this, res);
+			else
+				help.res = res;
 		} else {
 			super.uimsg(msg, args);
 		}
@@ -485,6 +500,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			polity.hide();
 		} else if ((sender == chrwdg) && (msg == "close")) {
 			chrwdg.hide();
+		} else if ((sender == help) && (msg == "close")) {
+			ui.destroy(help);
+			help = null;
+			return;
 		}
 		super.wdgmsg(sender, msg, args);
 	}
@@ -699,13 +718,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	}
 
 	public boolean mousedown(Coord c, int button) {
-		if (beltwdg.click(c, button))
+		if (showbeltp() && beltwdg.click(c, button))
 			return (true);
 		return (super.mousedown(c, button));
 	}
 
 	public boolean drop(Coord cc, Coord ul) {
-		return (beltwdg.item(cc));
+		return (showbeltp() && beltwdg.item(cc));
 	}
 
 	public boolean iteminteract(Coord cc, Coord ul) {
@@ -713,7 +732,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	}
 
 	public boolean dropthing(Coord c, Object thing) {
-		return (beltwdg.thing(c, thing));
+		return (showbeltp() && beltwdg.thing(c, thing));
 	}
 
 	public void resize(Coord sz) {
@@ -727,10 +746,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			gobble.c = new Coord((sz.x - gobble.sz.x) / 2, 0);
 		if (map != null)
 			map.resize(sz);
-		
+
 		if (mmap != null)
 			mmap.parent.c = new Coord(sz.x - 250, 18);
-		
+
 		if (mapmenu != null)
 			mapmenu.c = mmap.c.add(0, -18);
 		if (fv != null)

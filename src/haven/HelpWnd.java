@@ -26,48 +26,37 @@
 
 package haven;
 
-public class RemoteUI implements UI.Receiver {
-	Session sess;
-	UI ui;
+import org.apxeolog.salem.SWindow;
 
-	public RemoteUI(Session sess) {
-		this.sess = sess;
-		Widget.initbardas();
+public class HelpWnd extends SWindow {
+    public static final RichText.Foundry fnd;
+    public Indir<Resource> res;
+    private Indir<Resource> showing = null;
+    private final RichTextBox text;
+    
+    static {
+	fnd = new RichText.Foundry();
+	fnd.aa = true;
+    }
+    
+    public HelpWnd(Coord c, Widget parent, Indir<Resource> res) {
+	super(c, new Coord(300, 430), parent, "Help");
+	this.res = res;
+	this.text = new RichTextBox(Coord.z, new Coord(300, 400), this, "", fnd);
+	new Button(new Coord(100, 410), 100, this, "Dismiss") {
+	    public void click() {
+		HelpWnd.this.wdgmsg("close");
+	    }
+	};
+    }
+    
+    public void tick(double dt) {
+	super.tick(dt);
+	if(res != showing) {
+	    try {
+		text.settext(res.get().layer(Resource.pagina).text);
+		showing = res;
+	    } catch(Loading e) {}
 	}
-
-	public void rcvmsg(int id, String name, Object... args) {
-		Message msg = new Message(Message.RMSG_WDGMSG);
-		msg.adduint16(id);
-		msg.addstring(name);
-		msg.addlist(args);
-		sess.queuemsg(msg);
-	}
-
-	public void run(UI ui) throws InterruptedException {
-		this.ui = ui;
-		ui.setreceiver(this);
-		while (true) {
-			Message msg;
-			while ((msg = sess.getuimsg()) != null) {
-				if (msg.type == Message.RMSG_NEWWDG) {
-					int id = msg.uint16();
-					String type = msg.string();
-					int parent = msg.uint16();
-					Object[] pargs = msg.list();
-					Object[] cargs = msg.list();
-					ui.newwidget(id, type, parent, pargs, cargs);
-				} else if (msg.type == Message.RMSG_WDGMSG) {
-					int id = msg.uint16();
-					String name = msg.string();
-					ui.uimsg(id, name, msg.list());
-				} else if (msg.type == Message.RMSG_DSTWDG) {
-					int id = msg.uint16();
-					ui.destroy(id);
-				}
-			}
-			synchronized (sess) {
-				sess.wait();
-			}
-		}
-	}
+    }
 }

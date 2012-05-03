@@ -8,6 +8,7 @@ import haven.Loading;
 import haven.MCache;
 import haven.MCache.Grid;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -49,10 +50,12 @@ public class SMapper {
 					Pair<Coord, Coord> entry;
 					while ((entry = gridsToDump.poll()) != null) {
 						Grid gridToDump = null;
+						BufferedImage img = null;
 						synchronized (mapCache) {
 							while (gridToDump == null) {
 								try {
 									gridToDump = mapCache.getgrid(entry.getKey());
+									img = gridToDump.getGridImage();
 								} catch (Loading ex) {
 									gridToDump = null;
 									try {
@@ -70,7 +73,7 @@ public class SMapper {
 										entry.getKey().sub(entry.getValue()).y);
 							
 							File outputFile = new File(currentSessionDirectory, imgName);
-							ImageIO.write(gridToDump.getGridImage(), "PNG", outputFile);
+							ImageIO.write(img, "PNG", outputFile);
 						} catch (IOException ex) {
 
 						}

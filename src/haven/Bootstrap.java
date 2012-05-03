@@ -77,7 +77,7 @@ public class Bootstrap implements UI.Receiver {
 		ui = hp.newui(null);
 		ui.setreceiver(this);
 		ui.bind(new LoginScreen(ui.root), 1);
-		new SChatWindow(new Coord(100, 100), new Coord(300, 250), ui.root);
+		//new SChatWindow(new Coord(100, 100), new Coord(300, 250), ui.root);
 		String loginname = getpref("loginname", "");
 		boolean savepw = false;
 		byte[] token = null;
