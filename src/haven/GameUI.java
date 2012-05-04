@@ -193,6 +193,19 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			vhand = new ItemDrag(new Coord(15, 15), this, fi);
 		}
 	}
+	
+	public void openBackpack() {
+		if (equwnd != null) {
+			Equipory eq = equwnd.findchild(Equipory.class);
+			if (eq != null) {
+				for (GItem item : eq.getGItems()) {
+					if (item.getResourceName().contains("gfx/invobjs/backpack")) {
+						item.wdgmsg("iact", Coord.z);
+					}
+				}
+			}
+		}
+	}
 
 	public Widget makechild(String type, Object[] pargs, Object[] cargs) {
 		String place = ((String) pargs[0]).intern();
@@ -271,8 +284,16 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 					new Coord(sz.x - Fightview.width, 0), this, cargs);
 			return (fv);
 		} else if (place == "inv") {
-			invwnd = new Hidewnd(new Coord(100, 100), Coord.z, this,
-					"Inventory");
+			invwnd = new Hidewnd(new Coord(100, 100), Coord.z, this, "Inventory") {
+				@Override
+				public void wdgmsg(String msg, Object... args) {
+					if (msg.equals("inv_openbp")) {
+						openBackpack();
+					} else super.wdgmsg(msg, args);
+				}
+			};
+			invwnd.createPictButton(Resource.loadimg("apx/gfx/hud/close-button"), "inv_openbp");
+			
 			Widget inv = gettype(type).create(Coord.z, invwnd, cargs);
 			invwnd.pack();
 			invwnd.hide();

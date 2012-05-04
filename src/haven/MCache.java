@@ -112,6 +112,8 @@ public class MCache {
 		public final long id;
 		String mnm;
 		protected BufferedImage gridImage;
+		public boolean loaded = false;
+		protected boolean rendered = false;
 		
 		private class Flavobj extends Gob {
 			private Flavobj(Coord c, double a) {
@@ -131,6 +133,7 @@ public class MCache {
 			this.gc = gc;
 			this.ul = gc.mul(cmaps);
 			this.id = id;
+			loaded = false;
 		}
 
 		public int gettile(Coord tc) {
@@ -229,7 +232,9 @@ public class MCache {
 		}
 		
 		public BufferedImage getGridImage() {
-			if (gridImage != null) return gridImage;
+			if (rendered) return gridImage;
+			
+			if (!loaded) throw new Loading();
 			
 			gridImage = TexI.mkbuf(cmaps);
 			
@@ -254,7 +259,7 @@ public class MCache {
 						gridImage.setRGB(c.x, c.y, Color.BLACK.getRGB());
 				}
 			}
-			
+			rendered = true;
 			return gridImage;
 		}
 	}
@@ -438,6 +443,7 @@ public class MCache {
 					if (grids.remove(c) == cached)
 						cached = null;
 					grids.put(c, g);
+					g.loaded = true;
 					for (Coord ic : new Coord[] { new Coord(-1, -1),
 							new Coord(0, -1), new Coord(1, -1),
 							new Coord(-1, 0), new Coord(1, 0),

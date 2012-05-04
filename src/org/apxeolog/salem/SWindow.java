@@ -12,6 +12,7 @@ import haven.Window;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class SWindow extends Widget {
@@ -38,6 +39,34 @@ public class SWindow extends Widget {
 		@Override
 		public void click() {
 			wdgmsg("swindow_close");
+		}
+	}
+	
+	public static class SPictButtonSingle extends SPictButton {
+		protected Tex buttonTex;
+		protected String buttonAction;
+		
+		public SPictButtonSingle(Widget parent, BufferedImage img, String action) {
+			super(Coord.z, Coord.z, parent);
+			buttonTex = new TexI(img);
+			sz = buttonTex.sz();
+			buttonAction = action;
+		}
+		
+		@Override
+		public void draw(GOut g) {
+			g.chcolor(0, 0, 0, 255);
+			g.frect(Coord.z, sz);
+			g.chcolor();
+			g.image(buttonTex, new Coord(2, 2));
+			g.chcolor(255, 255, 255, 255);
+			g.rect(Coord.z, sz.add(1, 1));
+			super.draw(g);
+		}
+		
+		@Override
+		public void click() {
+			wdgmsg(buttonAction);
 		}
 	}
 	
@@ -136,6 +165,12 @@ public class SWindow extends Widget {
 		protected Coord textSize() {
 			if (headerText != null) return headerText.sz().add(10, 0);
 			else return minimalHeaderSize;
+		}
+		
+		public SPictButton createPictButton(BufferedImage img, String action) {
+			SPictButtonSingle single = new SPictButtonSingle(this, img, action);
+			addPictControl(single);
+			return single;
 		}
 		
 		public void addPictControl(SPictButton btn) {
@@ -398,6 +433,14 @@ public class SWindow extends Widget {
 		} else {
 			super.mousemove(c);
 		}
+	}
+	
+	public void addPictButton(SPictButton btn) {
+		windowHeader.addPictControl(btn);
+	}
+	
+	public SPictButton createPictButton(BufferedImage img, String action) {
+		return windowHeader.createPictButton(img, action);
 	}
 
 	public void wdgmsg(Widget sender, String msg, Object... args) {

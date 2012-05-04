@@ -27,99 +27,93 @@
 package haven;
 
 import java.util.*;
+
 import static haven.Inventory.invsq;
 
 public class Equipory extends Widget implements DTarget {
-    static Coord ecoords[] = {
-	new Coord(0, 0),
-	new Coord(299, 0),
-	new Coord(0, 33),
-	new Coord(299, 33),
-	new Coord(0, 66),
-	new Coord(299, 66),
-	new Coord(0, 99),
-	new Coord(299, 99),
-	new Coord(0, 132),
-	new Coord(299, 132),
-	new Coord(0, 165),
-	new Coord(299, 165),
-	new Coord(0, 198),
-	new Coord(299, 198),
-	new Coord(0, 231),
-	new Coord(299, 231),
-    };
-    static Coord isz;
-    static {
-	isz = new Coord();
-	for(Coord ec : ecoords) {
-	    if(ec.x + invsq.sz().x > isz.x)
-		isz.x = ec.x + invsq.sz().x;
-	    if(ec.y + invsq.sz().y > isz.y)
-		isz.y = ec.y + invsq.sz().y;
-	}
-    }
-    Map<GItem, WItem[]> wmap = new HashMap<GItem, WItem[]>();
-	
-    static {
-	Widget.addtype("epry", new WidgetFactory() {
-		public Widget create(Coord c, Widget parent, Object[] args) {
-		    return(new Equipory(c, parent));
+	static Coord ecoords[] = { new Coord(0, 0), new Coord(299, 0),
+			new Coord(0, 33), new Coord(299, 33), new Coord(0, 66),
+			new Coord(299, 66), new Coord(0, 99), new Coord(299, 99),
+			new Coord(0, 132), new Coord(299, 132), new Coord(0, 165),
+			new Coord(299, 165), new Coord(0, 198), new Coord(299, 198),
+			new Coord(0, 231), new Coord(299, 231), };
+	static Coord isz;
+	static {
+		isz = new Coord();
+		for (Coord ec : ecoords) {
+			if (ec.x + invsq.sz().x > isz.x)
+				isz.x = ec.x + invsq.sz().x;
+			if (ec.y + invsq.sz().y > isz.y)
+				isz.y = ec.y + invsq.sz().y;
 		}
-	    });
-    }
+	}
+	Map<GItem, WItem[]> wmap = new HashMap<GItem, WItem[]>();
+
+	static {
+		Widget.addtype("epry", new WidgetFactory() {
+			public Widget create(Coord c, Widget parent, Object[] args) {
+				return (new Equipory(c, parent));
+			}
+		});
+	}
 	
-    public Equipory(Coord c, Widget parent) {
-	super(c, isz, parent);
-	Avaview ava = new Avaview(new Coord(34, 0), new Coord(265, 265), this, getparent(GameUI.class).plid, "equcam") {
-		public boolean mousedown(Coord c, int button) {
-		    return(false);
+	public Set<GItem> getGItems() {
+		return wmap.keySet();
+	}
+
+	public Equipory(Coord c, Widget parent) {
+		super(c, isz, parent);
+		Avaview ava = new Avaview(new Coord(34, 0), new Coord(265, 265), this,
+				getparent(GameUI.class).plid, "equcam") {
+			public boolean mousedown(Coord c, int button) {
+				return (false);
+			}
+		};
+		ava.color = null;
+	}
+
+	public Widget makechild(String type, Object[] pargs, Object[] cargs) {
+		Widget ret = gettype(type).create(Coord.z, this, cargs);
+		if (ret instanceof GItem) {
+			GItem g = (GItem) ret;
+			WItem[] v = new WItem[pargs.length];
+			for (int i = 0; i < pargs.length; i++) {
+				int ep = (Integer) pargs[i];
+				v[i] = new WItem(ecoords[ep].add(1, 1), this, g);
+			}
+			wmap.put(g, v);
 		}
-	    };
-	ava.color = null;
-    }
-	
-    public Widget makechild(String type, Object[] pargs, Object[] cargs) {
-	Widget ret = gettype(type).create(Coord.z, this, cargs);
-	if(ret instanceof GItem) {
-	    GItem g = (GItem)ret;
-	    WItem[] v = new WItem[pargs.length];
-	    for(int i = 0; i < pargs.length; i++) {
-		int ep = (Integer)pargs[i];
-		v[i] = new WItem(ecoords[ep].add(1, 1), this, g);
-	    }
-	    wmap.put(g, v);
+		return (ret);
 	}
-	return(ret);
-    }
-    
-    public void cdestroy(Widget w) {
-	super.cdestroy(w);
-	if(w instanceof GItem) {
-	    GItem i = (GItem)w;
-	    for(WItem v : wmap.remove(i))
-		ui.destroy(v);
+
+	public void cdestroy(Widget w) {
+		super.cdestroy(w);
+		if (w instanceof GItem) {
+			GItem i = (GItem) w;
+			for (WItem v : wmap.remove(i))
+				ui.destroy(v);
+		}
 	}
-    }
-    
-    public boolean drop(Coord cc, Coord ul) {
-	ul = ul.add(invsq.sz().div(2));
-	for(int i = 0; i < ecoords.length; i++) {
-	    if(ul.isect(ecoords[i], invsq.sz())) {
-		wdgmsg("drop", i);
-		return(true);
-	    }
+
+	public boolean drop(Coord cc, Coord ul) {
+		ul = ul.add(invsq.sz().div(2));
+		for (int i = 0; i < ecoords.length; i++) {
+			if (ul.isect(ecoords[i], invsq.sz())) {
+				wdgmsg("drop", i);
+				return (true);
+			}
+		}
+		wdgmsg("drop", -1);
+		return (true);
 	}
-	wdgmsg("drop", -1);
-	return(true);
-    }
-    
-    public void draw(GOut g) {
-	for(Coord ec : ecoords)
-	    invsq(g, ec);
-	super.draw(g);
-    }
-	
-    public boolean iteminteract(Coord cc, Coord ul) {
-	return(false);
-    }
+
+	public void draw(GOut g) {
+		for (Coord ec : ecoords)
+			invsq(g, ec);
+		super.draw(g);
+	}
+
+	public boolean iteminteract(Coord cc, Coord ul) {
+		return (false);
+	}
 }

@@ -32,6 +32,7 @@ import static haven.MCache.tilesz;
 import haven.MCache.Grid;
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -39,6 +40,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SMapper;
 import org.apxeolog.salem.SUtils;
 
@@ -46,25 +49,18 @@ import com.sun.corba.se.impl.ior.ByteBuffer;
 
 public class LocalMiniMap extends Widget {
 	public final MapView mv;
-	private MapTile cur = null;
 	
-	@SuppressWarnings("serial")
-	private final Map<Coord, Defer.Future<MapTile>> cache = new LinkedHashMap<Coord, Defer.Future<MapTile>>(
-			5, 0.75f, true) {
-		protected boolean removeEldestEntry(
-				Map.Entry<Coord, Defer.Future<MapTile>> eldest) {
-			if (size() > 5) {
-				try {
-					MapTile t = eldest.getValue().get();
-					t.img.dispose();
-				} catch (RuntimeException e) {
-				}
-				return (true);
-			}
-			return (false);
-		}
-	};
-
+	protected boolean isPressed = false;
+	public boolean requestedMarkerSet = false;
+	protected boolean dragMode = false;
+	
+	protected Coord mapCenterTranslation = Coord.z;
+	protected Coord dragOffset = c;
+	protected Coord sizeBuffer = sz;
+	protected Coord transBuffer = Coord.z;
+	
+	protected double scale = 1.0;
+	
 	public static class MapTile {
 		public final Tex img;
 		public final Coord ul, c;
@@ -76,116 +72,114 @@ public class LocalMiniMap extends Widget {
 		}
 	}
 
-	public BufferedImage drawmap(Coord ul, Coord sz, boolean simple) {
-		MCache m = ui.sess.glob.map;
-		BufferedImage buf = TexI.mkbuf(sz);
-		Coord c = new Coord();
-		Coord ulb = simple ? Coord.z : ul;
-		for (c.y = 0; c.y < sz.y; c.y++) {
-			for (c.x = 0; c.x < sz.x; c.x++) {
-				int t = m.gettile(ul.add(c));
-				BufferedImage tex = m.tileimg(t);
-				if (tex != null)
-					buf.setRGB(c.x, c.y, tex.getRGB(
-							Utils.floormod(c.x + ulb.x, tex.getWidth()),
-							Utils.floormod(c.y + ulb.y, tex.getHeight())));
-			}
-		}
-		for (c.y = 0; c.y < sz.y; c.y++) {
-			for (c.x = 0; c.x < sz.x; c.x++) {
-				int t = m.gettile(ul.add(c));
-				if ((m.gettile(ul.add(c).add(-1, 0)) > t)
-						|| (m.gettile(ul.add(c).add(1, 0)) > t)
-						|| (m.gettile(ul.add(c).add(0, -1)) > t)
-						|| (m.gettile(ul.add(c).add(0, 1)) > t))
-					buf.setRGB(c.x, c.y, Color.BLACK.getRGB());
-			}
-		}
-		return (buf);
-	}
-
 	public LocalMiniMap(Coord c, Coord sz, Widget parent, MapView mv) {
 		super(c, sz, parent);
 		this.mv = mv;
 	}
 
-	public void draw(GOut g) {
+	public void draw(GOut og) {
 		Gob pl = ui.sess.glob.oc.getgob(mv.plgob);
-		if (pl == null)
-			return;
-		final Coord plt = pl.rc.div(tilesz);
-		final Coord plg = plt.div(cmaps);
+		if (pl == null) return;
 		
 		SMapper.getInstance().checkMapperSession(pl.rc, ui.sess.glob.map);
 		
-		if ((cur == null) || !plg.equals(cur.c)) {
-			Defer.Future<MapTile> f;
-			synchronized (cache) {
-				f = cache.get(plg);
-				if (f == null) {
-					final Coord ul = plg.mul(cmaps).sub(cmaps).add(1, 1);
-					f = Defer.later(new Defer.Callable<MapTile>() {
-						public MapTile call() {
-							for (int i = -1; i < 2; i++)
-								for (int j = -1; j < 2; j++)
-									SMapper.getInstance().dumpMinimap(plg.add(i, j));
-							
-							BufferedImage img = drawmap(ul, cmaps.mul(3).sub(2, 2), false);
-							return (new MapTile(new TexI(img), ul, plg));
-						}
-					});
-					cache.put(plg, f);
+		Coord hsz = sz.div(scale);
+		Coord translatedTile = pl.rc.div(tilesz).sub(mapCenterTranslation); // Center
+		final Coord centralGrid = translatedTile.div(cmaps);
+		Coord numGrids = hsz.div(cmaps).add(1, 1);
+		Coord upperLeftGrid = centralGrid.sub(numGrids.div(2));
+		
+		GOut g = og.reclip(og.ul.mul((1 - scale) / scale), hsz);
+		g.gl.glPushMatrix();
+		g.scale(scale);
+		
+		for (int i = 0; i < numGrids.x; i++) {
+			for (int j = 0; j < numGrids.y; j++) {
+				Coord curGrid = upperLeftGrid.add(i, j);
+				MapTile tile = null;
+				if ((tile = SMapper.getInstance().getCachedTile(curGrid)) != null) {
+					Coord c = tile.ul.mul(cmaps).sub(translatedTile).add(hsz.div(2));
+					g.image(tile.img, c);
+				} else {
+					SMapper.getInstance().dumpMinimap(curGrid);
 				}
 			}
-			if (f.done())
-				cur = f.get();
 		}
-		if (cur != null) {
-			g.image(cur.img, cur.ul.sub(plt).add(sz.div(2)));
-			try {
-				
-				SUtils.drawMinimapGob(g, mv, plt, sz);
-				
-				synchronized (ui.sess.glob.party.memb) {
-					for (Party.Member m : ui.sess.glob.party.memb.values()) {
-						Coord ptc;
-						try {
-							ptc = m.getc();
-						} catch (MCache.LoadingMap e) {
-							ptc = null;
-						}
-						if (ptc == null)
-							continue;
-						ptc = ptc.div(tilesz).sub(plt).add(sz.div(2));
-						g.chcolor(m.col.getRed(), m.col.getGreen(),
-								m.col.getBlue(), 255);
-						g.image(MiniMap.plx.layer(Resource.imgc).tex(), ptc
-								.add(MiniMap.plx.layer(Resource.negc).cc.inv()));
-						g.chcolor();
+		g.gl.glPopMatrix();
+		try {
+			SUtils.drawMinimapGob(og, mv, translatedTile, hsz);
+			synchronized (ui.sess.glob.party.memb) {
+				for (Party.Member m : ui.sess.glob.party.memb.values()) {
+					Coord ptc;
+					try {
+						ptc = m.getc();
+					} catch (MCache.LoadingMap e) {
+						ptc = null;
 					}
+					if (ptc == null)
+						continue;
+					ptc = ptc.div(tilesz).sub(translatedTile).add(hsz.div(2));
+					g.chcolor(m.col.getRed(), m.col.getGreen(),
+							m.col.getBlue(), 255);
+					g.image(MiniMap.plx.layer(Resource.imgc).tex(),
+							ptc.add(MiniMap.plx.layer(Resource.negc).cc.inv()));
+					g.chcolor();
 				}
-				
-			} catch (Loading l) {
 			}
+		} catch (Loading l) {
 		}
+		super.draw(og);
 	}
 	
-	protected boolean isPressed = false;
-	public boolean requestedMarkerSet = false;
+
 	
 	public boolean mousedown(Coord c, int button) {
+		parent.setfocus(this);
+		raise();
+
+		if (super.mousedown(c, button))
+			return true;
+
 		isPressed = true;
+		if (button == 1) {
+			ui.grabmouse(this);
+			dragMode = true;
+			dragOffset = c;
+			sizeBuffer = sz;
+		}
 		return true;
 	}
 
 	public boolean mouseup(Coord c, int button) {
 		if (isPressed) {
-			isPressed = false;
 			if (c.isect(Coord.z, sz))
 				click(c, button);
-			return true;
+			isPressed = false;
 		}
-		return false;
+		if (dragMode) {
+			ui.grabmouse(null);
+			dragMode = false;
+			transBuffer = mapCenterTranslation;
+		} else {
+			super.mouseup(c, button);
+		}
+		return true;
+	}
+	
+	public void mousemove(Coord c) {
+		if (dragMode) {
+			mapCenterTranslation = transBuffer.add(c.add(dragOffset.inv()));
+			//sz = szbuf.add(c.add(doff.inv()));
+			//parent.resize(sz);
+		} else {
+			super.mousemove(c);
+		}
+	}
+	
+	@Override
+	public boolean mousewheel(Coord c, int amount) {
+		scale += -((double)amount / 10);
+		return true;
 	}
 	
 	public Coord localToReal(Coord local) {

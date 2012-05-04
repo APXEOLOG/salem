@@ -317,6 +317,10 @@ public class GOut {
 		return (g);
 	}
 
+	public void scale(double d) {
+		gl.glScaled(d, d, d);
+	}
+	
 	public Color getpixel(Coord c) {
 		IntBuffer tgt = ByteBuffer.allocateDirect(4)
 				.order(ByteOrder.nativeOrder()).asIntBuffer();

@@ -20,7 +20,8 @@ import java.util.Properties;
  *
  */
 public class HConfig {
-	public static boolean cl_no_minimap_chache_limit = false;
+	public static boolean cl_no_minimap_chache_limit = true;
+	public static boolean cl_dump_minimaps = true;
 	
 	private static Properties configFile = new Properties();
 	private static HashMap<String, String> additionTokens= new HashMap<String, String>();

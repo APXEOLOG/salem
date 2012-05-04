@@ -5,8 +5,10 @@ import static haven.MCache.tilesz;
 import haven.Coord;
 import haven.HackThread;
 import haven.Loading;
+import haven.LocalMiniMap.MapTile;
 import haven.MCache;
 import haven.MCache.Grid;
+import haven.TexI;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -15,6 +17,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.imageio.ImageIO;
@@ -34,15 +37,18 @@ public class SMapper {
 	protected Coord currentSessionStartGrid = null;
 	protected Coord lastPlayerRealCoords = Coord.z;
 	protected ArrayList<Coord> dumpedGrids;
-	protected ConcurrentLinkedQueue<Pair<Coord, Coord>> gridsToDump;
 	
 	protected Thread mapperThread;
+	
+	protected ConcurrentLinkedQueue<Pair<Coord, Coord>> gridsToDump;
+	protected HashMap<Coord, MapTile> cache;
 	
 	private SMapper() {
 		mapRootDirectory = new File("map");
 		if (!mapRootDirectory.exists()) mapRootDirectory.mkdir();
 		dumpedGrids = new ArrayList<Coord>();
 		gridsToDump = new ConcurrentLinkedQueue<Pair<Coord, Coord>>();
+		cache = new HashMap<Coord, MapTile>();
 		
 		mapperThread = new Thread(HackThread.tg(), new Runnable() {
 			@Override
@@ -67,16 +73,20 @@ public class SMapper {
 								}
 							}
 						}
-						try {
-							String imgName;
-								imgName = String.format("tile_%d_%d.png", 
-										entry.getKey().sub(entry.getValue()).x,
-										entry.getKey().sub(entry.getValue()).y);
-							ALS.alDebugPrint("imgName go to dump");
-							File outputFile = new File(currentSessionDirectory, imgName);
-							ImageIO.write(img, "PNG", outputFile);
-						} catch (IOException ex) {
-
+						if (HConfig.cl_dump_minimaps) {
+							try {
+								String imgName;
+									imgName = String.format("tile_%d_%d.png", 
+											entry.getKey().sub(entry.getValue()).x,
+											entry.getKey().sub(entry.getValue()).y);
+								File outputFile = new File(currentSessionDirectory, imgName);
+								ImageIO.write(img, "PNG", outputFile);
+							} catch (IOException ex) {
+	
+							}
+						}
+						synchronized (cache) {
+							cache.put(entry.getKey(), new MapTile(new TexI(img), entry.getKey(), Coord.z));
 						}
 					}
 					try {
@@ -88,6 +98,12 @@ public class SMapper {
 			}
 		});
 		mapperThread.start();
+	}
+	
+	public MapTile getCachedTile(Coord gridCoord) {
+		synchronized (cache) {
+			return cache.get(gridCoord);
+		}
 	}
 	
 	public boolean isGridDumped(Coord grid) {
@@ -102,6 +118,9 @@ public class SMapper {
 	public void startNewSession(Coord playerRealCoords, MCache mCache) {
 		currentSessionStartGrid = playerRealCoords.div(tilesz).div(cmaps);
 		dumpedGrids.clear();
+		synchronized (cache) {
+			cache.clear();
+		}
 		mapCache = mCache;
 		String sessionName = getCurrentDateTimeString(System.currentTimeMillis());
 		try {
@@ -118,7 +137,9 @@ public class SMapper {
 	public synchronized void dumpMinimap(Coord gridCoord) {
 		if (currentSessionStartGrid == null) return;
 		if (isGridDumped(gridCoord)) return;
-
+		Coord div = gridCoord.sub(lastPlayerRealCoords.div(tilesz).div(cmaps)).abs();
+		if (div.x > 1 || div.y > 1) return;
+		
 		dumpedGrids.add(gridCoord);
 		gridsToDump.add(new Pair<Coord, Coord>(gridCoord, new Coord(currentSessionStartGrid)));
 	}

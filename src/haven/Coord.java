@@ -116,6 +116,10 @@ public class Coord implements Comparable<Coord>, java.io.Serializable {
 	public Coord div(Coord d) {
 		return (new Coord(Utils.floordiv(x, d.x), Utils.floordiv(y, d.y)));
 	}
+	
+	public Coord div(double f) {
+		return (new Coord((int) (x / f), (int) (y / f)));
+	}
 
 	public Coord div(int d) {
 		return (div(new Coord(d, d)));
@@ -173,6 +177,10 @@ public class Coord implements Comparable<Coord>, java.io.Serializable {
 	
 	public Coord abs() {
 		return new Coord(Math.abs(x), Math.abs(y));
+	}
+	
+	public boolean greaterThen(int x, int y) {
+		return (this.x > x || this.y > y);
 	}
 	
 	protected static final Pattern parseCoordPattern = Pattern.compile("\\(([\\d\\-]+), ([\\d\\-]+)\\)");
