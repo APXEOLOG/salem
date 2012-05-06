@@ -76,6 +76,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 
 	/* APXEOLOG */
 	//public SChatWindow bdsChat;
+	public SWidgetOptions bdsOptions;
 
 	public abstract class Belt {
 		public abstract int draw(GOut g, int by);
@@ -115,6 +116,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		tm = new Tempers(Coord.z, this);
 		chat = new ChatUI(Coord.z, 0, this);
 
+		bdsOptions = new SWidgetOptions(sz.div(2).sub(150, 150), this);
+		bdsOptions.hide();
 //		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
 //				this);
 
@@ -233,7 +236,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			
 			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow, map);
 
-			mapmenu = new Widget(new Coord(sz.x - 250, 5), new Coord(250, 18), this);
+			mapmenu = new Widget(new Coord(100, 5), new Coord(250, 18), this);
 			new MenuButton(new Coord(0, 0), mapmenu, "cla", -1,
 					"Display personal claims") {
 				boolean v = false;
@@ -323,7 +326,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			makewnd = new SWindow(new Coord(200, 100), Coord.z, this,
 					"Crafting") {
 				public void wdgmsg(Widget sender, String msg, Object... args) {
-					if ((sender == this) && msg.equals("close")) {
+					if (msg.equals("swindow_close")) {
 						mk[0].wdgmsg("close");
 						return;
 					}
@@ -615,6 +618,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 
 	private boolean togglesdw = false;
 
+	public void setShadows(boolean shad) {
+		togglesdw = shad;
+	}
+	
 	private void makemenu() {
 		mainmenu = new Widget(new Coord(135, sz.y - 26), new Coord(386, 26),
 				this);
@@ -671,9 +678,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		};
 		x += 62;
 		new MenuButton(new Coord(x, 0), mainmenu, "opt", -1,
-				"Options (Merely toggles shadows for now)") {
+				"Options (BDSaleM)") {
 			public void click() {
-				togglesdw = true;
+				if (bdsOptions.visible) bdsOptions.hide();
+				else bdsOptions.show();
 			}
 		};
 		menumenu = new Widget(Coord.z, new Coord(132, 33), this) {
@@ -794,11 +802,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		if (map != null)
 			map.resize(sz);
 
-		if (mmap != null)
-			mmap.parent.c = new Coord(sz.x - 250, 18);
-
-		if (mapmenu != null)
-			mapmenu.c = mmap.c.add(0, -18);
+//		if (mmap != null)
+//			mmap.parent.c = new Coord(sz.x - 250, 18);
+//
+//		if (mapmenu != null)
+//			mapmenu.c = mmap.c.add(0, -18);
 		if (fv != null)
 			fv.c = new Coord(sz.x - Fightview.width, 0);
 		mainmenu.c = new Coord(135, sz.y - 26);

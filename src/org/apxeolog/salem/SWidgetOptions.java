@@ -26,14 +26,25 @@
 
 package org.apxeolog.salem;
 
-import haven.*;
-import haven.CharWnd.Skill;
+import haven.CheckBox;
+import haven.Coord;
+import haven.GOut;
+import haven.GameUI;
+import haven.Label;
+import haven.Loading;
+import haven.Resource;
+import haven.RichText;
+import haven.Scrollbar;
+import haven.Tabs;
+import haven.Tabs.Tab;
+import haven.WItem;
+import haven.Widget;
 
 import java.awt.font.TextAttribute;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.Map.Entry;
+
+import org.apxeolog.salem.SUtils.HighlightInfo;
 
 public class SWidgetOptions extends SWindow {
 	public static final RichText.Foundry foundry = new RichText.Foundry(
@@ -41,44 +52,94 @@ public class SWidgetOptions extends SWindow {
 	private Tabs body;
 
 	public SWidgetOptions(Coord c, Widget parent) {
-		super(c, new Coord(400, 340), parent, "Options");
+		super(c, new Coord(345, 300), parent, "Options");
 
-		body = new Tabs(Coord.z, new Coord(400, 300), this);
+		body = new Tabs(Coord.z, new Coord(345, 280), this);
 
-		Widget tab;
-
+		Tab tab, ftab;
+		
 		{ /* Highlight TAB */
-			tab = body.new Tab(new Coord(0, 0), 60, "Highlight");
+			ftab = tab = body.new Tab(new Coord(10, 10), 70, "Highlight") {
+				@Override
+				public void draw(GOut g) {
+					g.chcolor(255, 255, 255, 255);
+					g.rect(Coord.z, sz.add(1, 1));
+					super.draw(g);
+				}
+			};
 
-			int xc = 15, yc = 25;
-			
-			for (Entry<String, Boolean> entry : SUtils.herbResourceNames
-					.entrySet()) {
-				Resource resBuf = Resource.load("gfx/invobjs/herbs/"
-						+ entry.getKey());
-				if (resBuf == null)
-					continue;
+			new Label(new Coord(20, 40), tab, "Highlight options:");
+			final HideInfo hinfo = new HideInfo(new Coord(180, 60), new Coord(150, 200), tab);
+			new HideList(new Coord(20, 60),	new Coord(150, 200), tab) {
+				@Override
+				protected void changed(HighlightInfo hl) {
+					hinfo.setCurrent(hl);
+				}
+			};
+		}
+		
+		{ /* Other TAB */
+			tab = body.new Tab(new Coord(90, 10), 70, "General") {
+				@Override
+				public void draw(GOut g) {
+					g.chcolor(255, 255, 255, 255);
+					g.rect(Coord.z, sz.add(1, 1));
+					super.draw(g);
+				}
+			};
 
-				CheckBox buf = new CheckBox(new Coord(xc, yc), tab,
-						entry.getKey(), entry.getKey()) {
-					public void changed(boolean val) {
-						SUtils.herbResourceNames.put(additionalInfo, val);
-						HConfig.addValue("mmap_show_" + additionalInfo, val);
-						HConfig.saveConfig();
-					}
-				};
-				Boolean bool = HConfig.getValue("mmap_show_" + entry.getKey(),
-						Boolean.class);
-				if (bool != null)
-					buf.set(bool);
-
-				yc += buf.sz.y;
-				
-				if (yc >= tab.sz.y) {
-					xc += 100;
-					yc = 25;
+			new CheckBox(new Coord(20, 40), tab, "Toogle shadows") {
+				@Override
+				public void changed(boolean val) {
+					GameUI gui = getparent(GameUI.class);
+					if (gui != null) gui.setShadows(val);
+				}
+			};
+		}
+		body.showtab(ftab);
+	}
+	
+	public static class HideInfo extends Widget {
+		protected HighlightInfo current;
+		protected CheckBox curCheck;
+		
+		public HideInfo(Coord c, Coord sz, Widget parent) {
+			super(c, sz, parent);
+			curCheck = new CheckBox(new Coord(10, 90), this, "Visible");
+			curCheck.hide();
+		}
+		
+		public void setCurrent(HighlightInfo hl) {
+			current = hl;
+			curCheck.show();
+			curCheck.a = hl.getBool();
+		}
+		
+		@Override
+		public void wdgmsg(Widget sender, String msg, Object... args) {
+			if (sender == curCheck && msg.equals("ch")) {
+				boolean val = (Boolean) args[0];
+				current.setBool(val);
+			} else super.wdgmsg(sender, msg, args);
+		}
+		
+		@Override
+		public void draw(GOut g) {
+			g.chcolor(0, 0, 0, 255);
+			g.frect(Coord.z, sz);
+			g.chcolor(255, 255, 255, 255);
+			g.rect(Coord.z, sz.add(1, 1));
+			g.chcolor();
+			if (current != null) {
+				try {
+					g.image(current.getTex(), new Coord(10, 10), new Coord(40, 40));
+					g.atext(current.getName(), new Coord(60, 30), 0, 0);
+				} catch (Loading e) {
+					g.image(WItem.missing.layer(Resource.imgc).tex(), new Coord(10, 10), new Coord(40, 40));
+					g.atext("...", new Coord(100, 30), 1, 1);
 				}
 			}
+			super.draw(g);
 		}
 	}
 	
@@ -86,24 +147,11 @@ public class SWidgetOptions extends SWindow {
 		private int h;
 		private Scrollbar sb;
 		private int sel;
-		public Skill[] skills = new Skill[0];
-		private boolean loading = false;
-		private final Comparator<Skill> skcomp = new Comparator<Skill>() {
-			public int compare(Skill a, Skill b) {
-				String an, bn;
-				try {
-					an = a.res.get().layer(Resource.action).name;
-				} catch (Loading e) {
-					loading = true;
-					an = "\uffff";
-				}
-				try {
-					bn = b.res.get().layer(Resource.action).name;
-				} catch (Loading e) {
-					loading = true;
-					bn = "\uffff";
-				}
-				return (an.compareTo(bn));
+		public HighlightInfo[] hlList;
+		
+		private final Comparator<HighlightInfo> hlComparator = new Comparator<HighlightInfo>() {
+			public int compare(HighlightInfo a, HighlightInfo b) {
+				return (a.getName().compareTo(b.getName()));
 			}
 		};
 
@@ -112,54 +160,49 @@ public class SWidgetOptions extends SWindow {
 			h = sz.y / 20;
 			sel = -1;
 			sb = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
+			updateList();
+		}
+		
+		public void updateList() {
+			synchronized (SUtils.mmapHighlightInfoCache) {
+				hlList = SUtils.mmapHighlightInfoCache.values().toArray(new HighlightInfo[SUtils.mmapHighlightInfoCache.size()]);
+				Arrays.sort(hlList, hlComparator);
+				sb.val = 0;
+				sb.max = hlList.length - h;
+				sel = -1;
+			}
 		}
 
 		public void draw(GOut g) {
-			if (loading) {
-				loading = false;
-				Arrays.sort(skills, skcomp);
-			}
 			g.chcolor(0, 0, 0, 255);
 			g.frect(Coord.z, sz);
+			g.chcolor(255, 255, 255, 255);
+			g.rect(Coord.z, sz.add(1, 1));
 			g.chcolor();
+			
 			for (int i = 0; i < h; i++) {
-				if (i + sb.val >= skills.length)
-					continue;
-				Skill sk = skills[i + sb.val];
+				if (i + sb.val >= hlList.length) continue;
+				HighlightInfo hl = hlList[i + sb.val];
 				if (i + sb.val == sel) {
 					g.chcolor(255, 255, 0, 128);
 					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));
 					g.chcolor();
 				}
-				int astate = sk.afforded();
-				if (astate == 3)
-					g.chcolor(255, 128, 128, 255);
-				else if (astate == 2)
-					g.chcolor(255, 192, 128, 255);
-				else if (astate == 1)
-					g.chcolor(255, 255, 128, 255);
 				try {
-					g.image(sk.res.get().layer(Resource.imgc).tex(), new Coord(
-							0, i * 20), new Coord(20, 20));
-					g.atext(sk.res.get().layer(Resource.action).name,
-							new Coord(25, i * 20 + 10), 0, 0.5);
+					g.image(hl.getTex(), new Coord(0, i * 20), new Coord(20, 20));
+					if (hl.getBool()) {
+						g.chcolor(128, 255, 128, 255);
+					} else {
+						g.chcolor(255, 128, 128, 255);
+					}
+					g.atext(hl.getName(), new Coord(25, i * 20 + 10), 0, 0.5);
 				} catch (Loading e) {
-					WItem.missing.loadwait();
-					g.image(WItem.missing.layer(Resource.imgc).tex(),
-							new Coord(0, i * 20), new Coord(20, 20));
+					g.image(WItem.missing.layer(Resource.imgc).tex(), new Coord(0, i * 20), new Coord(20, 20));
 					g.atext("...", new Coord(25, i * 20 + 10), 0, 0.5);
 				}
 				g.chcolor();
 			}
 			super.draw(g);
-		}
-
-		public void pop(Collection<Skill> nsk) {
-			Skill[] skills = nsk.toArray(new Skill[0]);
-			sb.val = 0;
-			sb.max = skills.length - h;
-			sel = -1;
-			this.skills = skills;
 		}
 
 		public boolean mousewheel(Coord c, int amount) {
@@ -172,15 +215,15 @@ public class SWidgetOptions extends SWindow {
 				return (true);
 			if (button == 1) {
 				sel = (c.y / 20) + sb.val;
-				if (sel >= skills.length)
+				if (sel >= hlList.length)
 					sel = -1;
-				changed((sel < 0) ? null : skills[sel]);
+				changed((sel < 0) ? null : hlList[sel]);
 				return (true);
 			}
 			return (false);
 		}
 
-		protected void changed(Skill sk) {
+		protected void changed(HighlightInfo hl) {
 		}
 
 		public void unsel() {

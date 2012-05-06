@@ -33,7 +33,8 @@ public class HConfig {
 	
 	public static <T, V> T getValue(String name, Class vclass) {
 		Object ret = additionTokens.get(name);
-		return castToType(vclass, ret);
+		if (ret != null) return castToType(vclass, ret);
+		else return null;
 	}
 	
 	@SuppressWarnings("unchecked")

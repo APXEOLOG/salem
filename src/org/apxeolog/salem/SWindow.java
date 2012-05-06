@@ -14,8 +14,6 @@ import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import com.sun.xml.internal.ws.util.StringUtils;
-
 public class SWindow extends Widget {
 	protected static Text.Foundry captionFoundry = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
 	

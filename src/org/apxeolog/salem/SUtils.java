@@ -1,6 +1,5 @@
 package org.apxeolog.salem;
 
-import static haven.MCache.tilesz;
 import haven.Coord;
 import haven.GOut;
 import haven.Gob;
@@ -14,31 +13,97 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SUtils {
+	
+	public static class HighlightInfo {
+		protected Tex resIcon;
+		protected boolean highlight;
+		protected String optName;
+		protected String uniq;
+		
+		public HighlightInfo(String str) {
+			uniq = str;
+			String invobj = "gfx/invobjs/herbs/" + uniq;
+			Resource base = Resource.load(invobj);
+			base.loadwait();
+			resIcon = base.layer(Resource.imgc).tex();
+			optName = base.layer(Resource.tooltip).t;
+			loadCFG();
+		}
+		
+		public Tex getTex() {
+			return resIcon;
+		}
+		
+		public String getName() {
+			return optName;
+		}
+		
+		public void setBool(boolean val) {
+			highlight = val;
+			saveCFG();
+		}
+		
+		public boolean getBool() {
+			return highlight;
+		}
+		
+		public void loadCFG() {
+			Boolean val = HConfig.getValue("cl_hl_res_" + uniq, Boolean.class);
+			highlight = val != null ? val : true;
+		}
+		
+		public void saveCFG() {
+			HConfig.addValue("cl_hl_res_" + uniq, highlight);
+		}
+		
+		public boolean pass(Gob check) {
+			return highlight;
+		}
+	}
+	
+	public static HashMap<String, HighlightInfo> mmapHighlightInfoCache;
+	
+	static {
+		mmapHighlightInfoCache = new HashMap<String, SUtils.HighlightInfo>();
+		// Precache known goods
+		mmapHighlightInfoCache.put("arrowhead", new HighlightInfo("arrowhead"));
+		mmapHighlightInfoCache.put("devilwort", new HighlightInfo("devilwort"));
+		mmapHighlightInfoCache.put("honeysucklekudzu", new HighlightInfo("honeysucklekudzu"));
+		mmapHighlightInfoCache.put("huckleberry", new HighlightInfo("huckleberry"));
+		mmapHighlightInfoCache.put("indianfeather", new HighlightInfo("indianfeather"));
+		mmapHighlightInfoCache.put("lobstermushroom", new HighlightInfo("lobstermushroom"));
+		mmapHighlightInfoCache.put("newworldgourd", new HighlightInfo("newworldgourd"));
+		mmapHighlightInfoCache.put("oakworth", new HighlightInfo("oakworth"));
+		mmapHighlightInfoCache.put("oldlog", new HighlightInfo("oldlog"));
+		mmapHighlightInfoCache.put("seashell", new HighlightInfo("seashell"));
+		mmapHighlightInfoCache.put("smoothstone", new HighlightInfo("smoothstone"));
+		mmapHighlightInfoCache.put("wildgarlic", new HighlightInfo("wildgarlic"));
+		mmapHighlightInfoCache.put("witchshroom", new HighlightInfo("witchshroom"));
+		mmapHighlightInfoCache.put("autumngrass", new HighlightInfo("autumngrass"));
+		mmapHighlightInfoCache.put("bellpeppersgreen", new HighlightInfo("bellpeppersgreen"));
+		mmapHighlightInfoCache.put("bellpeppersred", new HighlightInfo("bellpeppersred"));
+		mmapHighlightInfoCache.put("blackberry", new HighlightInfo("blackberry"));
+		mmapHighlightInfoCache.put("chestnut", new HighlightInfo("chestnut"));
+		mmapHighlightInfoCache.put("coarsesalt", new HighlightInfo("coarsesalt"));
+		mmapHighlightInfoCache.put("crowberry", new HighlightInfo("crowberry"));
+		mmapHighlightInfoCache.put("driftwood", new HighlightInfo("driftwood"));
+		mmapHighlightInfoCache.put("flint", new HighlightInfo("flint"));
+		mmapHighlightInfoCache.put("lavenderblewit", new HighlightInfo("lavenderblewit"));
+		mmapHighlightInfoCache.put("lilypad", new HighlightInfo("lilypad"));
+		mmapHighlightInfoCache.put("lime", new HighlightInfo("lime"));
+		mmapHighlightInfoCache.put("milkweed", new HighlightInfo("milkweed"));
+		mmapHighlightInfoCache.put("seaweed", new HighlightInfo("seaweed"));
+		mmapHighlightInfoCache.put("sugarcap", new HighlightInfo("sugarcap"));
+		mmapHighlightInfoCache.put("virginiasnail", new HighlightInfo("virginiasnail"));
+		mmapHighlightInfoCache.put("waxingtoadstool", new HighlightInfo("waxingtoadstool"));
+	}
+	
 	public static Coord minimapMarkerRealCoords = null;
 	public static Coord lastMinimapClickCoord = null;
 	
 	private static final ArrayList<Gob> gobSyncCache = new ArrayList<Gob>();
 	private static final Coord minimapIconSize = new Coord(24, 24);
-	public static HashMap<String, Boolean> herbResourceNames = new HashMap<String, Boolean>();
-	static {
-		herbResourceNames.put("autumngrass", true);
-		herbResourceNames.put("bellpeppersgreen", true);
-		herbResourceNames.put("bellpeppersred", true);
-		herbResourceNames.put("blackberry", true);
-		herbResourceNames.put("chestnut", true);
-		herbResourceNames.put("coarsesalt", true);
-		herbResourceNames.put("crowberry", true);
-		herbResourceNames.put("driftwood", true);
-		herbResourceNames.put("flint", true);
-		herbResourceNames.put("lavenderblewit", true);
-		herbResourceNames.put("lilypad", true);
-		herbResourceNames.put("lime", true);
-		herbResourceNames.put("milkweed", true);
-		herbResourceNames.put("oldlog", true);
-		herbResourceNames.put("seaweed", true);
-		herbResourceNames.put("sugarcap", true);
-		herbResourceNames.put("waxingtoadstool", true);
-	}
+
 	/**
 	 * Draw gobs on minimap
 	 * @param g graphics out
@@ -53,11 +118,9 @@ public class SUtils {
 			for (Gob gob : mv.ui.sess.glob.oc) {
 				if (gob.resname().lastIndexOf("/") <= 0) continue;
 				String lastPart = gob.resname().substring(gob.resname().lastIndexOf("/") + 1);
-				if (gob.resname().contains("gfx/terobjs/herbs/")) {
-					Boolean use = herbResourceNames.get(lastPart);
-					if (use != null && use == false) {
-						continue;
-					} else if (!lastPart.equals("herbs")){
+				HighlightInfo info = mmapHighlightInfoCache.get(lastPart);
+				if (info != null) {
+					if (info.pass(gob)) {
 						gobSyncCache.add(gob);
 					}
 				}

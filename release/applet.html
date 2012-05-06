@@ -5,7 +5,10 @@
 <title>Haven Applet</title>
 </head>
 <body>
-<applet archive="jogl.jar, gluegen-rt.jar, bdsalem.jar, salem-res.jar"
+<applet archive="http://download.java.net/media/applet-launcher/applet-launcher.jar,
+		http://download.java.net/media/jogl/builds/archive/jsr-231-webstart-current/jogl.jar,
+		http://download.java.net/media/gluegen/webstart/gluegen-rt.jar,
+		haven.jar, haven-res.jar"
 	width="800" height="600"
 	code="org.jdesktop.applet.util.JNLPAppletLauncher">
 <param name="codebase_lookup" value="false" />
@@ -14,7 +17,7 @@
 <param name="noddraw.check" value="true" />
 <param name="progressbar" value="true" />
 <param name="jnlpNumExtensions" value="1" />
-<param name="jnlpExtension1" value="jogl.jnlp" />
+<param name="jnlpExtension1" value="http://download.java.net/media/jogl/builds/archive/jsr-231-webstart-current/jogl.jnlp" />
 </applet>
 </body>
 </html>
