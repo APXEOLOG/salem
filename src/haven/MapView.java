@@ -885,7 +885,7 @@ public class MapView extends PView implements DTarget {
 		} else if (placing != null) {
 			if ((placing.lastmc == null) || !placing.lastmc.equals(c)) {
 				synchronized (delayed) {
-					delayed.add(placing.new Adjust(c, ui.modctrl));
+					delayed.add(placing.new Adjust(c, !ui.modctrl));
 				}
 			}
 		}

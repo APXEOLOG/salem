@@ -26,7 +26,15 @@
 
 package haven;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.apxeolog.salem.SWindow;
 
@@ -277,14 +285,18 @@ public class CharWnd extends SWindow {
 		private final Coord imgc = new Coord(0, 1), nmc = new Coord(17, 1),
 				vc = new Coord(137, 1), expc = new Coord(162, 0),
 				expsz = new Coord(sz.x - expc.x, sz.y);
-		public final String nm;
-		public final Resource res;
+		public final String nm; // name
+		public final Resource res; // res
 		public final Glob.CAttr attr;
 		public int sexp, hexp;
 		public boolean av = false;
 		private Text rnm, rv, rexp;
 		private int cv;
 
+		public boolean finished() {
+			return av;
+		}
+		
 		private Attr(String attr, Coord c, Widget parent) {
 			super(c, new Coord(237, 15), parent);
 			this.nm = attr;
@@ -425,6 +437,13 @@ public class CharWnd extends SWindow {
 		this.ski = new SkillInfo(new Coord(430, 30), new Coord(190, 275), this);
 	}
 
+	public void getSkillsStatus() {
+		int numfinished = 0;
+		for (Attr atr : attrs.values()) {
+			if (atr.finished()) numfinished++;
+		}
+	}
+	
 	public void uimsg(String msg, Object... args) {
 		if (msg == "exp") {
 			for (int i = 0; i < args.length; i += 4) {

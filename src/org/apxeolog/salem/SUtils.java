@@ -46,7 +46,7 @@ public class SUtils {
 	 * @param plt Player.RealCoord div tilesize
 	 * @param sz Size of minimap widget
 	 */
-	public static void drawMinimapGob(GOut g, MapView mv, Coord plt, Coord sz) {
+	public static void drawMinimapGob(GOut g, MapView mv, LocalMiniMap mmap) {
 		gobSyncCache.clear();
 		// Precache gobs and free sync block
 		synchronized (mv.ui.sess.glob.oc) {
@@ -67,31 +67,38 @@ public class SUtils {
 		for (Gob gob : gobSyncCache) {
 			try {
 				if (gob.getc() != null) {
+					Coord ul = mmap.realToLocal(new Coord(gob.getc()));
+					if (!ul.isect(minimapIconSize, mmap.sz.sub(minimapIconSize))) continue;
+					
 					String lastPart = gob.resname().substring(gob.resname().lastIndexOf("/"));
 					Resource inventoryRes = Resource.load("gfx/invobjs/herbs" + lastPart);
 					Tex tex = inventoryRes.layer(Resource.imgc).tex();
-					Coord ptc = new Coord(gob.getc()).div(tilesz).sub(plt).add(sz.div(2));
+					
 					if (tex != null) {
 						g.chcolor(Color.BLACK);
-						g.fellipse(ptc, minimapIconSize.div(2));
+						g.fellipse(ul, minimapIconSize.div(2));
 						g.chcolor();
-						g.image(tex, ptc.sub(minimapIconSize.div(2)),
-								minimapIconSize);
-					}
-					if (lastMinimapClickCoord != null) {
-						if (lastMinimapClickCoord.isect(ptc.sub(minimapIconSize.div(2)), minimapIconSize)) {
-							lastMinimapClickCoord = null;
-							mv.parent.wdgmsg(mv, "click", mv.ui.mc, gob.rc, 3, 0, (int) gob.id, gob.rc, -1);
-						}
+						g.image(tex, ul.sub(minimapIconSize.div(2)), minimapIconSize);
 					}
 				}
 			} catch (Exception ex) {
 				// WOOPS
 			}
 		}
+		if (lastMinimapClickCoord != null) {
+			for (int i = gobSyncCache.size() - 1; i >= 0; i--) {
+				Gob gob = gobSyncCache.get(i);
+				Coord ul = mmap.realToLocal(new Coord(gob.getc())).sub(minimapIconSize.div(2));
+				if (lastMinimapClickCoord.isect(ul, minimapIconSize)) {
+					lastMinimapClickCoord = null;
+					mv.parent.wdgmsg(mv, "click", mv.ui.mc, gob.rc, 3, 0, (int) gob.id, gob.rc, -1);
+					break;
+				}
+			}
+		}
 		// Draw minimap marker
 		if (minimapMarkerRealCoords != null) {
-			Coord markerMinimapMapCoord = strictInRect(minimapMarkerRealCoords.div(tilesz).sub(plt).add(sz.div(2)), minimapIconSize, sz.sub(minimapIconSize));
+			Coord markerMinimapMapCoord = strictInRect(mmap.realToLocal(minimapMarkerRealCoords), minimapIconSize, mmap.sz.sub(minimapIconSize));
 			g.chcolor(Color.BLACK);
 			g.frect(markerMinimapMapCoord.sub(minimapIconSize), minimapIconSize);
 			g.chcolor(Color.RED);
@@ -101,7 +108,6 @@ public class SUtils {
 	}
 	
 	public static void moveToRealCoords(MapView mv, Coord realCoord) {
-		// wdgmsg("click", pc, mc, clickb, ui.modflags());
 		mv.parent.wdgmsg(mv, "click", mv.ui.mc, realCoord, 1, 0);
 	}
 

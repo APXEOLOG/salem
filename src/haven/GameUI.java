@@ -28,8 +28,6 @@ package haven;
 
 import static haven.Inventory.invsq;
 
-import haven.BuddyWnd.Buddy;
-
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.Collection;
@@ -37,14 +35,11 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apxeolog.salem.SChat.*;
 import org.apxeolog.salem.ALS;
-import org.apxeolog.salem.SChatWindow;
+import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.SWidgetOptions;
 import org.apxeolog.salem.SWindow;
-
-import com.sun.xml.internal.bind.v2.runtime.Name;
 
 public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		Console.Directory {
@@ -219,11 +214,24 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			}
 
 			// Minimap
-			SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18),
-					new Coord(250, 250), this, "Minimap");
+			SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18), new Coord(250, 250), this, "Minimap"){
+				public void wdgmsg(Widget sender, String msg, Object... args) {
+					if (msg.equals("mmap_reset")) {
+						LocalMiniMap mmap = findchild(LocalMiniMap.class);
+						if (mmap != null) {
+							mmap.resetOffset();
+							mmap.resetScale();
+						}
+					} else if (msg.equals("mmap_grid")) {
+						HConfig.cl_minimap_show_grid = !HConfig.cl_minimap_show_grid;
+					} else super.wdgmsg(sender, msg, args);
+				};
+			};
 			mmapWindow.setClosable(false);
-			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow,
-					map);
+			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-r"), "mmap_reset");
+			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-g"), "mmap_grid");
+			
+			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow, map);
 
 			mapmenu = new Widget(new Coord(sz.x - 250, 5), new Coord(250, 18), this);
 			new MenuButton(new Coord(0, 0), mapmenu, "cla", -1,
@@ -286,13 +294,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		} else if (place == "inv") {
 			invwnd = new Hidewnd(new Coord(100, 100), Coord.z, this, "Inventory") {
 				@Override
-				public void wdgmsg(String msg, Object... args) {
+				public void wdgmsg(Widget wdg, String msg, Object... args) {
 					if (msg.equals("inv_openbp")) {
 						openBackpack();
-					} else super.wdgmsg(msg, args);
+					} else super.wdgmsg(wdg, msg, args);
 				}
 			};
-			invwnd.createPictButton(Resource.loadimg("apx/gfx/hud/close-button"), "inv_openbp");
+			invwnd.createPictButton(Resource.loadimg("apx/gfx/hud/pict-b"), "inv_openbp");
 			
 			Widget inv = gettype(type).create(Coord.z, invwnd, cargs);
 			invwnd.pack();

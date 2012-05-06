@@ -274,16 +274,17 @@ public class WItem extends Widget implements DTarget {
 				item.wdgmsg("take", c);
 			return (true);
 		} else if (btn == 3) {
-			if (ui.modctrl && ui.modshift) {
-				wdgmsg("transfer_such_all_ql", item.getResourceName());
-			} else if (ui.modctrl && ui.modmeta) {
-				wdgmsg("transfer_such_all_qldesc", item.getResourceName());
-			} else if (ui.modctrl) {
-				wdgmsg("drop_such_all", item.getResourceName());
-			} else if (ui.modshift) {
-				wdgmsg("transfer_such_all", item.getResourceName());
-			} else
-				item.wdgmsg("iact", c);
+			if (parent instanceof Inventory) {
+				if (ui.modctrl && ui.modshift) {
+					wdgmsg("transfer_such_all_ql", item.getResourceName());
+				} else if (ui.modctrl && ui.modmeta) {
+					wdgmsg("transfer_such_all_qldesc", item.getResourceName());
+				} else if (ui.modctrl) {
+					wdgmsg("drop_such_all", item.getResourceName());
+				} else if (ui.modshift) {
+					wdgmsg("transfer_such_all", item.getResourceName());
+				} else item.wdgmsg("iact", c);
+			} else item.wdgmsg("iact", c);
 			return (true);
 		}
 		return (false);

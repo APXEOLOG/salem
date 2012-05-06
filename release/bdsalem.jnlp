@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<jnlp spec="1.0+" codebase="" href="bdsalem.jnlp">
+  <information>
+    <title>BD SaleM</title>
+    <vendor>Seatribe, APXEOLOG</vendor>
+    <description>The Salem game</description>
+    <icon href="icon.gif" />
+    <shortcut online="false">
+      <desktop />
+      <menu submenu="Salem" />
+    </shortcut>
+  </information>
+  <security>
+    <all-permissions />
+  </security>
+  <resources>
+    <java version="1.6+" max-heap-size="512M" />
+    <j2se version="1.6+" max-heap-size="512M" />
+    <jar href="bdsalem.jar" />
+    <property name="haven.errorurl" value="http://plymouth.seatribe.se/java/error" />
+    <property name="haven.defserv" value="plymouth.seatribe.se" />
+    <property name="haven.resurl" value="http://plymouth.seatribe.se/res/" />
+    <property name="haven.authmech" value="paradox" />
+    <extension name="res" href="http://plymouth.seatribe.se/java/salem-res.jnlp" />
+    <extension name="jogl" href="http://www.havenandhearth.com/java/jogl/jogl.jnlp" />
+  </resources>
+  <application-desc />
+</jnlp>

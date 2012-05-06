@@ -8,12 +8,13 @@ import haven.TexI;
 import haven.Text;
 import haven.Widget;
 import haven.WidgetFactory;
-import haven.Window;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+
+import com.sun.xml.internal.ws.util.StringUtils;
 
 public class SWindow extends Widget {
 	protected static Text.Foundry captionFoundry = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
@@ -58,7 +59,7 @@ public class SWindow extends Widget {
 			g.chcolor(0, 0, 0, 255);
 			g.frect(Coord.z, sz);
 			g.chcolor();
-			g.image(buttonTex, new Coord(2, 2));
+			g.image(buttonTex, new Coord(1, 1));
 			g.chcolor(255, 255, 255, 255);
 			g.rect(Coord.z, sz.add(1, 1));
 			super.draw(g);
@@ -66,7 +67,7 @@ public class SWindow extends Widget {
 		
 		@Override
 		public void click() {
-			wdgmsg(buttonAction);
+			wdgmsg(this, buttonAction);
 		}
 	}
 	
@@ -176,7 +177,9 @@ public class SWindow extends Widget {
 		public void addPictControl(SPictButton btn) {
 			buttons.add(btn);
 			resize();
-			parent.resize(parent.sz);
+			if (parent instanceof SWindow) {
+				((SWindow)parent).resize();
+			}
 		}
 		
 		public void removePictControl(SPictButton btn) {
@@ -284,13 +287,19 @@ public class SWindow extends Widget {
 
 	public SWindow(Coord c, Coord sz, Widget parent, String cap, boolean closeable, boolean minimizable) {
 		super(c, new Coord(0, 0), parent);
-		windowHeader = new SWindowHeader(Coord.z, Coord.z, this, cap, minimizable, closeable);
+		windowHeader = new SWindowHeader(Coord.z, Coord.z, this, cap.replaceAll("[^a-zA-Z0-9 ]", ""), minimizable, closeable);
 		windowBox = new SSimpleBorderBox(sz, 0, 2, 1);
 		windowBox.marginTop = windowHeader.sz.y;
 		loadPosition();
 		resize(sz);
 		//setfocustab(true);
 		parent.setfocus(this);
+	}
+	
+	@Override
+	public void unlink() {
+		savePosition();
+		super.unlink();
 	}
 
 	public SWindow(Coord c, Coord sz, Widget parent, String cap) {
@@ -316,12 +325,6 @@ public class SWindow extends Widget {
 		} catch (NullPointerException ex) {
 		}
 	}
-	
-	@Override
-	public void unlink() {
-		savePosition();
-		super.unlink();
-	}
     
 	public void setText(String text) {
 		windowHeader.setText(text);
@@ -333,6 +336,10 @@ public class SWindow extends Widget {
 	
 	public void setMinimazable(boolean minimazable) {
 		windowHeader.setMinimazable(minimazable);
+	}
+
+	public void resize() {
+		windowHeader.c = xlate(new Coord(sz.div(2).sub(windowHeader.sz.div(2)).x, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
 	}
 	
 	public void resize(Coord newSize) {
@@ -371,7 +378,7 @@ public class SWindow extends Widget {
 	protected void minimize() {
 		for (Widget wdg = child; wdg != null; wdg = wdg.next) {
 			if (wdg == windowHeader) continue;
-			wdg.visible = false;
+			wdg.hide();
 		}
 		isMinimized = true;
 	}
@@ -379,7 +386,7 @@ public class SWindow extends Widget {
 	protected void maximize() {
 		for (Widget wdg = child; wdg != null; wdg = wdg.next) {
 			if (wdg == windowHeader) continue;
-			wdg.visible = true;
+			wdg.show();
 		}
 		isMinimized = false;
 	}
@@ -445,6 +452,7 @@ public class SWindow extends Widget {
 
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (msg.equals("swindow_close")) {
+			savePosition();
 			if (ui.isRWidget(this)) wdgmsg("close");
 			else unlink();
 		} else if (msg.equals("swindow_minimize")) {

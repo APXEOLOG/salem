@@ -117,11 +117,6 @@ public class Inventory extends Widget implements DTarget {
 	}
 	
 	public void wdgmsg(Widget sender, String msg, Object... args) {
-		for (Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
-			if (wdg.visible && wdg instanceof WItem) {
-				ALS.alDebugPrint(((WItem)wdg).item.getResourceName());
-			}
-		}
 		if (msg.equals("drop_such_all")) {
 			for (Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
 				if (wdg.visible && wdg instanceof WItem) {

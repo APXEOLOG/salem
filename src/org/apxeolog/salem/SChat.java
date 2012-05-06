@@ -97,7 +97,6 @@ public class SChat extends Widget {
 	}
 	
 	public void addMessage(ChatType type, String msg) {
-		ALS.alDebugPrint(msg);
 		// Add chat header
 		String text = type.getChatHeader() + msg;
 		int headerLength = type.getChatHeader().length();

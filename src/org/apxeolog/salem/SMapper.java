@@ -58,25 +58,33 @@ public class SMapper {
 					while ((entry = gridsToDump.poll()) != null) {
 						Grid gridToDump = null;
 						BufferedImage img = null;
+						
 						while (gridToDump == null || img == null) {
 							try {
-								synchronized (mapCache) {
-									gridToDump = mapCache.getgrid(entry.getKey());
+									Coord div = Coord.z;
+									synchronized (lastPlayerRealCoords) {
+										div = entry.getKey().sub(lastPlayerRealCoords.div(tilesz).div(cmaps)).abs();
+									}
+									if (div.x > 1 || div.y > 1) break;
+									synchronized (mapCache) {
+										gridToDump = mapCache.getgrid(entry.getKey());
+									}
 									img = gridToDump.getGridImage();
-								}
+								
 							} catch (Loading ex) {
 								gridToDump = null;
 								try {
 									Thread.sleep(100);
 								} catch (InterruptedException e) {
-
 								}
 							}
 						}
+						
+						if (gridToDump == null || img == null) continue;
+						
 						if (HConfig.cl_dump_minimaps) {
 							try {
-								String imgName;
-									imgName = String.format("tile_%d_%d.png", 
+								String imgName = String.format("tile_%d_%d.png", 
 											entry.getKey().sub(entry.getValue()).x,
 											entry.getKey().sub(entry.getValue()).y);
 								File outputFile = new File(currentSessionDirectory, imgName);
@@ -96,7 +104,7 @@ public class SMapper {
 					}
 				}
 			}
-		});
+		}, "SMapper Thread"	);
 		mapperThread.start();
 	}
 	
@@ -112,11 +120,16 @@ public class SMapper {
 	
 	public void checkMapperSession(Coord playerRealCoords, MCache mCache) {
 		if (playerRealCoords.dist(lastPlayerRealCoords) > tilesz.x * 100) startNewSession(playerRealCoords, mCache);
-		lastPlayerRealCoords = playerRealCoords;
+		synchronized (lastPlayerRealCoords) {
+			lastPlayerRealCoords = playerRealCoords;
+		}
 	}
 	
 	public void startNewSession(Coord playerRealCoords, MCache mCache) {
 		currentSessionStartGrid = playerRealCoords.div(tilesz).div(cmaps);
+		synchronized (lastPlayerRealCoords) {
+			lastPlayerRealCoords = playerRealCoords;
+		}
 		dumpedGrids.clear();
 		synchronized (cache) {
 			cache.clear();
@@ -139,7 +152,6 @@ public class SMapper {
 		if (isGridDumped(gridCoord)) return;
 		Coord div = gridCoord.sub(lastPlayerRealCoords.div(tilesz).div(cmaps)).abs();
 		if (div.x > 1 || div.y > 1) return;
-		
 		dumpedGrids.add(gridCoord);
 		gridsToDump.add(new Pair<Coord, Coord>(gridCoord, new Coord(currentSessionStartGrid)));
 	}

@@ -29,30 +29,34 @@ package haven;
 import static haven.MCache.cmaps;
 import static haven.MCache.tilesz;
 
-import haven.MCache.Grid;
-
 import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SMapper;
 import org.apxeolog.salem.SUtils;
 
-import com.sun.corba.se.impl.ior.ByteBuffer;
-
 public class LocalMiniMap extends Widget {
 	public final MapView mv;
+	
+	public static Tex gridImage = null;
+	
+	static {
+		BufferedImage img = TexI.mkbuf(cmaps);
+		Graphics2D g = img.createGraphics();
+		g.setColor(new Color(0, 0, 0, 0));
+		g.fillRect(0, 0, img.getWidth(), img.getHeight());
+		g.setColor(Color.BLACK);
+		g.drawRect(0, 0, img.getWidth(), img.getHeight());
+		gridImage = new TexI(img);
+	}
 	
 	protected boolean isPressed = false;
 	public boolean requestedMarkerSet = false;
 	protected boolean dragMode = false;
+	protected boolean waitingForDrag = false;
 	
 	protected Coord mapCenterTranslation = Coord.z;
 	protected Coord dragOffset = c;
@@ -77,37 +81,52 @@ public class LocalMiniMap extends Widget {
 		this.mv = mv;
 	}
 
+	public void resetScale() {
+		scale = 1.0D;
+	}
+	
+	public void resetOffset() {
+		mapCenterTranslation = Coord.z;
+	}
+	
 	public void draw(GOut og) {
 		Gob pl = ui.sess.glob.oc.getgob(mv.plgob);
 		if (pl == null) return;
 		
 		SMapper.getInstance().checkMapperSession(pl.rc, ui.sess.glob.map);
 		
-		Coord hsz = sz.div(scale);
+		Coord scaledSize = sz.div(scale);
+		
 		Coord translatedTile = pl.rc.div(tilesz).sub(mapCenterTranslation); // Center
 		final Coord centralGrid = translatedTile.div(cmaps);
-		Coord numGrids = hsz.div(cmaps).add(1, 1);
-		Coord upperLeftGrid = centralGrid.sub(numGrids.div(2));
 		
-		GOut g = og.reclip(og.ul.mul((1 - scale) / scale), hsz);
+		int startGridX = - (int) Math.ceil((double)(scaledSize.div(2).x) / cmaps.x);
+		int startGridY = - (int) Math.ceil((double)(scaledSize.div(2).y) / cmaps.y);
+		int numGridsX = (int) Math.ceil((double)(scaledSize.x) / cmaps.x) + 1;
+		int numGridsY = (int) Math.ceil((double)(scaledSize.y) / cmaps.y) + 1;
+
+		GOut g = og.reclipl(og.ul.mul((1 - scale) / scale), scaledSize);
 		g.gl.glPushMatrix();
 		g.scale(scale);
-		
-		for (int i = 0; i < numGrids.x; i++) {
-			for (int j = 0; j < numGrids.y; j++) {
-				Coord curGrid = upperLeftGrid.add(i, j);
+		for (int i = startGridX; i <= startGridX + numGridsX; i++) {
+			for (int j = startGridY; j <= numGridsY + numGridsY; j++) {
+				Coord curGrid = centralGrid.add(i, j);
 				MapTile tile = null;
 				if ((tile = SMapper.getInstance().getCachedTile(curGrid)) != null) {
-					Coord c = tile.ul.mul(cmaps).sub(translatedTile).add(hsz.div(2));
+					Coord c = tile.ul.mul(cmaps).sub(translatedTile).add(scaledSize.div(2));
 					g.image(tile.img, c);
+					if (HConfig.cl_minimap_show_grid) {
+						g.image(gridImage, c);
+					}
 				} else {
 					SMapper.getInstance().dumpMinimap(curGrid);
 				}
 			}
 		}
 		g.gl.glPopMatrix();
+		
 		try {
-			SUtils.drawMinimapGob(og, mv, translatedTile, hsz);
+			SUtils.drawMinimapGob(og, mv, this);
 			synchronized (ui.sess.glob.party.memb) {
 				for (Party.Member m : ui.sess.glob.party.memb.values()) {
 					Coord ptc;
@@ -118,12 +137,12 @@ public class LocalMiniMap extends Widget {
 					}
 					if (ptc == null)
 						continue;
-					ptc = ptc.div(tilesz).sub(translatedTile).add(hsz.div(2));
-					g.chcolor(m.col.getRed(), m.col.getGreen(),
+					ptc = realToLocal(ptc);
+					og.chcolor(m.col.getRed(), m.col.getGreen(),
 							m.col.getBlue(), 255);
-					g.image(MiniMap.plx.layer(Resource.imgc).tex(),
+					og.image(MiniMap.plx.layer(Resource.imgc).tex(),
 							ptc.add(MiniMap.plx.layer(Resource.negc).cc.inv()));
-					g.chcolor();
+					og.chcolor();
 				}
 			}
 		} catch (Loading l) {
@@ -141,9 +160,10 @@ public class LocalMiniMap extends Widget {
 			return true;
 
 		isPressed = true;
+		
 		if (button == 1) {
 			ui.grabmouse(this);
-			dragMode = true;
+			waitingForDrag = true;
 			dragOffset = c;
 			sizeBuffer = sz;
 		}
@@ -151,15 +171,15 @@ public class LocalMiniMap extends Widget {
 	}
 
 	public boolean mouseup(Coord c, int button) {
-		if (isPressed) {
-			if (c.isect(Coord.z, sz))
-				click(c, button);
-			isPressed = false;
-		}
+		waitingForDrag = false;
 		if (dragMode) {
 			ui.grabmouse(null);
 			dragMode = false;
 			transBuffer = mapCenterTranslation;
+		} else if (isPressed) {
+			if (c.isect(Coord.z, sz))
+				click(c, button);
+			isPressed = false;
 		} else {
 			super.mouseup(c, button);
 		}
@@ -167,10 +187,13 @@ public class LocalMiniMap extends Widget {
 	}
 	
 	public void mousemove(Coord c) {
+		if (c.dist(dragOffset) > 5 && waitingForDrag) {
+			waitingForDrag = false;
+			dragOffset = c;
+			dragMode = true;
+		}
 		if (dragMode) {
 			mapCenterTranslation = transBuffer.add(c.add(dragOffset.inv()));
-			//sz = szbuf.add(c.add(doff.inv()));
-			//parent.resize(sz);
 		} else {
 			super.mousemove(c);
 		}
@@ -178,14 +201,22 @@ public class LocalMiniMap extends Widget {
 	
 	@Override
 	public boolean mousewheel(Coord c, int amount) {
-		scale += -((double)amount / 10);
+		scale = Math.max(Math.min(scale - ((double)amount / 3), 2.0), 0.5);
 		return true;
 	}
 	
 	public Coord localToReal(Coord local) {
 		Gob pl = ui.sess.glob.oc.getgob(mv.plgob);
 		if (pl == null) return Coord.z;
-		return local.sub(sz.div(2)).add(pl.rc.div(tilesz)).mul(tilesz);
+		// MAGIC!~
+		return local.sub(sz.div(2)).div(scale).add(pl.rc.div(tilesz).sub(mapCenterTranslation)).mul(tilesz);
+	}
+	
+	public Coord realToLocal(Coord real) {
+		Gob pl = ui.sess.glob.oc.getgob(mv.plgob);
+		if (pl == null) return Coord.z;
+		// MAGIC!~
+		return sz.div(2).add(real.div(tilesz).sub(pl.rc.div(tilesz).sub(mapCenterTranslation)).mul(scale));
 	}
 
 	public void click(Coord c, int button) {
