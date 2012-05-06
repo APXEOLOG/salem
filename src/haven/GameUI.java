@@ -280,7 +280,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			new MenuButton(new Coord(72, 0), mapmenu, "tow", -1,
 					"Minimap options") {
 				public void click() {
-					new SWidgetOptions(new Coord(200, 200), ui.root);
+					
 				}
 			};
 			new MenuButton(new Coord(90, 0), mapmenu, "chat", 3,
@@ -616,7 +616,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 	}
 
-	private boolean togglesdw = false;
+	public boolean togglesdw = false;
 
 	public void setShadows(boolean shad) {
 		togglesdw = shad;

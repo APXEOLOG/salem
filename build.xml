@@ -26,7 +26,10 @@
 			</classpath>
 			<compilerarg value="-Xlint:unchecked" />
 		</javac>
-		<copy todir="bin">
+		<copy todir="bin/haven/glsl">
+			<fileset dir="build/classes/haven/glsl" />
+		</copy>
+		<copy todir="bin/res">
 			<fileset dir="res" />
 		</copy>
 		<copy todir="bin/haven" file="etc/ressrv.crt" />

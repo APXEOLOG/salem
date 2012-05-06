@@ -51,6 +51,12 @@ public class SWidgetOptions extends SWindow {
 			TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 10);
 	private Tabs body;
 
+	@Override
+	public void unlink() {
+		HConfig.saveConfig();
+		super.unlink();
+	}
+	
 	public SWidgetOptions(Coord c, Widget parent) {
 		super(c, new Coord(345, 300), parent, "Options");
 
@@ -77,7 +83,7 @@ public class SWidgetOptions extends SWindow {
 				}
 			};
 		}
-		
+		GameUI gui = getparent(GameUI.class);
 		{ /* Other TAB */
 			tab = body.new Tab(new Coord(90, 10), 70, "General") {
 				@Override
@@ -88,13 +94,23 @@ public class SWidgetOptions extends SWindow {
 				}
 			};
 
-			new CheckBox(new Coord(20, 40), tab, "Toogle shadows") {
+			CheckBox checkb = new CheckBox(new Coord(20, 40), tab, "Toogle shadows") {
 				@Override
 				public void changed(boolean val) {
 					GameUI gui = getparent(GameUI.class);
 					if (gui != null) gui.setShadows(val);
 				}
 			};
+			if (gui != null) checkb.set(gui.togglesdw);
+			
+			checkb = new CheckBox(new Coord(20, 80), tab, "Dump minimaps") {
+				@Override
+				public void changed(boolean val) {
+					HConfig.cl_dump_minimaps = val;
+					HConfig.saveConfig();
+				}
+			};
+			checkb.set(HConfig.cl_dump_minimaps);
 		}
 		body.showtab(ftab);
 	}

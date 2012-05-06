@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<jnlp spec="1.0+" codebase="http://plymouth.seatribe.se/java/" href="salem-pdx.jnlp">
+<jnlp spec="1.0+" codebase="http://unionclient.ru/salem/" href="bdsalem.jnlp">
   <information>
     <title>BD SaleM</title>
     <vendor>Seatribe, APXEOLOG</vendor>
@@ -16,12 +16,13 @@
   <resources>
     <java version="1.6+" max-heap-size="512M" />
     <j2se version="1.6+" max-heap-size="512M" />
-    <jar href="salem.jar" />
-	<jar href="salem-res.jar" />
+    <jar href="bdsalem.jar" />
     <property name="haven.errorurl" value="http://plymouth.seatribe.se/java/error" />
     <property name="haven.defserv" value="plymouth.seatribe.se" />
     <property name="haven.resurl" value="http://plymouth.seatribe.se/res/" />
     <property name="haven.authmech" value="paradox" />
+    <extension name="res" href="http://plymouth.seatribe.se/java/salem-res.jnlp" />
+    <extension name="jogl" href="http://www.havenandhearth.com/java/jogl/jogl.jnlp" />
   </resources>
   <application-desc />
 </jnlp>
