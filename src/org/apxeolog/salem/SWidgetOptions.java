@@ -58,12 +58,20 @@ public class SWidgetOptions extends Hidewnd {
 		super.unlink();
 	}
 	
+	@Override
+	public void show() {
+		body.showtab(ftab);
+		super.show();
+	}
+	
+	Tab ftab;
+	
 	public SWidgetOptions(Coord c, Widget parent) {
 		super(c, new Coord(345, 300), parent, "Options");
 
 		body = new Tabs(Coord.z, new Coord(345, 280), this);
 
-		Tab tab, ftab;
+		Tab tab;
 		
 		{ /* Highlight TAB */
 			ftab = tab = body.new Tab(new Coord(10, 10), 70, "Highlight") {
