@@ -141,24 +141,27 @@ public class Polity extends SWindow {
 		nmf.aa = true;
 	}
 
+	protected Label nameLbl;
+	
 	public Polity(Coord c, Widget parent, String name) {
 		super(c, new Coord(200, 200), parent, "Town");
 		this.name = name;
-		new Label(new Coord(0, 5), this, name, nmf);
+		nameLbl = new Label(new Coord(0, 5), this, name, nmf);
 		new Label(new Coord(0, 45), this, "Members:");
 		ml = new MemberList(new Coord(0, 60), new Coord(200, 140), this);
 		pack();
 	}
-
-	private Tex rauth = null;
-
-	public void cdraw(GOut g) {
+	
+	@Override
+	public void draw(GOut g) {
+		super.draw(g);
 		if (acap > 0) {
+			int x = 3, y = 25;
 			synchronized (this) {
 				g.chcolor(0, 0, 0, 255);
-				g.frect(new Coord(0, 23), new Coord(200, 20));
+				g.frect(new Coord(x, y + 23), new Coord(200, 20));
 				g.chcolor(128, 0, 0, 255);
-				g.frect(new Coord(0, 24), new Coord((200 * auth) / acap, 18));
+				g.frect(new Coord(x, y + 24), new Coord((200 * auth) / acap, 18));
 				g.chcolor();
 				if (rauth == null) {
 					Color col = offline ? Color.RED : Color.WHITE;
@@ -166,10 +169,12 @@ public class Polity extends SWindow {
 							String.format("%s/%s", auth, acap), col).img, Utils
 							.contrast(col)));
 				}
-				g.aimage(rauth, new Coord(100, 33), 0.5, 0.5);
+				g.aimage(rauth, new Coord(100, y + 33), 0.5, 0.5);
 			}
 		}
 	}
+
+	private Tex rauth = null;
 
 	public void uimsg(String msg, Object... args) {
 		if (msg == "auth") {
