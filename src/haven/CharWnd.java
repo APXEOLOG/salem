@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.SWindow;
 
 public class CharWnd extends SWindow {
@@ -288,8 +289,8 @@ public class CharWnd extends SWindow {
 		public final String nm; // name
 		public final Resource res; // res
 		public final Glob.CAttr attr;
-		public int sexp, hexp;
-		public boolean av = false;
+		public int sexp, hexp; // max / current
+		public boolean av = false; // got it
 		private Text rnm, rv, rexp;
 		private int cv;
 
@@ -438,8 +439,15 @@ public class CharWnd extends SWindow {
 	}
 
 	public void getSkillsStatus() {
+		int lexp = 0, hexp = 0;
+		boolean lfin = false, hfin = false;
 		int numfinished = 0;
+		int sexp = 0;
+		
 		for (Attr atr : attrs.values()) {
+			if (atr.hexp > 0) {
+				
+			}
 			if (atr.finished()) numfinished++;
 		}
 	}

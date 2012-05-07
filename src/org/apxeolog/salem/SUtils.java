@@ -1,8 +1,11 @@
 package org.apxeolog.salem;
 
+import haven.BuddyWnd;
+import haven.Composite;
 import haven.Coord;
 import haven.GOut;
 import haven.Gob;
+import haven.KinInfo;
 import haven.LocalMiniMap;
 import haven.MapView;
 import haven.Resource;
@@ -15,10 +18,14 @@ import java.util.HashMap;
 public class SUtils {
 	
 	public static class HighlightInfo {
-		protected Tex resIcon;
-		protected boolean highlight;
+		protected Tex resIcon = null;
+		protected boolean highlight = true;
 		protected String optName;
 		protected String uniq;
+		
+		public HighlightInfo() {
+			
+		}
 		
 		public HighlightInfo(String str) {
 			uniq = str;
@@ -28,6 +35,13 @@ public class SUtils {
 			resIcon = base.layer(Resource.imgc).tex();
 			optName = base.layer(Resource.tooltip).t;
 			loadCFG();
+		}
+		
+		public void draw(GOut g, Coord ul, Gob gob) {
+			g.chcolor(Color.BLACK);
+			g.fellipse(ul, minimapIconSize.div(2));
+			g.chcolor();
+			g.image(getTex(), ul.sub(minimapIconSize.div(2)), minimapIconSize);
 		}
 		
 		public Tex getTex() {
@@ -61,10 +75,54 @@ public class SUtils {
 		}
 	}
 	
+	public static class AnimalHighlightInfo extends HighlightInfo {
+		public AnimalHighlightInfo(String str, String tooltip) {
+			uniq = str;
+			String tex = "apx/gfx/mmap/icon-" + uniq;
+			resIcon = Resource.loadtex(tex);
+			optName = tooltip;
+			loadCFG();
+		}
+	}
+	
+	public static class PlayerHighlightInfo extends HighlightInfo {
+		public PlayerHighlightInfo(String tooltip) {
+			uniq = "player";
+			String tex = "apx/gfx/mmap/icon-bear";
+			resIcon = Resource.loadtex(tex);
+			optName = tooltip;
+			loadCFG();
+		}
+		
+		@Override
+		public void draw(GOut g, Coord ul, Gob gob) {
+			int state = 0; // 2 - enemy | 0 - neutral | 1 - friend
+			KinInfo kin = gob.getattr(KinInfo.class);
+			if (kin != null) {
+				state = kin.getGroup();
+				if (kin.inYourVillage() && state == 0) state = 1;
+			}
+			
+			if (!gob.glob.party.haveMember(gob.id)) {
+				g.chcolor(Color.BLACK);
+				g.fellipse(ul, new Coord(5, 5));
+				g.chcolor(BuddyWnd.gc[state]);
+				g.fellipse(ul, new Coord(4 ,4));
+			}
+		}
+	}
+	
 	public static HashMap<String, HighlightInfo> mmapHighlightInfoCache;
 	
 	static {
 		mmapHighlightInfoCache = new HashMap<String, SUtils.HighlightInfo>();
+		// Add players
+		mmapHighlightInfoCache.put("borka", new PlayerHighlightInfo("Player"));
+		// Add animals
+		mmapHighlightInfoCache.put("bear", new AnimalHighlightInfo("bear", "Bear"));
+		mmapHighlightInfoCache.put("beaver", new AnimalHighlightInfo("beaver", "Beaver"));
+		mmapHighlightInfoCache.put("cricket", new AnimalHighlightInfo("cricket", "Cricket"));
+		mmapHighlightInfoCache.put("deer", new AnimalHighlightInfo("deer", "Deer"));
 		// Precache known goods
 		mmapHighlightInfoCache.put("arrowhead", new HighlightInfo("arrowhead"));
 		mmapHighlightInfoCache.put("devilwort", new HighlightInfo("devilwort"));
@@ -101,7 +159,7 @@ public class SUtils {
 	public static Coord minimapMarkerRealCoords = null;
 	public static Coord lastMinimapClickCoord = null;
 	
-	private static final ArrayList<Gob> gobSyncCache = new ArrayList<Gob>();
+	private static final ArrayList<Pair<HighlightInfo, Gob>> gobSyncCache = new ArrayList<Pair<HighlightInfo, Gob>>();
 	private static final Coord minimapIconSize = new Coord(24, 24);
 
 	/**
@@ -114,43 +172,49 @@ public class SUtils {
 	public static void drawMinimapGob(GOut g, MapView mv, LocalMiniMap mmap) {
 		gobSyncCache.clear();
 		// Precache gobs and free sync block
+		String resname, lastPart = "";
 		synchronized (mv.ui.sess.glob.oc) {
 			for (Gob gob : mv.ui.sess.glob.oc) {
-				if (gob.resname().lastIndexOf("/") <= 0) continue;
-				String lastPart = gob.resname().substring(gob.resname().lastIndexOf("/") + 1);
+				resname = gob.resname(); lastPart = "";
+				if (resname.lastIndexOf("/") <= 0) {
+					// Animals and players
+					Composite comp = gob.getattr(Composite.class);
+					if (comp != null) {
+						resname = comp.resname();
+						if (resname.contains("/kritter/")) {
+							int index = resname.indexOf("/kritter/") + 9;
+							lastPart = resname.substring(index, resname.indexOf('/', index + 1));
+						} else if (resname.contains("/borka/")) {
+							// Player
+							lastPart = "borka";
+						} else continue;
+					} else continue;
+				} else {
+					lastPart = resname.substring(resname.lastIndexOf("/") + 1);
+				}
+				
 				HighlightInfo info = mmapHighlightInfoCache.get(lastPart);
 				if (info != null) {
 					if (info.pass(gob)) {
-						gobSyncCache.add(gob);
+						gobSyncCache.add(new Pair<SUtils.HighlightInfo, Gob>(info,gob));
 					}
 				}
 			}
 		}
 		// Draw curios
-		for (Gob gob : gobSyncCache) {
+		for (Pair<SUtils.HighlightInfo, Gob> pair : gobSyncCache) {
 			try {
-				if (gob.getc() != null) {
-					Coord ul = mmap.realToLocal(new Coord(gob.getc()));
-					if (!ul.isect(minimapIconSize, mmap.sz.sub(minimapIconSize))) continue;
-					
-					String lastPart = gob.resname().substring(gob.resname().lastIndexOf("/"));
-					Resource inventoryRes = Resource.load("gfx/invobjs/herbs" + lastPart);
-					Tex tex = inventoryRes.layer(Resource.imgc).tex();
-					
-					if (tex != null) {
-						g.chcolor(Color.BLACK);
-						g.fellipse(ul, minimapIconSize.div(2));
-						g.chcolor();
-						g.image(tex, ul.sub(minimapIconSize.div(2)), minimapIconSize);
-					}
-				}
+				Coord ul = mmap.realToLocal(new Coord(pair.getValue().getrc()));
+				if (!ul.isect(minimapIconSize, mmap.sz.sub(minimapIconSize))) continue;
+				
+				pair.getKey().draw(g, ul, pair.getValue());
 			} catch (Exception ex) {
 				// WOOPS
 			}
 		}
 		if (lastMinimapClickCoord != null) {
 			for (int i = gobSyncCache.size() - 1; i >= 0; i--) {
-				Gob gob = gobSyncCache.get(i);
+				Gob gob = gobSyncCache.get(i).getValue();
 				Coord ul = mmap.realToLocal(new Coord(gob.getc())).sub(minimapIconSize.div(2));
 				if (lastMinimapClickCoord.isect(ul, minimapIconSize)) {
 					lastMinimapClickCoord = null;

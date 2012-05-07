@@ -41,6 +41,10 @@ public class Party {
 		this.glob = glob;
 	}
 
+	public boolean haveMember(long gobid) {
+		return memb.containsKey(gobid);
+	}
+	
 	public class Member {
 		long gobid;
 		private Coord c = null;

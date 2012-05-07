@@ -166,8 +166,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 	}
 
-	static class Hidewnd extends SWindow {
-		Hidewnd(Coord c, Coord sz, Widget parent, String cap) {
+	public static class Hidewnd extends SWindow {
+		protected Hidewnd(Coord c, Coord sz, Widget parent, String cap) {
 			super(c, sz, parent, cap);
 		}
 

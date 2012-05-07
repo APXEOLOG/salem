@@ -172,8 +172,8 @@ public class LocalMiniMap extends Widget {
 
 	public boolean mouseup(Coord c, int button) {
 		waitingForDrag = false;
+		ui.grabmouse(null);
 		if (dragMode) {
-			ui.grabmouse(null);
 			dragMode = false;
 			transBuffer = mapCenterTranslation;
 		} else if (isPressed) {
@@ -187,7 +187,7 @@ public class LocalMiniMap extends Widget {
 	}
 	
 	public void mousemove(Coord c) {
-		if (c.dist(dragOffset) > 5 && waitingForDrag) {
+		if (c.dist(dragOffset) > 10 && waitingForDrag) {
 			waitingForDrag = false;
 			dragOffset = c;
 			dragMode = true;
@@ -201,7 +201,7 @@ public class LocalMiniMap extends Widget {
 	
 	@Override
 	public boolean mousewheel(Coord c, int amount) {
-		scale = Math.max(Math.min(scale - ((double)amount / 3), 2.0), 0.5);
+		scale = Math.max(Math.min(scale - ((double)amount / 3), 2.0), 1.0);
 		return true;
 	}
 	

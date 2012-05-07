@@ -32,6 +32,10 @@
 		<copy todir="bin/res">
 			<fileset dir="res" />
 		</copy>
+		<copy todir="bin">
+			<fileset dir="etc/lib-classes" />
+		</copy>
+		
 		<copy todir="bin/haven" file="etc/ressrv.crt" />
 		<copy todir="bin/haven" file="etc/authsrv.crt" />
 		<copy todir="bin/haven" file="etc/res-preload" />

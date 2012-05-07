@@ -52,6 +52,18 @@ public class KinInfo extends GAttrib {
 		rnm = null;
 	}
 
+	public int getGroup() {
+		return group;
+	}
+	
+	public boolean inYourVillage() {
+		return (type & 2) != 0;
+	}
+	
+	public String getKinName() {
+		return name;
+	}
+	
 	public Tex rendered() {
 		if (rnm == null) {
 			boolean hv = (type & 2) != 0;

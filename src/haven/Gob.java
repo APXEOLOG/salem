@@ -28,6 +28,8 @@ package haven;
 
 import java.util.*;
 
+import org.apxeolog.salem.ALS;
+
 public class Gob implements Sprite.Owner, Rendered {
 	public Coord rc, sc;
 	public Coord3f sczu;
@@ -98,6 +100,22 @@ public class Gob implements Sprite.Owner, Rendered {
 			name = res.name;
 		}
 		return name;
+	}
+	
+	public void dumpAttrs() {
+		ALS.alDebugPrint("<dumpattr>", "sz=", attr.size());
+		for (GAttrib atr : attr.values()) {
+			ALS.alDebugPrint(atr.getClass().getCanonicalName());
+		}
+		ALS.alDebugPrint("</dumpattr>");
+	}
+	
+	public void dumpOverlays() {
+		ALS.alDebugPrint("<dumpol>");
+		for (Overlay ol : ols) {
+			ALS.alDebugPrint(ol.getClass().getCanonicalName());
+		}
+		ALS.alDebugPrint("</dumpol>");
 	}
 	
 	public Gob(Glob glob, Coord c, long id, int frame) {

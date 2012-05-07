@@ -30,6 +30,7 @@ import haven.CheckBox;
 import haven.Coord;
 import haven.GOut;
 import haven.GameUI;
+import haven.GameUI.Hidewnd;
 import haven.Label;
 import haven.Loading;
 import haven.Resource;
@@ -46,7 +47,7 @@ import java.util.Comparator;
 
 import org.apxeolog.salem.SUtils.HighlightInfo;
 
-public class SWidgetOptions extends SWindow {
+public class SWidgetOptions extends Hidewnd {
 	public static final RichText.Foundry foundry = new RichText.Foundry(
 			TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 10);
 	private Tabs body;
