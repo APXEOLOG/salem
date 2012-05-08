@@ -24,6 +24,7 @@ public class STempers extends Widget {
 	protected int[] maxVal = new int[4];
 	protected BufferedImage[] textVal = new BufferedImage[4];
 	
+	
 	protected boolean fullTempers = false;
 	protected Object tooltip;
 	
