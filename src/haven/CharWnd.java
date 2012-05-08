@@ -441,21 +441,21 @@ public class CharWnd extends SWindow {
 	
 	@Override
 	public void draw(GOut initialGL) {
-		Color bgColor = Color.BLACK;
-		double bgMeter = 0;
-		
-		int stexp = 0, toexp = 0;
-		for (Attr atr : attrs.values()) {
-			if (atr.hexp > 0) {
-				stexp += atr.hexp;
-				toexp += atr.sexp;
-			}
-		}
-		bgMeter = stexp / toexp;
-		// 255 255 0 => 0 255 0
-        bgColor = new Color((int)(255 * (1 - bgMeter)), (int)(255 * bgMeter + 255 * (1 - bgMeter)), 0);
-		windowHeader.setMeterValue((int)(bgMeter * 100));
-		windowHeader.setMeterColor(bgColor);
+//		Color bgColor = Color.BLACK;
+//		double bgMeter = 0;
+//		
+//		int stexp = 0, toexp = 0;
+//		for (Attr atr : attrs.values()) {
+//			if (atr.hexp > 0) {
+//				stexp += atr.hexp;
+//				toexp += atr.sexp;
+//			}
+//		}
+//		bgMeter = stexp / toexp;
+//		// 255 255 0 => 0 255 0
+//        bgColor = new Color((int)(255 * (1 - bgMeter)), (int)(255 * bgMeter + 255 * (1 - bgMeter)), 0);
+//		windowHeader.setMeterValue((int)(bgMeter * 100));
+//		windowHeader.setMeterColor(bgColor);
 		super.draw(initialGL);
 	}
 	

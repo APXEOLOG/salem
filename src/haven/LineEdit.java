@@ -26,7 +26,13 @@
 
 package haven;
 
+import java.io.IOException;
 import java.util.*;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 
 public class LineEdit {
@@ -63,6 +69,12 @@ public class LineEdit {
 			} else if ((c >= 32) && (mod == 0)) {
 				line = line.substring(0, point) + c + line.substring(point);
 				point++;
+			} else if (((c == 'v') || (c == 'V')) && (mod == C)) {
+				String str = getClipboardContents();
+				if (line != null) {
+					line = line.substring(0, point) + str + line.substring(point);
+					point += str.length();
+				}
 			} else if ((code == KeyEvent.VK_LEFT) && (mod == 0)) {
 				if (point > 0)
 					point--;
@@ -346,6 +358,30 @@ public class LineEdit {
 		if ((tcache == null) || (tcache.text != line))
 			tcache = f.render(line);
 		return (tcache);
+	}
+	
+	/**
+	 * Get the String residing on the clipboard.
+	 * 
+	 * @return any text found on the Clipboard; if none found, return an empty
+	 *         String.
+	 */
+	public String getClipboardContents() {
+		String result = "";
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		// odd: the Object param of getContents is not currently used
+		Transferable contents = clipboard.getContents(null);
+		boolean hasTransferableText = (contents != null)
+				&& contents.isDataFlavorSupported(DataFlavor.stringFlavor);
+		if (hasTransferableText) {
+			try {
+				result = (String) contents.getTransferData(DataFlavor.stringFlavor);
+			} catch (UnsupportedFlavorException ex) {
+				// highly unlikely since we are using a standard DataFlavor
+			} catch (IOException ex) {
+			}
+		}
+		return result;
 	}
 
 	static {
