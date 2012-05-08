@@ -110,6 +110,9 @@ public class SWindow extends Widget {
 		protected SPictButton btnMinimize = null;
 		protected ArrayList<SPictButton> buttons = null;
 		
+		protected int meterPercent = 0;
+		protected Color meterColor = Color.BLACK;
+		
 		public SWindowHeader(Coord c, Coord sz, Widget parent, String caption, boolean min, boolean clo) {
 			super(c, sz, parent);
 			headerBox = new SSimpleBorderBox(Coord.z, 0, 0, 1);
@@ -133,6 +136,14 @@ public class SWindow extends Widget {
 		public void setMinimazable(boolean minimazable) {
 			pSetMinimazable(minimazable);
 			resize();
+		}
+		
+		public void setMeterColor(Color clr) {
+			meterColor = clr;
+		}
+		
+		public void setMeterValue(int percent) {
+			meterPercent = percent;
 		}
 		
 		private void pSetClosable(boolean closable) {
@@ -220,6 +231,12 @@ public class SWindow extends Widget {
 			if (headerBox.borderWidth != 0) {
 				initialGL.chcolor(255, 255, 255, 255);
 				initialGL.rect(headerBox.getBorderPosition(), textSize().add(1, 1));
+			}
+			if (meterPercent > 0) {
+				initialGL.chcolor(meterColor);
+				Coord meterSize = textSize().mul((double)meterPercent / 100);
+				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(1, 1));
+				initialGL.chcolor();
 			}
 			if (headerText != null) {
 				initialGL.image(headerText.img, headerBox.getContentPosition().add(4, -1));

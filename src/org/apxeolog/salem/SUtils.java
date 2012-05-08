@@ -15,6 +15,8 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.sun.tools.javac.resources.compiler;
+
 public class SUtils {
 	
 	public static class HighlightInfo {
@@ -214,6 +216,8 @@ public class SUtils {
 		}
 		if (lastMinimapClickCoord != null) {
 			for (int i = gobSyncCache.size() - 1; i >= 0; i--) {
+				if (gobSyncCache.get(i).getKey() instanceof PlayerHighlightInfo || gobSyncCache.get(i).getKey() instanceof AnimalHighlightInfo) continue;
+				
 				Gob gob = gobSyncCache.get(i).getValue();
 				Coord ul = mmap.realToLocal(new Coord(gob.getc())).sub(minimapIconSize.div(2));
 				if (lastMinimapClickCoord.isect(ul, minimapIconSize)) {

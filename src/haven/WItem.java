@@ -76,8 +76,8 @@ public class WItem extends Widget implements DTarget {
 		BufferedImage img = nm.str.img;
 		Alchemy ch = find(Alchemy.class, info);
 		if (ch != null) {
-			//img = GItem.catimgsh(5, img, ch.smallmeter());
-			img = GItem.catimgsh(5, img, ttfnd.render(String.format("Purity: $col[255,255,0]{%2.1f}  Multiplier: $col[255,255,0]{%2.1f}", ch.getPurity(), ch.getMultiplier())).img);
+			img = GItem.catimgsh(5, img, ch.smallmeter());
+			img = GItem.catimgs(5, img, ttfnd.render(String.format("Purity: $col[255,255,0]{%2.1f}  Multiplier: $col[255,255,0]{%2.1f}", ch.getPurity(), ch.getMultiplier())).img);
 		}
 		return (img);
 	}
@@ -277,7 +277,7 @@ public class WItem extends Widget implements DTarget {
 			if (parent instanceof Inventory) {
 				if (ui.modctrl && ui.modshift) {
 					wdgmsg("transfer_such_all_ql", item.getResourceName());
-				} else if (ui.modctrl && ui.modmeta) {
+				} else if (ui.modshift && ui.modmeta) {
 					wdgmsg("transfer_such_all_qldesc", item.getResourceName());
 				} else if (ui.modctrl) {
 					wdgmsg("drop_such_all", item.getResourceName());

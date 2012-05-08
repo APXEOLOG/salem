@@ -26,6 +26,7 @@
 
 package haven;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -437,19 +438,25 @@ public class CharWnd extends SWindow {
 		};
 		this.ski = new SkillInfo(new Coord(430, 30), new Coord(190, 275), this);
 	}
-
-	public void getSkillsStatus() {
-		int lexp = 0, hexp = 0;
-		boolean lfin = false, hfin = false;
-		int numfinished = 0;
-		int sexp = 0;
+	
+	@Override
+	public void draw(GOut initialGL) {
+		Color bgColor = Color.BLACK;
+		double bgMeter = 0;
 		
+		int stexp = 0, toexp = 0;
 		for (Attr atr : attrs.values()) {
 			if (atr.hexp > 0) {
-				
+				stexp += atr.hexp;
+				toexp += atr.sexp;
 			}
-			if (atr.finished()) numfinished++;
 		}
+		bgMeter = stexp / toexp;
+		// 255 255 0 => 0 255 0
+        bgColor = new Color((int)(255 * (1 - bgMeter)), (int)(255 * bgMeter + 255 * (1 - bgMeter)), 0);
+		windowHeader.setMeterValue((int)(bgMeter * 100));
+		windowHeader.setMeterColor(bgColor);
+		super.draw(initialGL);
 	}
 	
 	public void uimsg(String msg, Object... args) {

@@ -37,6 +37,7 @@ import java.util.TreeMap;
 
 import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.STempers;
 import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.SWidgetOptions;
 import org.apxeolog.salem.SWindow;
@@ -77,7 +78,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	/* APXEOLOG */
 	//public SChatWindow bdsChat;
 	public SWidgetOptions bdsOptions;
-
+	//public STempers bdsTempers;
+	
 	public abstract class Belt {
 		public abstract int draw(GOut g, int by);
 
@@ -118,6 +120,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 
 		bdsOptions = new SWidgetOptions(sz.div(2).sub(150, 150), this);
 		bdsOptions.hide();
+		//bdsTempers = new STempers(new Coord(300, 200), new Coord(200, 80), this);
+		
 //		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
 //				this);
 
@@ -459,11 +463,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			for (int i = 0; i < 4; i++)
 				n[i] = (Integer) args[i];
 			tm.upds(n);
+			//bdsTempers.upds(n);
 		} else if (msg == "htm") {
 			int[] n = new int[4];
 			for (int i = 0; i < 4; i++)
 				n[i] = (Integer) args[i];
 			tm.updh(n);
+			//bdsTempers.updh(n);
 		} else if (msg == "gobble") {
 			boolean g = (Integer) args[0] != 0;
 			if (g && (gobble == null)) {
