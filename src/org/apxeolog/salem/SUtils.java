@@ -15,8 +15,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.sun.tools.javac.resources.compiler;
-
 public class SUtils {
 	
 	public static class HighlightInfo {
@@ -84,6 +82,17 @@ public class SUtils {
 			resIcon = Resource.loadtex(tex);
 			optName = tooltip;
 			loadCFG();
+		}
+		
+		@Override
+		public void draw(GOut g, Coord ul, Gob gob) {
+//			// TODO Auto-generated method stub
+//			super.draw(g, ul, gob);
+			
+			g.chcolor(Color.BLACK);
+			g.fellipse(ul, new Coord(5, 5));
+			g.chcolor(new Color(128, 70, 27));
+			g.fellipse(ul, new Coord(4 ,4));
 		}
 	}
 	

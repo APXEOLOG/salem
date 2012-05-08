@@ -241,7 +241,7 @@ public class WItem extends Widget implements DTarget {
 						5, (int) (a * sz.y)));
 				g.chcolor();
 			}
-			int purity = getPurity();
+			int purity = Math.round(getPurity());
 			if (purity >= 0) {
 				g.atext(Integer.toString(purity), sz, 1, 1);
 			}

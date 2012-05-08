@@ -56,7 +56,7 @@ public class Alchemy extends GItem.Tip {
 		double Merc = a[1] / 10000.0;
 		double Sulp = a[2] / 10000.0;
 		double Lead = a[3] / 10000.0;
-		return ((Math.pow(Salt, 2) + Math.pow(Merc, 2) + Math.pow(Sulp, 2) + Math.pow(Lead, 2)) - 0.25) * (4 / 3) * 100;
+		return ((Math.pow(Salt, 2) + Math.pow(Merc, 2) + Math.pow(Sulp, 2) + Math.pow(Lead, 2)) - 0.25) * (4f / 3f) * 100;
 	}
 	
 	public double getMultiplier() {
