@@ -27,7 +27,7 @@
 			<compilerarg value="-Xlint:unchecked" />
 		</javac>
 		<copy todir="bin/haven/glsl">
-			<fileset dir="build/classes/haven/glsl" />
+			<fileset dir="src/haven/glsl" />
 		</copy>
 		<copy todir="bin/res">
 			<fileset dir="res" />
