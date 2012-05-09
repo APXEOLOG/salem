@@ -77,7 +77,9 @@ public class WItem extends Widget implements DTarget {
 		Alchemy ch = find(Alchemy.class, info);
 		if (ch != null) {
 			img = GItem.catimgsh(5, img, ch.smallmeter());
-			img = GItem.catimgs(5, img, ttfnd.render(String.format("Purity: $col[255,255,0]{%2.1f}  Multiplier: $col[255,255,0]{%2.1f}", ch.getPurity(), ch.getMultiplier())).img);
+			img = GItem.catimgs(5, img, ttfnd.render(String.format(
+					"Purity: $col[255,255,0]{%2.1f}  Multiplier: $col[255,255,0]{%2.1f}",
+					ch.getPurity(), ch.getMultiplier())).img);
 		}
 		return (img);
 	}
@@ -108,6 +110,12 @@ public class WItem extends Widget implements DTarget {
 
 	public static BufferedImage longtip(GItem item, List<Info> info) {
 		BufferedImage img = GItem.longtip(info);
+		Alchemy ch = find(Alchemy.class, info);
+		if (ch != null) {
+			img = GItem.catimgs(5, img, ttfnd.render(String.format(
+					"Purity: $col[255,255,0]{%2.1f}  Multiplier: $col[255,255,0]{%2.1f}",
+					ch.getPurity(), ch.getMultiplier())).img);
+		}
 		Resource.Pagina pg = item.res.get().layer(Resource.pagina);
 		if (pg != null)
 			img = GItem.catimgs(0, img,
