@@ -31,7 +31,6 @@ public class ISBox extends Widget implements DTarget {
     static Text.Foundry lf;
     private Resource res;
     private Text label;
-    private String boxValues;
     static {
         lf = new Text.Foundry(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 18), java.awt.Color.WHITE);
         lf.aa = true;
@@ -52,7 +51,6 @@ public class ISBox extends Widget implements DTarget {
     public ISBox(Coord c, Widget parent, Resource res, int rem, int av, int bi) {
         super(c, bg.sz(), parent);
         this.res = res;
-        boxValues = String.valueOf(rem)+"/"+String.valueOf(av)+"/"+String.valueOf(bi);
         setlabel(rem, av, bi);
     }
     
@@ -84,19 +82,8 @@ public class ISBox extends Widget implements DTarget {
         	//Kerri
         	//this will transfer from ISbox of build sign to your inventory
         {
-        	if(boxValues != null)
-    		{
-        		String[] sList = boxValues.split("/");
-        		int current = Integer.parseInt(sList[1]);
-        		//16 - maximum inventory that u can have
-        		//Loftar, inventory is too small!
-        		if(current < 16)
-        			for(int i = 0; i < current; i++)
-        				wdgmsg("xfer");
-        		else
-        			for(int i = 0; i < 16; i++)
-        				wdgmsg("xfer");
-    		}
+        	for(int i = 0; i < 16; i++)
+        		wdgmsg("xfer");
         }
         return(false);
     }
