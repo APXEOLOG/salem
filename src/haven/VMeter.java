@@ -60,6 +60,10 @@ public class VMeter extends Widget {
 	this.amount = amount;
 	this.cl = cl;
     }
+    
+    public Object tooltip(Coord c, boolean again) {
+    	return Integer.toString(amount);
+    }
 	
     public void draw(GOut g) {
 	g.image(bg, Coord.z);
