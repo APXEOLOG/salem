@@ -28,7 +28,7 @@ public class STempers extends Widget {
 	protected boolean fullTempers = false;
 	protected Object tooltip;
 	
-	public STempers(Coord c, Coord sz, Widget parent) {
+	public STempers(Coord c, Widget parent) {
 		super(c, new Coord(120, 71), parent);
 	}
 	

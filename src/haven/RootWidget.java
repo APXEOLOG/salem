@@ -28,6 +28,9 @@ package haven;
 
 import java.awt.event.KeyEvent;
 
+import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.HConfig;
+
 public class RootWidget extends ConsoleHost {
 	public static Resource defcurs = Resource.load("gfx/hud/curs/arw");
 	Logout logout = null;
@@ -42,7 +45,9 @@ public class RootWidget extends ConsoleHost {
 
 	public boolean globtype(char key, KeyEvent ev) {
 		if (!super.globtype(key, ev)) {
-			if (Config.profile && (key == '`')) {
+			if (ev.getKeyCode() == 89 && ev.isControlDown()) {
+				HConfig.cl_render_on = !HConfig.cl_render_on;
+			} else if (Config.profile && (key == '`')) {
 				new Profwnd(new Coord(100, 100), this, gprof, "Glob prof");
 			} else if (Config.profile && (key == '~')) {
 				GameUI gi = findchild(GameUI.class);

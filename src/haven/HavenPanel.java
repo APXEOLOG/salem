@@ -50,6 +50,8 @@ import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 
+import org.apxeolog.salem.HConfig;
+
 public class HavenPanel extends GLCanvas implements Runnable {
 	UI ui;
 	boolean inited = false, rdr = false;
@@ -287,6 +289,14 @@ public class HavenPanel extends GLCanvas implements Runnable {
 		ostate.prep(ibuf);
 		GOut g = new GOut(gl, getContext(), glconf, state, ibuf,
 				new Coord(w, h));
+		
+		if (!HConfig.cl_render_on) {
+			gl.glClearColor(0, 0, 0, 1);
+			gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+			FastText.aprintf(g, new Coord(w / 2, h / 2), 0.5, 0.5, "Render disabled. Press Ctrl + Y...");
+			return;
+		}
+		
 		state.set(ibuf);
 
 		g.state(rtstate);
