@@ -628,6 +628,12 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		togglesdw = shad;
 	}
 	
+	public void toggleOptions() {
+		if(bdsOptions == null) return;
+		if (bdsOptions.visible) bdsOptions.hide();
+		else bdsOptions.show();
+	}
+	
 	private void makemenu() {
 		mainmenu = new Widget(new Coord(135, sz.y - 26), new Coord(386, 26),
 				this);
@@ -686,8 +692,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		new MenuButton(new Coord(x, 0), mainmenu, "opt", -1,
 				"Options (BDSaleM)") {
 			public void click() {
-				if (bdsOptions.visible) bdsOptions.hide();
-				else bdsOptions.show();
+				toggleOptions();
 			}
 		};
 		menumenu = new Widget(Coord.z, new Coord(132, 33), this) {

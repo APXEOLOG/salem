@@ -47,6 +47,13 @@ public class RootWidget extends ConsoleHost {
 		if (!super.globtype(key, ev)) {
 			if (ev.getKeyCode() == 89 && ev.isControlDown()) {
 				HConfig.cl_render_on = !HConfig.cl_render_on;
+			} else if(ev.getKeyCode() == 76 && ev.isAltDown()) {
+				ui.sess.close();
+				if(!HConfig.cl_render_on)
+					HConfig.cl_render_on = true;
+			} else if(ev.getKeyCode() == 79 && ev.isControlDown()) {
+				//Я хуй знает как тут правильнее в вашей яве
+				findchild(GameUI.class).toggleOptions();
 			} else if (Config.profile && (key == '`')) {
 				new Profwnd(new Coord(100, 100), this, gprof, "Glob prof");
 			} else if (Config.profile && (key == '~')) {

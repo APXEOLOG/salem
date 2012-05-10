@@ -26,6 +26,7 @@
 
 package org.apxeolog.salem;
 
+import haven.Button;
 import haven.CheckBox;
 import haven.Coord;
 import haven.GOut;
@@ -120,6 +121,14 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			checkb.set(HConfig.cl_dump_minimaps);
+			
+			new Button(new Coord(20, 120), 120, tab, "Logout") {
+				public void click() {
+					ui.sess.close();
+					if(!HConfig.cl_render_on)
+						HConfig.cl_render_on = true;
+				}
+			};
 		}
 		body.showtab(ftab);
 	}
