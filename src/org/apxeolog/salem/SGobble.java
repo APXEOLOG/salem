@@ -46,6 +46,7 @@ public class SGobble extends Widget {
 	}
 	
 	public void updateTextCache() {
+		tooltip = null;
 		for (int i = 0; i < 4; i++) {
 			textVal[i] = Text.render(String.format("%.1f / %.1f", fepVals[i] / 1000D, currentVals[i] / 1000D)).img;
 		}

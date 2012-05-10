@@ -12,6 +12,13 @@ import haven.Resource;
 import haven.Tex;
 
 import java.awt.Color;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -258,5 +265,58 @@ public class SUtils {
 		if (pointCoord.x > rectLeftTopCorner.x + rectSize.x) returnCoord.x = rectLeftTopCorner.x + rectSize.x;
 		if (pointCoord.y > rectLeftTopCorner.y + rectSize.y) returnCoord.y = rectLeftTopCorner.y + rectSize.y;
 		return returnCoord;
+	}
+	
+	
+	/* Logins */
+	public static HashMap<String, Pair<String, String>> accounts;
+
+	public static void _sa_add_data(String login, String password) {
+		ALS.alDebugPrint("add");
+		// Object[] { user.text, pass.text, savepass.a }
+		if (!accounts.containsKey(login)) {
+			accounts.put(login, new Pair<String, String>(login, password));
+			_sa_save_data();
+		}
+	}
+
+	public static void _sa_save_data() {
+		try {
+			File file = new File("data.bin");
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+			FileOutputStream files = new FileOutputStream(file);
+			ObjectOutputStream sstream = new ObjectOutputStream(files);
+			sstream.writeObject(accounts);
+			sstream.flush();
+			sstream.close();
+		} catch (FileNotFoundException e) {
+			
+		} catch (IOException e) {
+			
+		}
+	}
+
+	public static void _sa_delete_account(String name) {
+		accounts.remove(name);
+		_sa_save_data();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static void _sa_load_data() {
+		if (accounts != null) return;
+		accounts = new HashMap<String, Pair<String,String>>();
+		try {
+			FileInputStream file = new FileInputStream("data.bin");
+			ObjectInputStream sstream = new ObjectInputStream(file);
+			accounts = (HashMap<String, Pair<String, String>>) sstream.readObject();
+		} catch (FileNotFoundException e) {
+			// Just no save file
+		} catch (IOException e) {
+			// Some file error
+		} catch (ClassNotFoundException e) {
+			
+		}
 	}
 }

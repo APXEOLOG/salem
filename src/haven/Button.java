@@ -42,6 +42,7 @@ public class Button extends SSWidget {
     public BufferedImage cont;
     static Text.Foundry tf = new Text.Foundry(new Font("Serif", Font.PLAIN, 12), Color.YELLOW);
     boolean a = false;
+	public Object additionalInfo;
 	
     static {
 	Widget.addtype("btn", new WidgetFactory() {
