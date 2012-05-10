@@ -5,3 +5,6 @@
 /*.gitignore
 /.gitignore
 /*.*gitignore*
+/build/
+/.project
+/*.classpath
