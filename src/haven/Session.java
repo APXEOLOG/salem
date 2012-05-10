@@ -599,6 +599,9 @@ public class Session {
 						}
 					}
 				}
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				//
 			} finally {
 				synchronized (Session.this) {
 					state = "dead";
