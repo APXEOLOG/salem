@@ -82,7 +82,7 @@ public class ISBox extends Widget implements DTarget {
         	//Kerri
         	//this will transfer from ISbox of build sign to your inventory
         {
-        	for(int i = 0; i < 16; i++)
+        	for(int i = 0; i < 20; i++)
         		wdgmsg("xfer");
         }
         return(false);
