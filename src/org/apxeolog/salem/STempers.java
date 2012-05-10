@@ -33,6 +33,7 @@ public class STempers extends Widget {
 	}
 	
 	public void updateTextCache() {
+		tooltip = null;
 		for (int i = 0; i < 4; i++) {
 			textVal[i] = Text.render(String.format("%.1f / %.1f / %.1f", hardVal[i] / 1000D, softVal[i] / 1000D, maxVal[i] / 1000D)).img;
 		}
@@ -134,7 +135,7 @@ public class STempers extends Widget {
 		hardVal = n;
 		updateTextCache();
 	}
-
+	
 	public boolean mousedown(Coord c, int button) {
 		getparent(GameUI.class).act("gobble");
 		return true;

@@ -1,6 +1,10 @@
 package org.apxeolog.salem;
 
-public class Pair<TYPEA, TYPEB> implements Comparable<Pair<TYPEA, TYPEB>> {
+import java.io.Serializable;
+
+public class Pair<TYPEA, TYPEB> implements Comparable<Pair<TYPEA, TYPEB>>, Serializable {
+	private static final long serialVersionUID = -8574256111175565367L;
+	
 	protected final TYPEA Key_;
 	protected final TYPEB Value_;
 
