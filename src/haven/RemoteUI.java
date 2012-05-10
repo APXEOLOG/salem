@@ -26,6 +26,8 @@
 
 package haven;
 
+import org.apxeolog.salem.ALS;
+
 public class RemoteUI implements UI.Receiver {
 	Session sess;
 	UI ui;
@@ -55,6 +57,9 @@ public class RemoteUI implements UI.Receiver {
 					int parent = msg.uint16();
 					Object[] pargs = msg.list();
 					Object[] cargs = msg.list();
+					if (type.equals("cnt")) {
+						pargs[0] = ui.root.sz.sub(800, 600).div(2);
+					}
 					ui.newwidget(id, type, parent, pargs, cargs);
 				} else if (msg.type == Message.RMSG_WDGMSG) {
 					int id = msg.uint16();

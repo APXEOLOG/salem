@@ -151,7 +151,6 @@ public class UI {
 				throw (new UIException("Null parent widget " + parent + " for "
 						+ id, type, cargs));
 			Widget wdg = pwdg.makechild(type.intern(), pargs, cargs);
-			//ALS.alDebugPrint(wdg.getClass().getCanonicalName());
 			bind(wdg, id);
 		}
 	}
