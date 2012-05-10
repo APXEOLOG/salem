@@ -749,6 +749,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	}
 
 	public boolean globtype(char key, KeyEvent ev) {
+		if(ev.getKeyCode() == 79 && ev.isControlDown()) {
+			toggleOptions();
+			return true;
+		}
 		char ukey = Character.toUpperCase(key);
 		if (key == ':') {
 			entercmd();
