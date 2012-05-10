@@ -1,5 +1,7 @@
-/.classpath
-/.project
-/build
-*~
+/.metadata/
 /bin/
+/release/
+/salem/
+/*.gitignore
+/.gitignore
+/*.*gitignore*
