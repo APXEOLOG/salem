@@ -48,9 +48,11 @@ public class RootWidget extends ConsoleHost {
 			if (ev.getKeyCode() == 89 && ev.isControlDown()) {
 				HConfig.cl_render_on = !HConfig.cl_render_on;
 			} else if(ev.getKeyCode() == 76 && ev.isAltDown()) {
-				ui.sess.close();
-				if(!HConfig.cl_render_on)
+				if (ui.sess != null) ui.sess.close();
+				if(!HConfig.cl_render_on) {
 					HConfig.cl_render_on = true;
+					HConfig.saveConfig();
+				}
 			} else if (Config.profile && (key == '`')) {
 				new Profwnd(new Coord(100, 100), this, gprof, "Glob prof");
 			} else if (Config.profile && (key == '~')) {
