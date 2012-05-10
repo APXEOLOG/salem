@@ -37,6 +37,7 @@ import java.util.TreeMap;
 
 import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.SGobble;
 import org.apxeolog.salem.STempers;
 import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.SWidgetOptions;
@@ -47,8 +48,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public final String chrid;
 	public final long plid;
 	public MenuGrid menu;
-	public Tempers tm;
-	public Gobble gobble;
+	//public Tempers tm;
+	//public Gobble gobble;
 	public MapView map;
 	public LocalMiniMap mmap;
 	public Fightview fv;
@@ -78,7 +79,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	/* APXEOLOG */
 	//public SChatWindow bdsChat;
 	public SWidgetOptions bdsOptions;
-	//public STempers bdsTempers;
+	public STempers bdsTempers;
+	public SGobble bdsGobble;
 	
 	public abstract class Belt {
 		public abstract int draw(GOut g, int by);
@@ -115,12 +117,12 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			}
 		};
 		new Bufflist(new Coord(95, 50), this);
-		tm = new Tempers(Coord.z, this);
+		//tm = new Tempers(Coord.z, this);
 		chat = new ChatUI(Coord.z, 0, this);
 
 		bdsOptions = new SWidgetOptions(sz.div(2).sub(150, 150), this);
 		bdsOptions.hide();
-		//bdsTempers = new STempers(new Coord(300, 200), new Coord(200, 80), this);
+		bdsTempers = new STempers(Coord.z, this);
 		
 //		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
 //				this);
@@ -462,34 +464,32 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			int[] n = new int[4];
 			for (int i = 0; i < 4; i++)
 				n[i] = (Integer) args[i];
-			tm.upds(n);
-			//bdsTempers.upds(n);
+			bdsTempers.upds(n);
 		} else if (msg == "htm") {
 			int[] n = new int[4];
 			for (int i = 0; i < 4; i++)
 				n[i] = (Integer) args[i];
-			tm.updh(n);
-			//bdsTempers.updh(n);
+			bdsTempers.updh(n);
 		} else if (msg == "gobble") {
 			boolean g = (Integer) args[0] != 0;
-			if (g && (gobble == null)) {
-				tm.hide();
-				gobble = new Gobble(Coord.z, this);
+			if (g && (bdsGobble == null)) {
+				bdsTempers.hide();
+				bdsGobble = new SGobble(Coord.z, bdsTempers.sz, this);
 				resize(sz);
-			} else if (!g && (gobble != null)) {
-				ui.destroy(gobble);
-				gobble = null;
-				tm.show();
+			} else if (!g && (bdsGobble != null)) {
+				ui.destroy(bdsGobble);
+				bdsGobble = null;
+				bdsTempers.show();
 			}
 		} else if (msg == "gtm") {
 			int[] n = new int[4];
 			for (int i = 0; i < 4; i++)
 				n[i] = (Integer) args[i];
-			gobble.updt(n);
+			bdsGobble.updt(n);
 		} else if (msg == "gvar") {
-			gobble.updv((Integer) args[0]);
+			bdsGobble.updv((Integer) args[0]);
 		} else if (msg == "gtrig") {
-			gobble.trig((Integer) args[0]);
+			bdsGobble.trig((Integer) args[0]);
 		} else if (msg == "polowner") {
 			String o = (String) args[0];
 			if (o.length() == 0)
@@ -800,11 +800,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		super.resize(sz);
 		menu.c = sz.sub(menu.sz);
 		menumenu.c = menu.c.add(menu.sz.x, 0).sub(menumenu.sz);
-		tm.c = new Coord((sz.x - tm.sz.x) / 2, 0);
+		bdsTempers.c = new Coord((sz.x - bdsTempers.sz.x) / 2, 0);
 		chat.resize(sz.x - 125 - menu.sz.x);
 		chat.move(new Coord(125, sz.y));
-		if (gobble != null)
-			gobble.c = new Coord((sz.x - gobble.sz.x) / 2, 0);
+		if (bdsGobble != null)
+			bdsGobble.c = bdsTempers.c;
 		if (map != null)
 			map.resize(sz);
 
