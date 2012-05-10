@@ -78,6 +78,13 @@ public class ISBox extends Widget implements DTarget {
                 wdgmsg("click");
             return(true);
         }
+        else if(button == 3 && ui.modshift)
+        	//Kerri
+        	//this will transfer from ISbox of build sign to your inventory
+        {
+        	for(int i = 0; i < 16; i++)
+        		wdgmsg("xfer");
+        }
         return(false);
     }
     

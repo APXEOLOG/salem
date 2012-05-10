@@ -87,6 +87,10 @@ public class LocalMiniMap extends Widget {
 	
 	public void resetOffset() {
 		mapCenterTranslation = Coord.z;
+		transBuffer = mapCenterTranslation;
+		//Kerri
+		//fixes dragging bug, when u starts drag and
+		//minimap focus moved to last 'mouseup' position
 	}
 	
 	public void draw(GOut og) {
