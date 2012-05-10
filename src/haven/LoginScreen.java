@@ -74,6 +74,7 @@ public class LoginScreen extends Widget {
 			if(j == 20) j = 0;
 			Pair<String, String> info = iterator.next();
 			Button btn = new Button(Coord.z.add(0 + 140 * (i/20), j * 30), 100, this, info.getKey()) {
+				@SuppressWarnings("unchecked")
 				@Override
 				public void click() {
 					LoginScreen ls = getparent(LoginScreen.class);
@@ -86,6 +87,7 @@ public class LoginScreen extends Widget {
 			login_btns.add(btn);
 			
 			Button btn_del = new Button(Coord.z.add(105 + 140 * (i/20), j * 30), 15, this, "X") {
+				@SuppressWarnings("unchecked")
 				public void click() {
 					Pair<String, String> info = (Pair<String, String>) additionalInfo;
 					SUtils._sa_delete_account(info.getKey());

@@ -15,8 +15,6 @@ import haven.Widget;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import com.sun.xml.internal.ws.org.objectweb.asm.Label;
-
 public class SGobble extends Widget {
 	protected int[] currentVals = new int[4];
 	protected int[] fepVals = new int[4];
