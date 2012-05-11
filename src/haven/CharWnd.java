@@ -40,9 +40,12 @@ import java.util.Map;
 import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.SWindow;
 
+import com.sun.xml.internal.ws.transport.http.WSHTTPConnection;
+
 public class CharWnd extends SWindow {
 	public static final Map<String, String> attrnm;
 	public static final List<String> attrorder;
+	private String watchingAttr = "LOFTAR_TI_MENYA_ZAEBAL_SVOEI_HYINEI";
 	public final Map<String, Attr> attrs = new HashMap<String, Attr>();
 	public final SkillList csk, nsk;
 	private final SkillInfo ski;
@@ -294,6 +297,7 @@ public class CharWnd extends SWindow {
 		public boolean av = false; // got it
 		private Text rnm, rv, rexp;
 		private int cv;
+		private String longname;
 
 		public boolean finished() {
 			return av;
@@ -308,7 +312,15 @@ public class CharWnd extends SWindow {
 			if (pag != null)
 				this.tooltip = RichText.render(pag.text, 300);
 			this.attr = ui.sess.glob.cattr.get(nm);
-			this.rnm = Text.render(attrnm.get(attr));
+			this.longname = attrnm.get(attr);
+			this.rnm = Text.render(longname);
+		}
+		
+		public void drawAsWatching(boolean b) {
+			if(b)
+				rnm = Text.render(longname, Color.red);
+			else
+				rnm = Text.render(longname, Color.white);
 		}
 
 		public void draw(GOut g) {
@@ -379,6 +391,13 @@ public class CharWnd extends SWindow {
 
 		public boolean mousedown(Coord c, int btn) {
 			if ((btn == 1) && c.isect(expc, expsz)) {
+				if(ui.modctrl) {
+					if(!watchingAttr.equals(nm))
+						watchingAttr = nm;
+					else
+						watchingAttr = "";
+					return true;
+				}
 				if (av) {
 					a = 1;
 					ui.grabmouse(this);
@@ -441,21 +460,29 @@ public class CharWnd extends SWindow {
 	
 	@Override
 	public void draw(GOut initialGL) {
-//		Color bgColor = Color.BLACK;
-//		double bgMeter = 0;
-//		
-//		int stexp = 0, toexp = 0;
-//		for (Attr atr : attrs.values()) {
-//			if (atr.hexp > 0) {
-//				stexp += atr.hexp;
-//				toexp += atr.sexp;
-//			}
-//		}
-//		bgMeter = stexp / toexp;
-//		// 255 255 0 => 0 255 0
-//        bgColor = new Color((int)(255 * (1 - bgMeter)), (int)(255 * bgMeter + 255 * (1 - bgMeter)), 0);
-//		windowHeader.setMeterValue((int)(bgMeter * 100));
-//		windowHeader.setMeterColor(bgColor);
+		boolean haveWatching = false;
+		for (Attr atr : attrs.values()) {
+			if (atr.nm.equals(watchingAttr)) {
+				atr.drawAsWatching(true);
+				int maxlp = atr.attr.comp * 100;
+				int currentlp = atr.hexp;
+				double op = maxlp/100;
+				double meterperc = currentlp/op;
+				windowHeader.setMeterValue((int)meterperc);
+				if(meterperc != 100)
+					windowHeader.setMeterColor(new Color(0, 0, 255, 225));
+				else
+					windowHeader.setMeterColor(new Color(0, 255, 0, 225));
+				windowHeader.setText("Character ("+attrnm.get(atr.nm)+": "+Integer.toString((int)meterperc)+"%)");
+				haveWatching = true;
+			} else {
+				atr.drawAsWatching(false);
+			}
+		}
+		if(!haveWatching) {
+			windowHeader.setText("Character");
+			windowHeader.setMeterValue(0);
+		}
 		super.draw(initialGL);
 	}
 	
