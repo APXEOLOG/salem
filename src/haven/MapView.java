@@ -34,6 +34,9 @@ import java.util.*;
 import java.lang.reflect.*;
 import javax.media.opengl.*;
 
+import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.HConfig;
+
 public class MapView extends PView implements DTarget {
 	public long plgob = -1;
 	public Coord cc;
@@ -835,6 +838,7 @@ public class MapView extends PView implements DTarget {
 				if (grab.mmousedown(mc, clickb))
 					return;
 			}
+			if (HConfig.cl_tilify) mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
 			if (gob == null)
 				wdgmsg("click", pc, mc, clickb, ui.modflags());
 			else
@@ -860,9 +864,12 @@ public class MapView extends PView implements DTarget {
 				camdrag = true;
 			}
 		} else if (placing != null) {
-			if (placing.lastmc != null)
-				wdgmsg("place", placing.rc, (int) (placing.a * 180 / Math.PI),
+			if (placing.lastmc != null) {
+				Coord buf = placing.rc;
+				if (HConfig.cl_tilify) buf = buf.div(tilesz).mul(tilesz).add(tilesz.div(2));
+				wdgmsg("place", buf, (int) (placing.a * 180 / Math.PI),
 						button, ui.modflags());
+			}
 		} else {
 			synchronized (delayed) {
 				delayed.add(new Click(c, button));
@@ -930,6 +937,7 @@ public class MapView extends PView implements DTarget {
 		synchronized (delayed) {
 			delayed.add(new Hittest(cc) {
 				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
+					if (HConfig.cl_tilify) mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
 					wdgmsg("drop", pc, mc, ui.modflags());
 				}
 			});
@@ -941,6 +949,7 @@ public class MapView extends PView implements DTarget {
 		synchronized (delayed) {
 			delayed.add(new Hittest(cc) {
 				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
+					if (HConfig.cl_tilify) mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
 					if (gob == null)
 						wdgmsg("itemact", pc, mc, ui.modflags());
 					else
