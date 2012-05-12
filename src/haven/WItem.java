@@ -107,6 +107,15 @@ public class WItem extends Widget implements DTarget {
 		}
 		return -1;
 	}
+	
+	protected int getDominantElement() {
+		List<Info> info = item.info();
+		Alchemy ch = find(Alchemy.class, info);
+		if (ch != null) {
+			return (int)(ch.getDominantElement());
+		}
+		return 0;
+	}
 
 	public static BufferedImage longtip(GItem item, List<Info> info) {
 		BufferedImage img = GItem.longtip(info);
@@ -229,6 +238,8 @@ public class WItem extends Widget implements DTarget {
 		return (itemnum);
 	}
 
+	protected Text purityOutlinedText = null;
+	
 	public void draw(GOut g) {
 		try {
 			Resource res = item.res.get();
@@ -251,7 +262,10 @@ public class WItem extends Widget implements DTarget {
 			}
 			int purity = Math.round(getPurity());
 			if (purity >= 0) {
-				g.atext(Integer.toString(purity), sz, 1, 1);
+				if (purityOutlinedText == null) {
+					purityOutlinedText = Text.renderOutlined(Integer.toString(purity), Alchemy.colors[getDominantElement()].brighter().brighter(), Color.BLACK, 1);
+				}
+				g.aimage(purityOutlinedText.tex(), sz, 1, 1);
 			}
 			if (olcol() != null) {
 				if (cmask != res) {

@@ -17,7 +17,7 @@ import java.awt.image.BufferedImage;
 public class STempers extends Widget {
 	public static final String[] stat_uniq = { "blood", "phlegm", "ybile", "bbile" };
 	public static final String[] stat_name = { "Blood", "Phlegm", "Yellow Bile", "Black Bile" };
-	public static final Color[] stat_color = { new Color(178, 0, 0, 255), new Color(0, 102, 179, 255), new Color(255, 151, 0, 255), new Color(64, 64, 64, 255) };
+	public static final Color[] stat_color = { new Color(178, 0, 0, 255), new Color(0, 102, 179, 255), new Color(255, 151, 0, 255), new Color(128, 128, 128, 255) };
 	
 	protected int[] softVal = new int[4];
 	protected int[] hardVal = new int[4];
@@ -35,7 +35,7 @@ public class STempers extends Widget {
 	public void updateTextCache() {
 		tooltip = null;
 		for (int i = 0; i < 4; i++) {
-			textVal[i] = Text.render(String.format("%.1f / %.1f / %.1f", hardVal[i] / 1000D, softVal[i] / 1000D, maxVal[i] / 1000D)).img;
+			textVal[i] = Text.renderOutlined(String.format("%.1f / %.1f / %.1f", hardVal[i] / 1000D, softVal[i] / 1000D, maxVal[i] / 1000D), Color.WHITE, Color.BLACK, 1).img;
 		}
 	}
 
@@ -95,22 +95,6 @@ public class STempers extends Widget {
 			g.chcolor(Color.WHITE);
 			g.image(textVal[i], new Coord((sz.x - textVal[i].getWidth()) / 2, i * 16 + 3));
 		}
-		
-
-//		g.chcolor(softc);
-//		g.poly(mid.add(0, -dispval(soft[0], max[0])),
-//				mid.add(dispval(soft[1], max[1]), 0),
-//				mid.add(0, dispval(soft[2], max[2])),
-//				mid.add(-dispval(soft[3], max[3]), 0));
-//		g.chcolor();
-//		g.poly2(mid.add(0, -dispval(hard[0], max[0])), cols[0],
-//				mid.add(dispval(hard[1], max[1]), 0), cols[1],
-//				mid.add(0, dispval(hard[2], max[2])), cols[2],
-//				mid.add(-dispval(hard[3], max[3]), 0), cols[3]);
-//		if (full)
-//			g.chcolor(64, 255, 192, 255);
-//		g.aimage(cross, mid, 0.5, 0.5);
-//		g.chcolor();
 	}
 
 	public Object tooltip(Coord c, boolean again) {
