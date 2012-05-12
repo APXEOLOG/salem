@@ -55,6 +55,7 @@ public class CharWnd extends SWindow {
 		protected int attLvl = 0;
 		protected int willLp = 0;
 		protected String name = "";
+		protected String shortName = "";
 
 		protected Color meterColor = Color.BLACK;
 		protected Color futureColor = Color.BLACK;
@@ -63,6 +64,27 @@ public class CharWnd extends SWindow {
 		public CharWndWindowHeader(Coord c, Coord sz, Widget parent,
 				String caption, boolean min, boolean clo) {
 			super(c, sz, parent, caption, min, clo);
+		}
+		
+		private void buy() {
+			parent.wdgmsg("sattr", shortName);
+		}
+		
+		public boolean mousedown(Coord c, int btn) {
+			if(btn == 1 && ui.modctrl) {
+				buy();
+				return true;
+			}
+			
+			return super.mousedown(c, btn);
+		}
+		
+		public void freeTipCache() {
+			tooltipCache = null;
+		}
+		
+		public void setShortName(String n) {
+			shortName = n;
 		}
 		
 		public void setTipValues(int cl, int al, int wl, String name) {
@@ -111,11 +133,11 @@ public class CharWnd extends SWindow {
 			}
 			if (meterPercent > 0) {
 				initialGL.chcolor(meterColor);
-				double width = textSize().x / 100D;
+				double width = textSize().x / 100.;
 				width *= meterPercent;
 				//у меня от этих типов данных ДЕЛЕНИЕ
 				Coord meterSize = new Coord((int)width, textSize().y);
-				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(1, 1));
+				initialGL.frect(headerBox.getBorderPosition().add(0, 1), meterSize.sub(1, 1));
 				initialGL.chcolor();
 			}
 			if(futurePercent > 0) {
@@ -124,7 +146,7 @@ public class CharWnd extends SWindow {
 				double width = textSize().x/100.;
 				width *= futurePercent;
 				Coord meterSize = new Coord((int)width, textSize().y/2);
-				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(1, 1));
+				initialGL.frect(headerBox.getBorderPosition().add(0, 1), meterSize.sub(1, 1));
 				initialGL.chcolor();
 			}
 			if (headerText != null) {
@@ -596,6 +618,7 @@ public class CharWnd extends SWindow {
 	
 	public void uimsg(String msg, Object... args) {
 		if (msg == "exp") {
+			((CharWndWindowHeader) windowHeader).freeTipCache();
 			for (int i = 0; i < args.length; i += 4) {
 				String nm = (String) args[i];
 				int s = (Integer) args[i + 1];
