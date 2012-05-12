@@ -59,6 +59,17 @@ public class Alchemy extends GItem.Tip {
 		return ((Math.pow(Salt, 2) + Math.pow(Merc, 2) + Math.pow(Sulp, 2) + Math.pow(Lead, 2)) - 0.25) * (4f / 3f) * 100;
 	}
 	
+	public int getDominantElement() {
+		int max = 0, in = 0;
+		for (int i = 0; i < 4; i++) {
+			if (a[i] > max) {
+				max = a[i];
+				in = i;
+			}
+		}
+		return in;
+	}
+	
 	public double getMultiplier() {
 		double Salt = a[0] / 10000.0;
 		double Merc = a[1] / 10000.0;

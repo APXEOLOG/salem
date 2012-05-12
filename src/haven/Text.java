@@ -27,6 +27,9 @@
 package haven;
 
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -162,6 +165,37 @@ public class Text {
 			g.dispose();
 			return (t);
 		}
+		
+		public Line renderOutlined(String text, Color textColor, Color outlineColor, int outW) {
+			Line t = new Line(text);
+			Coord sz = strsize(text);
+			if (sz.x < 1)
+				sz = sz.add(1, 0);
+			sz.add(outW * 2, 0);
+			t.img = TexI.mkbuf(sz);
+			Graphics g = t.img.createGraphics();
+			if (aa)
+				Utils.AA(g);
+			
+			if (aa)
+				Utils.AA(g);
+			g.setFont(font);
+			t.m = g.getFontMetrics();
+			
+			g.setColor(outlineColor);
+			for (int i = 1; i <= outW; i++) {
+				g.drawString(text, outW - i, t.m.getAscent());
+				g.drawString(text, outW + i, t.m.getAscent());
+				g.drawString(text, outW, t.m.getAscent() - i);
+				g.drawString(text, outW, t.m.getAscent() + i);
+			}
+			
+			g.setColor(textColor);
+			g.drawString(text, outW, t.m.getAscent());
+			g.dispose();
+			
+			return t;
+		}
 
 		public Line render(String text) {
 			return (render(text, defcol));
@@ -184,6 +218,10 @@ public class Text {
 		return (std.render(text, c));
 	}
 
+	public static Line renderOutlined(String text, Color c, Color oc, int w) {
+		return (std.renderOutlined(text, c, oc, w));
+	}
+	
 	public static Line renderf(Color c, String text, Object... args) {
 		return (std.render(String.format(text, args), c));
 	}
