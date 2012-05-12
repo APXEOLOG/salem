@@ -364,6 +364,12 @@ public class SWindow extends Widget {
 		}
 	}
 	
+	@Override
+	public void presize() {
+		resize();
+		super.presize();
+	}
+	
 	public void resize(Coord newSize) {
 		windowBox.contentSize = newSize;
 		sz = windowBox.getBoxSize();

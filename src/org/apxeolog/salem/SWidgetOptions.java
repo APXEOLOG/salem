@@ -62,6 +62,7 @@ public class SWidgetOptions extends Hidewnd {
 	@Override
 	protected void maximize() {
 		super.maximize();
+		for (Tab t : body.tabs) t.hide();
 		body.showtab(ftab);
 	};
 	
@@ -104,7 +105,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			
-			new Button(new Coord(180, 40), 120, tab, "Logout") {
+			new Button(new Coord(200, 40), 120, tab, "Logout") {
 				public void click() {
 					ui.sess.close();
 					if(!HConfig.cl_render_on)
