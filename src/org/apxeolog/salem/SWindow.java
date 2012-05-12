@@ -16,6 +16,10 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class SWindow extends Widget {
+	public static final int HEADER_ALIGN_CENTER = 1;
+	public static final int HEADER_ALIGN_LEFT = 0;
+	public static final int HEADER_ALIGN_RIGHT = 2;
+	
 	protected static Text.Foundry captionFoundry = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
 	
 	protected static class SPictButtonClose extends SPictButton {
@@ -351,14 +355,19 @@ public class SWindow extends Widget {
 	}
 
 	public void resize() {
-		windowHeader.c = xlate(new Coord(sz.div(2).sub(windowHeader.sz.div(2)).x, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
+		if (HConfig.cl_swindow_header_align == HEADER_ALIGN_CENTER) {
+			windowHeader.c = xlate(new Coord(sz.div(2).sub(windowHeader.sz.div(2)).x, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
+		} else if (HConfig.cl_swindow_header_align == HEADER_ALIGN_LEFT) {
+			windowHeader.c = xlate(new Coord(0, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
+		} else {
+			windowHeader.c = xlate(new Coord(sz.sub(windowHeader.sz).x, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
+		}
 	}
 	
 	public void resize(Coord newSize) {
 		windowBox.contentSize = newSize;
 		sz = windowBox.getBoxSize();
-		windowHeader.c = xlate(new Coord(sz.div(2).sub(windowHeader.sz.div(2)).x, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
-		
+		resize();
 		for (Widget ch = child; ch != null; ch = ch.next)
 			ch.presize();
 	}

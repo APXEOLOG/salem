@@ -35,9 +35,10 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SGobble;
+import org.apxeolog.salem.SInterfaces.IGobble;
+import org.apxeolog.salem.SInterfaces.ITempers;
 import org.apxeolog.salem.STempers;
 import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.SWidgetOptions;
@@ -79,8 +80,38 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	/* APXEOLOG */
 	//public SChatWindow bdsChat;
 	public SWidgetOptions bdsOptions;
-	public STempers bdsTempers;
-	public SGobble bdsGobble;
+	public ITempers bdsTempers;
+	public IGobble bdsGobble;
+	
+	public void updateWindowStyle() {
+		ui.root.resize(ui.root.sz);
+	}
+	
+	public void updateTempersToConfig() {
+		if (bdsTempers != null) {
+			boolean vs = bdsTempers.visible;
+			ui.destroy(bdsTempers);
+			if (HConfig.cl_use_new_tempers) {
+				bdsTempers = new STempers(Coord.z, this);
+			} else {
+				bdsTempers = new Tempers(Coord.z, this);
+			}
+			if (!vs) bdsTempers.hide();
+		}
+		if (bdsGobble != null) {
+			ui.destroy(bdsGobble);
+			if (HConfig.cl_use_new_tempers) {
+				bdsGobble = new SGobble(Coord.z, bdsTempers.sz, this);
+			} else {
+				bdsGobble = new Gobble(Coord.z, this);
+			}
+		}
+		if (bdsTempers != null) {
+			bdsTempers.c = new Coord((sz.x - bdsTempers.sz.x) / 2, 0);
+			if (bdsGobble != null)
+				bdsGobble.c = bdsTempers.c;
+		}
+	}
 	
 	public abstract class Belt {
 		public abstract int draw(GOut g, int by);
@@ -122,7 +153,12 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 
 		bdsOptions = new SWidgetOptions(sz.div(2).sub(150, 150), this);
 		bdsOptions.hide();
-		bdsTempers = new STempers(Coord.z, this);
+		
+		if (HConfig.cl_use_new_tempers) {
+			bdsTempers = new STempers(Coord.z, this);
+		} else {
+			bdsTempers = new Tempers(Coord.z, this);
+		}
 		
 //		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
 //				this);
@@ -468,7 +504,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			boolean g = (Integer) args[0] != 0;
 			if (g && (bdsGobble == null)) {
 				bdsTempers.hide();
-				bdsGobble = new SGobble(Coord.z, bdsTempers.sz, this);
+				if (HConfig.cl_use_new_tempers) {
+					bdsGobble = new SGobble(Coord.z, bdsTempers.sz, this);
+				} else {
+					bdsGobble = new Gobble(Coord.z, this);
+				}
 				resize(sz);
 			} else if (!g && (bdsGobble != null)) {
 				ui.destroy(bdsGobble);

@@ -14,7 +14,9 @@ import haven.Widget;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-public class STempers extends Widget {
+import org.apxeolog.salem.SInterfaces.ITempers;
+
+public class STempers extends ITempers {
 	public static final String[] stat_uniq = { "blood", "phlegm", "ybile", "bbile" };
 	public static final String[] stat_name = { "Blood", "Phlegm", "Yellow Bile", "Black Bile" };
 	public static final Color[] stat_color = { new Color(178, 0, 0, 255), new Color(0, 102, 179, 255), new Color(255, 151, 0, 255), new Color(128, 128, 128, 255) };

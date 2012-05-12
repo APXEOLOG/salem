@@ -60,10 +60,10 @@ public class SWidgetOptions extends Hidewnd {
 	}
 	
 	@Override
-	public void show() {
+	protected void maximize() {
+		super.maximize();
 		body.showtab(ftab);
-		super.show();
-	}
+	};
 	
 	Tab ftab;
 	
@@ -103,6 +103,14 @@ public class SWidgetOptions extends Hidewnd {
 					super.draw(g);
 				}
 			};
+			
+			new Button(new Coord(180, 40), 120, tab, "Logout") {
+				public void click() {
+					ui.sess.close();
+					if(!HConfig.cl_render_on)
+						HConfig.cl_render_on = true;
+				}
+			};
 
 			CheckBox checkb = new CheckBox(new Coord(20, 40), tab, "Toogle shadows") {
 				@Override
@@ -122,13 +130,55 @@ public class SWidgetOptions extends Hidewnd {
 			};
 			checkb.set(HConfig.cl_dump_minimaps);
 			
-			new Button(new Coord(20, 120), 120, tab, "Logout") {
-				public void click() {
-					ui.sess.close();
-					if(!HConfig.cl_render_on)
-						HConfig.cl_render_on = true;
+			checkb = new CheckBox(new Coord(20, 120), tab, "New tempers") {
+				@Override
+				public void changed(boolean val) {
+					HConfig.cl_use_new_tempers = val;
+					GameUI gui = getparent(GameUI.class);
+					if (gui != null) gui.updateTempersToConfig();
+					HConfig.saveConfig();
 				}
 			};
+			checkb.set(HConfig.cl_use_new_tempers);
+			
+			new Label(new Coord(20, 160), tab, "Windows header align:");
+			final CheckBox[] aligns = new CheckBox[3];
+			aligns[0] = new CheckBox(new Coord(20, 170), tab, "Left") {
+				@Override
+				public void changed(boolean val) {
+					HConfig.cl_swindow_header_align = SWindow.HEADER_ALIGN_LEFT;
+					aligns[1].a = false;
+					aligns[2].a = false;
+					GameUI ui = getparent(GameUI.class);
+					if (ui != null) ui.updateWindowStyle();
+					HConfig.saveConfig();
+				}
+			};
+			
+			aligns[1] = new CheckBox(new Coord(80, 170), tab, "Center") {
+				@Override
+				public void changed(boolean val) {
+					HConfig.cl_swindow_header_align = SWindow.HEADER_ALIGN_CENTER;
+					aligns[0].a = false;
+					aligns[2].a = false;
+					GameUI ui = getparent(GameUI.class);
+					if (ui != null) ui.updateWindowStyle();
+					HConfig.saveConfig();
+				}
+			};
+			
+			aligns[2] = new CheckBox(new Coord(140, 170), tab, "Right") {
+				@Override
+				public void changed(boolean val) {
+					HConfig.cl_swindow_header_align = SWindow.HEADER_ALIGN_RIGHT;
+					aligns[0].a = false;
+					aligns[1].a = false;
+					GameUI ui = getparent(GameUI.class);
+					if (ui != null) ui.updateWindowStyle();
+					HConfig.saveConfig();
+				}
+			};
+			aligns[HConfig.cl_swindow_header_align].a = true;
 		}
 		body.showtab(ftab);
 	}

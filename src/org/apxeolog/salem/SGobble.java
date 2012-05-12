@@ -1,21 +1,18 @@
 package org.apxeolog.salem;
 
 import haven.Coord;
-import haven.FoodInfo;
-import haven.GItem;
 import haven.GOut;
-import haven.GameUI;
 import haven.RichText;
-import haven.Tempers;
 import haven.Tex;
 import haven.Text;
-import haven.WItem;
 import haven.Widget;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-public class SGobble extends Widget {
+import org.apxeolog.salem.SInterfaces.IGobble;
+
+public class SGobble extends IGobble {
 	protected int[] currentVals = new int[4];
 	protected int[] fepVals = new int[4];
 	protected BufferedImage[] textVal = new BufferedImage[4];

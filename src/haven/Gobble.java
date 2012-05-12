@@ -28,7 +28,9 @@ package haven;
 
 import java.awt.Color;
 
-public class Gobble extends Widget {
+import org.apxeolog.salem.SInterfaces.IGobble;
+
+public class Gobble extends IGobble {
 	static final Tex[] trigi = new Tex[4];
 	static final Color softc = new Color(255, 255, 255, 64);
 	static final int l = 32;

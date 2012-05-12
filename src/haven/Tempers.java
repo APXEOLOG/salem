@@ -28,7 +28,9 @@ package haven;
 
 import java.awt.Color;
 
-public class Tempers extends Widget {
+import org.apxeolog.salem.SInterfaces.ITempers;
+
+public class Tempers extends ITempers {
 	public static final Tex bg = Resource.loadtex("gfx/hud/tempers");
 	public static final Tex cross = Resource.loadtex("gfx/hud/tempersc");
 	public static final Coord mid = new Coord(93, 38);

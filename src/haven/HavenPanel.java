@@ -461,8 +461,10 @@ public class HavenPanel extends GLCanvas implements Runnable {
 					curf = prof.new Frame();
 				synchronized (ui) {
 					if (ui.sess != null) {
-						ui.sess.glob.oc.ctick();
-						ui.sess.glob.map.ctick();
+						synchronized (ui.sess) {
+							ui.sess.glob.oc.ctick();
+							ui.sess.glob.map.ctick();
+						}
 					}
 					dispatch();
 					ui.tick();
