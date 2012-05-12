@@ -111,17 +111,6 @@ public class SWindow extends Widget {
 		protected SPictButton btnMinimize = null;
 		protected ArrayList<SPictButton> buttons = null;
 		
-		protected int meterPercent = -1;
-		protected int futurePercent = 0;
-		
-		protected int currentLp = 0;
-		protected int attLvl = 0;
-		protected int willLp = 0;
-		protected String name = "";
-
-		protected Color meterColor = Color.BLACK;
-		protected Color futureColor = Color.BLACK;
-		
 		public SWindowHeader(Coord c, Coord sz, Widget parent, String caption, boolean min, boolean clo) {
 			super(c, sz, parent);
 			headerBox = new SSimpleBorderBox(Coord.z, 0, 0, 1);
@@ -132,28 +121,14 @@ public class SWindow extends Widget {
 			resize();
 		}
 		
-		public void setTipValues(int cl, int al, int wl, String name) {
-			currentLp = cl;
-			attLvl = al;
-			willLp = wl;
-			this.name = name;
-		}
-		
-		public Object tooltip(Coord c, boolean again) {
-			if(meterPercent < 0) return null;
-			String tiptext = "Watching "+name+" (lvl: "+Integer.toString(attLvl)+")\n"
-					+"Current: "+Integer.toString(currentLp)+"\n"
-					+"Will got: "+Integer.toString(willLp)+"\n"
-					+"Need: "+Integer.toString(attLvl*100)+"\n"
-					+"Completed: "+Integer.toString(meterPercent)+"%\n";
-			//BufferedImage img = RichText.render("testtip").img;
-			//RichText.Parser.quote(in)
-			return RichText.Parser.quote(tiptext);
-		}
-		
 		public void setText(String text) {
 			pSetText(text);
 			resize();
+		}
+		
+		public String getText() {
+			if (headerText == null) return "";
+			return headerText.text;
 		}
 		
 		public void setClosable(boolean closable) {
@@ -161,25 +136,17 @@ public class SWindow extends Widget {
 			resize();
 		}
 		
+		public boolean isClosable() {
+			return btnClose != null;
+		}
+		
+		public boolean isMinimizable() {
+			return btnMinimize != null;
+		}
+		
 		public void setMinimazable(boolean minimazable) {
 			pSetMinimazable(minimazable);
 			resize();
-		}
-		
-		public void setMeterColor(Color clr) {
-			meterColor = clr;
-		}
-		
-		public void setFutureColor(Color col) {
-			futureColor = col;
-		}
-		
-		public void setMeterValue(int percent) {
-			meterPercent = percent;
-		}
-		
-		public void setFutureValue(int perc) {
-			futurePercent = perc;
 		}
 		
 		private void pSetClosable(boolean closable) {
@@ -267,24 +234,6 @@ public class SWindow extends Widget {
 			if (headerBox.borderWidth != 0) {
 				initialGL.chcolor(255, 255, 255, 255);
 				initialGL.rect(headerBox.getBorderPosition(), textSize().add(1, 1));
-			}
-			if (meterPercent > 0) {
-				initialGL.chcolor(meterColor);
-				double width = textSize().x/100.;
-				width *= meterPercent;
-				//у меня от этих типов данных ДЕЛЕНИЕ
-				Coord meterSize = new Coord((int)width, textSize().y);
-				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(1, 1));
-				initialGL.chcolor();
-			}
-			if(futurePercent > 0) {
-				if(futurePercent > 100) futurePercent = 100;
-				initialGL.chcolor(futureColor);
-				double width = textSize().x/100.;
-				width *= futurePercent;
-				Coord meterSize = new Coord((int)width, textSize().y/2);
-				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(1, 1));
-				initialGL.chcolor();
 			}
 			if (headerText != null) {
 				initialGL.image(headerText.img, headerBox.getContentPosition().add(4, -1));

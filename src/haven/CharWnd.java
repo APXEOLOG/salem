@@ -37,10 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.SWindow;
-
-import com.sun.xml.internal.ws.transport.http.WSHTTPConnection;
 
 public class CharWnd extends SWindow {
 	public static final Map<String, String> attrnm;
@@ -50,6 +47,92 @@ public class CharWnd extends SWindow {
 	public final SkillList csk, nsk;
 	private final SkillInfo ski;
 
+	static class CharWndWindowHeader extends SWindowHeader {
+		protected int meterPercent = -1;
+		protected int futurePercent = 0;
+		
+		protected int currentLp = 0;
+		protected int attLvl = 0;
+		protected int willLp = 0;
+		protected String name = "";
+
+		protected Color meterColor = Color.BLACK;
+		protected Color futureColor = Color.BLACK;
+		protected Object tooltipCache = null;
+		
+		public CharWndWindowHeader(Coord c, Coord sz, Widget parent,
+				String caption, boolean min, boolean clo) {
+			super(c, sz, parent, caption, min, clo);
+		}
+		
+		public void setTipValues(int cl, int al, int wl, String name) {
+			currentLp = cl;
+			attLvl = al;
+			willLp = wl;
+			this.name = name;
+			((SWindow)parent).resize();
+		}
+		
+		public Object tooltip(Coord c, boolean again) {
+			if(meterPercent < 0) return null;
+			
+			if (tooltipCache == null) {
+				String tiptext = String.format("Watching %s (lvl %d)\nCurrent: %d\nWill got: %d\nNeed: %d\nCompleted: %d%%", 
+						name, attLvl, currentLp, willLp, attLvl*100, meterPercent);
+				tooltipCache = RichText.render(tiptext, 0).tex();
+			}
+			return tooltipCache;
+		}
+		
+		public void setMeterColor(Color clr) {
+			meterColor = clr;
+		}
+		
+		public void setFutureColor(Color col) {
+			futureColor = col;
+		}
+		
+		public void setMeterValue(int percent) {
+			meterPercent = percent;
+		}
+		
+		public void setFutureValue(int perc) {
+			futurePercent = perc;
+		}
+		
+		@Override
+		public void draw(GOut initialGL) {
+			initialGL.chcolor(0, 0, 0, 255);
+			initialGL.frect(headerBox.getBorderPosition(), textSize());
+			super.draw(initialGL);
+			if (headerBox.borderWidth != 0) {
+				initialGL.chcolor(255, 255, 255, 255);
+				initialGL.rect(headerBox.getBorderPosition(), textSize().add(1, 1));
+			}
+			if (meterPercent > 0) {
+				initialGL.chcolor(meterColor);
+				double width = textSize().x / 100D;
+				width *= meterPercent;
+				//у меня от этих типов данных ДЕЛЕНИЕ
+				Coord meterSize = new Coord((int)width, textSize().y);
+				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(1, 1));
+				initialGL.chcolor();
+			}
+			if(futurePercent > 0) {
+				if(futurePercent > 100) futurePercent = 100;
+				initialGL.chcolor(futureColor);
+				double width = textSize().x/100.;
+				width *= futurePercent;
+				Coord meterSize = new Coord((int)width, textSize().y/2);
+				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(1, 1));
+				initialGL.chcolor();
+			}
+			if (headerText != null) {
+				initialGL.image(headerText.img, headerBox.getContentPosition().add(4, -1));
+			}
+		}
+	}
+	
 	static {
 		Widget.addtype("chr", new WidgetFactory() {
 			public Widget create(Coord c, Widget parent, Object[] args) {
@@ -425,6 +508,10 @@ public class CharWnd extends SWindow {
 
 	public CharWnd(Coord c, Widget parent) {
 		super(c, new Coord(620, 340), parent, "Character");
+		windowHeader.unlink();
+		windowHeader = new CharWndWindowHeader(Coord.z, Coord.z, this, "Character", true, true);
+		resize();
+		
 		new Label(new Coord(0, 0), this, "Proficiencies:");
 		int y = 30;
 		for (String nm : attrorder) {
@@ -468,11 +555,11 @@ public class CharWnd extends SWindow {
 				int currentlp = atr.hexp;
 				double op = maxlp/100.;
 				double meterperc = currentlp/op;
-				windowHeader.setMeterValue((int)meterperc);
+				((CharWndWindowHeader) windowHeader).setMeterValue((int)meterperc);
 				if(meterperc != 100)
-					windowHeader.setMeterColor(new Color(0, 0, 255, 225));
+					((CharWndWindowHeader) windowHeader).setMeterColor(new Color(0, 0, 255, 225));
 				else
-					windowHeader.setMeterColor(new Color(0, 255, 0, 225));
+					((CharWndWindowHeader) windowHeader).setMeterColor(new Color(0, 255, 0, 225));
 				if (ui.lasttip instanceof WItem.ItemTip) {
 					GItem item = ((WItem.ItemTip) ui.lasttip).item();
 					Inspiration insp = GItem.find(Inspiration.class, item.info());
@@ -481,19 +568,19 @@ public class CharWnd extends SWindow {
 							if (insp.attrs[i].equals(atr.nm)) {
 								int itemExp = insp.exp[i];
 								double futureperc = (itemExp*1.)/op;
-								windowHeader.setFutureValue((int)futureperc);
+								((CharWndWindowHeader) windowHeader).setFutureValue((int)futureperc);
 								if((int)futureperc > 100)
-									windowHeader.setFutureColor(new Color(255, 255, 0));
+									((CharWndWindowHeader) windowHeader).setFutureColor(new Color(255, 255, 0));
 								else
-									windowHeader.setFutureColor(new Color(200, 200, 0));
+									((CharWndWindowHeader) windowHeader).setFutureColor(new Color(200, 200, 0));
 								break;
 							}
 						}
 					}
 				} else {
-					windowHeader.setFutureValue(0);
+					((CharWndWindowHeader) windowHeader).setFutureValue(0);
 				}
-				windowHeader.setTipValues(currentlp, atr.attr.comp, atr.sexp, attrnm.get(atr.nm));
+				((CharWndWindowHeader) windowHeader).setTipValues(currentlp, atr.attr.comp, atr.sexp, attrnm.get(atr.nm));
 				windowHeader.setText("Character ("+attrnm.get(atr.nm)+": "+Integer.toString((int)meterperc)+"%)");
 				haveWatching = true;
 			} else {
@@ -502,7 +589,7 @@ public class CharWnd extends SWindow {
 		}
 		if(!haveWatching) {
 			windowHeader.setText("Character");
-			windowHeader.setMeterValue(-1);
+			((CharWndWindowHeader) windowHeader).setMeterValue(-1);
 		}
 		super.draw(initialGL);
 	}
