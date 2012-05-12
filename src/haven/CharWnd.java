@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SWindow;
 
 public class CharWnd extends SWindow {
@@ -47,6 +48,15 @@ public class CharWnd extends SWindow {
 	public final SkillList csk, nsk;
 	private final SkillInfo ski;
 
+	@Override
+	public void savePosition() {
+		try {
+			HConfig.addValue("swnd_pos_Character", c);
+			HConfig.saveConfig();
+		} catch (NullPointerException ex) {
+		}
+	}
+	
 	static class CharWndWindowHeader extends SWindowHeader {
 		protected int meterPercent = -1;
 		protected int futurePercent = 0;
@@ -136,8 +146,8 @@ public class CharWnd extends SWindow {
 				double width = textSize().x / 100.;
 				width *= meterPercent;
 				//у меня от этих типов данных ДЕЛЕНИЕ
-				Coord meterSize = new Coord((int)width, textSize().y);
-				initialGL.frect(headerBox.getBorderPosition().add(0, 1), meterSize.sub(1, 1));
+				Coord meterSize = new Coord(Math.max((int)width, 3), textSize().y);
+				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(3, 3));
 				initialGL.chcolor();
 			}
 			if(futurePercent > 0) {
@@ -145,8 +155,8 @@ public class CharWnd extends SWindow {
 				initialGL.chcolor(futureColor);
 				double width = textSize().x/100.;
 				width *= futurePercent;
-				Coord meterSize = new Coord((int)width, textSize().y/2);
-				initialGL.frect(headerBox.getBorderPosition().add(0, 1), meterSize.sub(1, 1));
+				Coord meterSize = new Coord(Math.max((int)width, 3), textSize().y/2);
+				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(3, 3));
 				initialGL.chcolor();
 			}
 			if (headerText != null) {
