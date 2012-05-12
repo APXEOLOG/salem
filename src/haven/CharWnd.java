@@ -466,13 +466,34 @@ public class CharWnd extends SWindow {
 				atr.drawAsWatching(true);
 				int maxlp = atr.attr.comp * 100;
 				int currentlp = atr.hexp;
-				double op = maxlp/100;
+				double op = maxlp/100.;
 				double meterperc = currentlp/op;
 				windowHeader.setMeterValue((int)meterperc);
 				if(meterperc != 100)
 					windowHeader.setMeterColor(new Color(0, 0, 255, 225));
 				else
 					windowHeader.setMeterColor(new Color(0, 255, 0, 225));
+				if (ui.lasttip instanceof WItem.ItemTip) {
+					GItem item = ((WItem.ItemTip) ui.lasttip).item();
+					Inspiration insp = GItem.find(Inspiration.class, item.info());
+					if (insp != null) {
+						for (int i = 0; i < insp.attrs.length; i++) {
+							if (insp.attrs[i].equals(atr.nm)) {
+								int itemExp = insp.exp[i];
+								double futureperc = (itemExp*1.)/op;
+								windowHeader.setFutureValue((int)futureperc);
+								if((int)futureperc > 100)
+									windowHeader.setFutureColor(new Color(255, 255, 0));
+								else
+									windowHeader.setFutureColor(new Color(200, 200, 0));
+								break;
+							}
+						}
+					}
+				} else {
+					windowHeader.setFutureValue(0);
+				}
+				windowHeader.setTipValues(currentlp, atr.attr.comp, atr.sexp, attrnm.get(atr.nm));
 				windowHeader.setText("Character ("+attrnm.get(atr.nm)+": "+Integer.toString((int)meterperc)+"%)");
 				haveWatching = true;
 			} else {
@@ -481,7 +502,7 @@ public class CharWnd extends SWindow {
 		}
 		if(!haveWatching) {
 			windowHeader.setText("Character");
-			windowHeader.setMeterValue(0);
+			windowHeader.setMeterValue(-1);
 		}
 		super.draw(initialGL);
 	}
