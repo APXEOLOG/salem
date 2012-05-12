@@ -572,6 +572,7 @@ public class CharWnd extends SWindow {
 		boolean haveWatching = false;
 		for (Attr atr : attrs.values()) {
 			if (atr.nm.equals(watchingAttr)) {
+				((CharWndWindowHeader) windowHeader).setShortName(atr.nm);
 				atr.drawAsWatching(true);
 				int maxlp = atr.attr.comp * 100;
 				int currentlp = atr.hexp;
@@ -589,6 +590,7 @@ public class CharWnd extends SWindow {
 						for (int i = 0; i < insp.attrs.length; i++) {
 							if (insp.attrs[i].equals(atr.nm)) {
 								int itemExp = insp.exp[i];
+								itemExp += atr.sexp;
 								double futureperc = (itemExp*1.)/op;
 								((CharWndWindowHeader) windowHeader).setFutureValue((int)futureperc);
 								if((int)futureperc > 100)
