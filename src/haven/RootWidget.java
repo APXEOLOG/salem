@@ -47,6 +47,9 @@ public class RootWidget extends ConsoleHost {
 		if (!super.globtype(key, ev)) {
 			if (ev.getKeyCode() == 89 && ev.isControlDown()) {
 				HConfig.cl_render_on = !HConfig.cl_render_on;
+			} else if(ev.getKeyCode() == 90 && ev.isControlDown()) {
+				HConfig.cl_tilify = !HConfig.cl_tilify;
+				HConfig.saveConfig();
 			} else if(ev.getKeyCode() == 76 && ev.isAltDown()) {
 				if (ui.sess != null) ui.sess.close();
 				if(!HConfig.cl_render_on) {
