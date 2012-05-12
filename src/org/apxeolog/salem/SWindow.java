@@ -234,7 +234,10 @@ public class SWindow extends Widget {
 			}
 			if (meterPercent > 0) {
 				initialGL.chcolor(meterColor);
-				Coord meterSize = textSize().mul((double)meterPercent / 100);
+				double width = textSize().x/100.;
+				width *= meterPercent;
+				//у меня от этих типов данных ДЕЛЕНИЕ
+				Coord meterSize = new Coord((int)width, textSize().y);
 				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(1, 1));
 				initialGL.chcolor();
 			}
