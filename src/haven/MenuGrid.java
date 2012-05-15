@@ -33,6 +33,8 @@ import haven.Resource.AButton;
 import haven.Glob.Pagina;
 import java.util.*;
 
+import org.apxeolog.salem.SToolbar;
+
 public class MenuGrid extends Widget {
 	public final static Tex bg = Resource.loadtex("gfx/hud/invsq");
 	public final static Coord bgsz = bg.sz().add(-1, -1);
@@ -96,6 +98,7 @@ public class MenuGrid extends Widget {
 
 	public MenuGrid(Coord c, Widget parent) {
 		super(c, bgsz.mul(gsz).add(1, 1), parent);
+		new SToolbar(new Coord(10, 10), ui.root, "testbar", 5);
 	}
 
 	private static Comparator<Pagina> sorter = new Comparator<Pagina>() {
@@ -247,7 +250,7 @@ public class MenuGrid extends Widget {
 		return (ui.sess.glob.paginafor(res));
 	}
 
-	private void use(Pagina r) {
+	public void use(Pagina r) {
 		Collection<Pagina> sub = new LinkedList<Pagina>(), cur = new LinkedList<Pagina>();
 		cons(r, sub);
 		cons(this.cur, cur);

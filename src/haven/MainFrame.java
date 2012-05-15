@@ -333,6 +333,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 
 	private static void main2(String[] args) {
 		HConfig.loadConfig();
+		Audio.setvolume((double)HConfig.cl_sfx_volume/100.);
 		Config.cmdline(args);
 		try {
 			javabughack();

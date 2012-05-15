@@ -163,7 +163,7 @@ public class CharWnd extends SWindow {
 				initialGL.image(headerText.img, headerBox.getContentPosition().add(4, -1));
 			}
 		}
-	}
+	}//charwnd header
 	
 	static {
 		Widget.addtype("chr", new WidgetFactory() {

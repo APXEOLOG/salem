@@ -26,6 +26,7 @@ public class HConfig {
 	public static boolean 	cl_render_on = true;
 	public static boolean 	cl_tilify = true;
 	public static boolean 	cl_use_new_tempers = true;
+	public static Integer	cl_sfx_volume = 0;
 	public static Integer 	cl_swindow_header_align = SWindow.HEADER_ALIGN_CENTER;
 	
 	private static Properties configFile = new Properties();
