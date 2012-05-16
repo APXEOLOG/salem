@@ -26,6 +26,7 @@
 
 package org.apxeolog.salem;
 
+import haven.Audio;
 import haven.Button;
 import haven.CheckBox;
 import haven.Coord;
@@ -112,6 +113,32 @@ public class SWidgetOptions extends Hidewnd {
 						HConfig.cl_render_on = true;
 				}
 			};
+
+			new Label(new Coord(250, 190), tab, "SFX volume");
+			(new Scrollbar(new Coord(285, 85), 100, tab, 0, 100) {
+				{
+					val = max - HConfig.cl_sfx_volume;
+				}
+			public void changed() {
+				HConfig.cl_sfx_volume = max - val;
+				HConfig.saveConfig();
+				double vol = (max-val)/100.;
+				Audio.setvolume(vol);
+			}
+			public Object tooltip(Coord c, boolean a) {
+				return Integer.toString(max - val);
+			}
+			public boolean mousewheel(Coord c, int amount) {
+				if(val+amount < min)
+					val = min;
+				else if(val+amount > max)
+					val = max;
+				else
+					val = val + amount;
+				changed();
+				return (true);
+			}
+			}).changed();
 
 			CheckBox checkb = new CheckBox(new Coord(20, 40), tab, "Toogle shadows") {
 				@Override
