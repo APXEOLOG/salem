@@ -106,6 +106,7 @@ public class CharWnd extends SWindow {
 		}
 		
 		public Object tooltip(Coord c, boolean again) {
+			if(c.x < 57 || c.x > textSize().x) return null;
 			if(meterPercent < 0) return null;
 			
 			if (tooltipCache == null) {
