@@ -193,6 +193,37 @@ public interface Rendered {
 		}
 	}
 
+	public static class GridCell implements Rendered {
+		protected static final Coord3f cellSize = new Coord3f(MCache.tilesz);
+		
+		public GridCell() {
+			
+		}
+		
+		@Override
+		public void draw(GOut g) {
+			GL gl = g.gl;
+			g.apply();
+
+			gl.glBegin(GL.GL_LINE_LOOP);
+			//gl.glLineWidth(3.0f);
+			gl.glColor3f(0.8f, 0.8f, 0.8f);
+			
+			gl.glVertex3f(0.0f, 0.0f, 0.0f);
+			gl.glVertex3f(cellSize.x, 0.0f, 0.0f);
+			gl.glVertex3f(cellSize.x, cellSize.z, 0.0f);
+			gl.glVertex3f(0.0f, cellSize.z, 0.0f);
+			
+			gl.glEnd();
+		}
+		
+		@Override
+		public boolean setup(RenderList r) {
+			r.state().put(States.color, null);
+			return (true);
+		}
+	}
+	
 	public static class Cube implements Rendered {
 		public void draw(GOut g) {
 			GL gl = g.gl;

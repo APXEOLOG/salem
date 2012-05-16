@@ -536,7 +536,7 @@ public class MapMesh implements Rendered {
 	public void draw(GOut g) {
 	}
 
-	private float fz(int x, int y) {
+	float fz(int x, int y) {
 		return (zmap[x + (y * (sz.x + 1))]);
 	}
 
@@ -574,6 +574,24 @@ public class MapMesh implements Rendered {
 			}
 		}
 		gl.glEnd();
+//		gl.glBegin(GL.GL_LINES);
+//		gl.glColor3f(0.8f, 0.8f, 0.8f);
+//		for (c.y = 0; c.y < sz.y; c.y++) {
+//			for (c.x = 0; c.x < sz.x; c.x++) {
+//				gl.glVertex3f(c.x * tilesz.x, c.y * -tilesz.y, fz(c.x, c.y) + 1);
+//				gl.glVertex3f((c.x + 1) * tilesz.x, c.y * -tilesz.y, fz(c.x, c.y) + 1);
+//				
+//				gl.glVertex3f((c.x + 1) * tilesz.x, c.y * -tilesz.y, fz(c.x, c.y) + 1);
+//				gl.glVertex3f((c.x + 1) * tilesz.x, (c.y + 1) * -tilesz.y, fz(c.x, c.y) + 1);
+//				
+//				gl.glVertex3f((c.x + 1) * tilesz.x, (c.y + 1) * -tilesz.y, fz(c.x, c.y) + 1);
+//				gl.glVertex3f(c.x * tilesz.x, (c.y + 1) * -tilesz.y, fz(c.x, c.y) + 1);
+//				
+//				gl.glVertex3f(c.x * tilesz.x, (c.y + 1) * -tilesz.y, fz(c.x, c.y) + 1);
+//				gl.glVertex3f(c.x * tilesz.x, c.y * -tilesz.y, fz(c.x, c.y) + 1);
+//			}
+//		}
+//		gl.glEnd();
 		GOut.checkerr(gl);
 	}
 

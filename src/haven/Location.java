@@ -29,46 +29,46 @@ package haven;
 import javax.media.opengl.*;
 
 public class Location extends Transform {
-    private Location p = null;
-    private Matrix4f bk;
-    
-    public Location(Matrix4f xf) {
-	super(xf);
-    }
-    
-    public Matrix4f fin(Matrix4f p) {
-	if(this.p == null)
-	    return(super.fin(p));
-	else
-	    return(super.fin(this.p.fin(p)));
-    }
+	private Location p = null;
+	private Matrix4f bk;
 
-    public void apply(GOut g) {
-	bk = g.st.wxf;
-	g.st.wxf = fin(g.st.wxf);
-    }
-    
-    public void unapply(GOut g) {
-	g.st.wxf = bk;
-    }
+	public Location(Matrix4f xf) {
+		super(xf);
+	}
 
-    public void prep(Buffer b) {
-	p = b.get(PView.loc);
-	b.put(PView.loc, this);
-    }
-    
-    public static Location xlate(Coord3f c) {
-	return(new Location(makexlate(new Matrix4f(), c)));
-    }
-    
-    public static Location rot(Coord3f axis, float angle) {
-	return(new Location(makerot(new Matrix4f(), axis.norm(), angle)));
-    }
-    
-    public String toString() {
-	String ret = super.toString();
-	if(p != null)
-	    ret += " -> " + p;
-	return(ret);
-    }
+	public Matrix4f fin(Matrix4f p) {
+		if (this.p == null)
+			return (super.fin(p));
+		else
+			return (super.fin(this.p.fin(p)));
+	}
+
+	public void apply(GOut g) {
+		bk = g.st.wxf;
+		g.st.wxf = fin(g.st.wxf);
+	}
+
+	public void unapply(GOut g) {
+		g.st.wxf = bk;
+	}
+
+	public void prep(Buffer b) {
+		p = b.get(PView.loc);
+		b.put(PView.loc, this);
+	}
+
+	public static Location xlate(Coord3f c) {
+		return (new Location(makexlate(new Matrix4f(), c)));
+	}
+
+	public static Location rot(Coord3f axis, float angle) {
+		return (new Location(makerot(new Matrix4f(), axis.norm(), angle)));
+	}
+
+	public String toString() {
+		String ret = super.toString();
+		if (p != null)
+			ret += " -> " + p;
+		return (ret);
+	}
 }
