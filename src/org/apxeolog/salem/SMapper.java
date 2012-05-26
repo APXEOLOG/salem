@@ -135,15 +135,17 @@ public class SMapper {
 			cache.clear();
 		}
 		mapCache = mCache;
-		String sessionName = getCurrentDateTimeString(System.currentTimeMillis());
-		try {
-			currentSessionDirectory = new File(mapRootDirectory, sessionName);
-			if (!currentSessionDirectory.exists()) currentSessionDirectory.mkdir();
-			FileWriter sessionFile = new FileWriter(new File(mapRootDirectory, "currentsession.js"));
-			sessionFile.write("var currentSession = '" + sessionName + "';\n");
-			sessionFile.close();
-		} catch (Exception ex) {
-			
+		if(HConfig.cl_dump_minimaps) {
+			String sessionName = getCurrentDateTimeString(System.currentTimeMillis());
+			try {
+				currentSessionDirectory = new File(mapRootDirectory, sessionName);
+				if (!currentSessionDirectory.exists()) currentSessionDirectory.mkdir();
+				FileWriter sessionFile = new FileWriter(new File(mapRootDirectory, "currentsession.js"));
+				sessionFile.write("var currentSession = '" + sessionName + "';\n");
+				sessionFile.close();
+			} catch (Exception ex) {
+
+			}
 		}
 	}
 	

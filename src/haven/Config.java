@@ -50,6 +50,7 @@ public class Config {
     public static String authmech = getprop("haven.authmech", "paradox");
     public static byte[] authck = null;
     public static String prefspec = "salem";
+    public static String currentCharName; //Kerrigan
     
     static {
 	String p;

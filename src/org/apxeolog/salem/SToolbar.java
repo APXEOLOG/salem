@@ -3,12 +3,17 @@ package org.apxeolog.salem;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
 
+import haven.Config;
 import haven.Coord;
 import haven.DTarget;
 import haven.DropTarget;
 import haven.GOut;
-import haven.GameUI;
 import haven.Glob.Pagina;
 import haven.MenuGrid;
 import haven.Resource;
@@ -19,7 +24,7 @@ import haven.UI;
 import haven.Widget;
 
 public class SToolbar extends SWindow implements DTarget, DropTarget {
-	public String barName;
+	public static String barName;
 	public int actKey;
 	public Coord barSize = new Coord(1, 1);
 	private boolean isVert = false;
@@ -30,6 +35,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	public final static Coord bGSize = backGround.sz().add(-1, -1);
 	public final static RichText.Foundry ttFoundry = new RichText.Foundry(
 			TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 10);
+	private static final Properties tbConfig = new Properties();
 	
 	public SToolbar(Coord c, Widget w, String name, int slots) {
 		super(c, new Coord(10, 10), w, name);
@@ -37,6 +43,8 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		slotCount = slots;
 		setClosable(false);
 		initBar(slots);
+		loadBar();
+		fillBar();
 	}
 
 	@Override
@@ -45,6 +53,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		if(slotIndex(cc) > slotCount - 1 || slotIndex(cc) < 0) return false;
 		//creating new item at bar;
 		slotList[slotIndex(cc)] = new Slot((Resource)thing);
+		setBarSlot(slotIndex(cc), ((Resource)thing).name);
 		return false;
 	}
 	
@@ -80,11 +89,11 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			initGL.image(backGround, backDraw);
 			if(slotList[i] != null) {
 				initGL.image(slotList[i].getRes().layer(Resource.imgc).tex(), backDraw.add(1, 1));
-				if(slotList[i].isPressed()) {
+				//drawing slot as pressed
+				if(slotList[i].getSlotPagina() == pressPag) {
 					initGL.chcolor(new Color(0, 0, 0, 128));
 					initGL.frect(backDraw.add(1, 1), bGSize);
 					initGL.chcolor();
-					slotList[i].setPressed(false);
 				}
 			}
 		}
@@ -104,12 +113,12 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			int height = 0;
 			for(int i = 0; i < barSize.y; i++)
 				height += bGSize.y - 1;
-			newSize = new Coord(bGSize.x, height + 5);
+			newSize = new Coord(bGSize.x, height + 15);
 		} else {
 			int width = 0;
 			for(int i = 0; i < barSize.x; i++)
 				width += bGSize.x - 1;
-			newSize = new Coord(width + 5, bGSize.y);
+			newSize = new Coord(width + 15, bGSize.y);
 		}
 		resize(newSize);
 	}
@@ -120,6 +129,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			barSize = new Coord(1, slotsCount);
 		else
 			barSize = new Coord(slotsCount, 1);
+		//redrawing bar size
 		calcBarSize();
 		slotList = new Slot[slotsCount];
 	}
@@ -129,10 +139,10 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			return super.mousedown(c, button);
 		} else {
 			if(button == 1) {
+				//marking pressPag with current item at slot
 				Resource slotRes = null;
 				if(slotList[slotIndex(c)] != null) slotRes = slotList[slotIndex(c)].getRes();
 				if(slotRes != null) {
-					slotList[slotIndex(c)].setPressed(true);
 					pressPag = slotList[slotIndex(c)].getSlotPagina();
 					ui.grabmouse(this);
 				}
@@ -140,7 +150,9 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 				return true;
 			}
 			if(button == 3) {
+				//removing item from toolbar
 				slotList[slotIndex(c)] = null;
+				setBarSlot(slotIndex(c), "");
 			}
 		}
 		return true;
@@ -148,12 +160,15 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	
 	public void mousemove(Coord c) {
 		if ((dragPag == null) && (pressPag != null)) {
+			//moving items on toolbar
+			//removing old one
 			Pagina p = null;
 			if(slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
 			if (p != pressPag) {
 				dragPag = pressPag;
 			}
 			slotList[slotIndex(c)] = null;
+			setBarSlot(slotIndex(c), "");
 		}
 		else super.mousemove(c);
 	}
@@ -161,16 +176,20 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	public boolean mouseup(Coord c, int button) {
 		if(button == 1) {
 			if(dragPag != null) {
+				//drop after moving
 				ui.dropthing(ui.root, ui.mc, dragPag.res());
 				dragPag = null;
 				pressPag = null;
 			} else if(pressPag != null) {
+				//pressing at slot
 				Pagina p = null;
 				if(slotIndex(c) > -1 && slotIndex(c) < slotCount) {
 					if(slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
 				} 
 				//костыль явы
 				if(pressPag == p) {
+					//activating slot
+					@SuppressWarnings("deprecation")
 					MenuGrid mg = ui.root.findchild(MenuGrid.class);
 					if(mg != null)
 						mg.use(p);
@@ -235,12 +254,64 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		return super.keydown(ev);
 	}
 	
+	private static void setBarSlot(int slot, String value) {
+		synchronized (tbConfig) {
+			tbConfig.setProperty(barName + "_slot_" + slot, value);
+		}
+		saveBar();
+	}
+	
+	private static void loadBar() {
+		tbConfig.clear();
+		String configFileName = "tbar_"
+				+ Config.currentCharName.replaceAll("[^a-zA-Z()]", "_")
+				+ ".conf";
+		try {
+			synchronized (tbConfig) {
+				tbConfig.load(new FileInputStream(configFileName));
+			}
+		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
+		}
+	}
+	
+	private void fillBar() {
+		synchronized (tbConfig) {
+			for (int slot = 0; slot < slotCount; slot++) {
+				String itemName = tbConfig.getProperty(barName + "_slot_" + slot, "");
+				if (itemName.length() > 0) {
+					Resource sres = Resource.load(itemName);
+					if (sres == null) {
+						slotList[slot] = null;
+					} else {
+						slotList[slot] = new Slot(sres);
+					}
+				} else {
+					slotList[slot] = null;
+				}
+			}//for
+		}//sync
+	}
+	
+	private static void saveBar() {
+		synchronized (tbConfig) {
+			String configFileName = "tbar_"
+					+ Config.currentCharName.replaceAll("[^a-zA-Z()]", "_")
+					+ ".conf";
+			try {
+				tbConfig.store(new FileOutputStream(configFileName),
+						"Toolbars for " + Config.currentCharName);
+			} catch (FileNotFoundException e) {
+			} catch (IOException e) {
+			}
+		}
+	}
+	
 	//Но ведь вся эта поебота в принципе чисто для удобства
 	private static class Slot {
 		private Resource resSlot;
 		private String action;
 		private Pagina slotPagina;
-		private boolean asPressed = false;
 		
 		public Slot(Resource r) {
 			resSlot = r;
@@ -252,16 +323,12 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			return resSlot;
 		}
 		
-		public void setPressed (boolean b) {
-			asPressed = b;
-		}
-		
-		public boolean isPressed() {
-			return asPressed;
-		}
-		
 		public Pagina getSlotPagina() {
 			return slotPagina;
+		}
+		
+		public String getAction() {
+			return action;
 		}
 	}
 
