@@ -35,7 +35,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apxeolog.salem.ChatWrapper;
 import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.SChatWindow;
 import org.apxeolog.salem.SGobble;
 import org.apxeolog.salem.SInterfaces.IGobble;
 import org.apxeolog.salem.SInterfaces.ITempers;
@@ -78,7 +80,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public String polowner;
 
 	/* APXEOLOG */
-	//public SChatWindow bdsChat;
+	public SChatWindow bdsChat;
 	public SWidgetOptions bdsOptions;
 	public ITempers bdsTempers;
 	public IGobble bdsGobble;
@@ -160,8 +162,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			bdsTempers = new Tempers(Coord.z, this);
 		}
 		
-//		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
-//				this);
+		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),	this);
 
 		syslog = new ChatUI.Log(chat, "System");
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {

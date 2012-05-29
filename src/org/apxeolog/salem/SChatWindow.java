@@ -1,32 +1,17 @@
 package org.apxeolog.salem;
 
+import java.awt.Color;
 import java.util.HashMap;
-
-import org.apxeolog.salem.SChat.ChatType;
 
 import haven.Coord;
 import haven.Widget;
 
 public class SChatWindow extends SWindow {
-	protected HashMap<Widget, ChatType> currentChats = null;
-	
-	public void addChatType(Widget wdg, ChatType type) {
-		currentChats.put(wdg, type);
-	}
-	
-	public void reciveMessage(Widget wdg, String message, ChatType type) {
-		//ChatType type = currentChats.get(wdg);
-		if (type != null) {
-			chatWidget.addMessage(type, message);
-		}
-	}
-	
 	protected SChat chatWidget = null;
 	protected SLineEdit lineEdit = null;
 	
 	public SChatWindow(Coord c, Coord sz, Widget parent) {
 		super(c, sz, parent, "Chat");
-		currentChats = new HashMap<Widget, ChatType>();
 		chatWidget = new SChat(Coord.z, sz, this);
 		lineEdit = new SLineEdit(new Coord(0, chatWidget.sz.y + 5), new Coord(sz.x, 20), this, "", SChat.textFoundry, SChat.chatFontContext);
 		pack();
@@ -34,6 +19,10 @@ public class SChatWindow extends SWindow {
 
 	public SChat getChat() {
 		return chatWidget;
+	}
+	
+	public void recieveMessage(String msg, Color mColor, String hName, Color hColor) {
+		chatWidget.addMessage(msg, mColor, "[" + hName + "]: ", hColor);
 	}
 
 	@Override

@@ -1,6 +1,5 @@
 package org.apxeolog.salem;
 
-import haven.ChatUI.Channel;
 import haven.Coord;
 import haven.GOut;
 import haven.Text;
@@ -19,71 +18,24 @@ public class SChat extends Widget {
 	public static Rectangle2D chatLineBound = chatFont.getStringBounds("TEST", chatFontContext);
 	public static Text.Foundry textFoundry = new Text.Foundry(chatFont);
 	
-	public static class ChatType {
-		protected String chatHeader;
-		protected Color chatColor;
-		
-		public ChatType(String header, Color color) {
-			chatHeader = header;
-			chatColor = color;
-		}
-		
-		public void sendMessage(String message) {
-			
-		}
-		
-		public Color getChatColor() {
-			return chatColor;
-		}
-		
-		public String getChatHeader() {
-			return chatHeader;
-		}
-	}
-	
-	public static class AreaChatType extends ChatType {
-		public AreaChatType() {
-			super("[Area]: ", Color.WHITE);
-		}
-	}
-	
-	public static class VillageChatType extends ChatType {
-		public VillageChatType() {
-			super("[Village]: ", Color.GREEN);
-		}
-	}
-	
-	public static class PartyChatType extends ChatType {
-		public PartyChatType() {
-			super("[Party]: ", Color.BLUE);
-		}
-	}
-	
-	public static class PMChatType extends ChatType {
-		public PMChatType(String name) {
-			super("[" + name + "]: ", Color.PINK);
-		}
-	}
-	
-	public static class UndefinedChatType extends ChatType {
-		public UndefinedChatType() {
-			super("[Undefined]: ", Color.RED);
-		}
-	}
-	
 	protected static class ChatLine {
 		public Text cachedLine = null;
-		public ChatType chatType = null;	
+		public Text cachedHeader = null;
 		public boolean containsHeader = false;
 		
-		public ChatLine(ChatType type, String text, boolean header) {
-			containsHeader = header;
-			chatType = type;
-			cachedLine = textFoundry.render(text, chatType.getChatColor());
+		public ChatLine(String text, Color tColor, String hName, Color hColor) {
+			containsHeader = (hName != null && hColor != null);
+			cachedLine = textFoundry.render(text.substring(hName.length()), tColor);
+			if (containsHeader) {
+				cachedHeader = textFoundry.render(hName, hColor);
+			}
 		}
 		
 		public void render(GOut g, Coord c) {
-			g.image(cachedLine.img, c);
+			if (containsHeader) {
+				g.image(cachedHeader.img, c);
+				g.image(cachedLine.img, c.add(cachedHeader.sz().x, 0));
+			} else g.image(cachedLine.img, c);
 		}
 	}
 	
@@ -96,10 +48,10 @@ public class SChat extends Widget {
 		chatLines = new ArrayList<ChatLine>();
 	}
 	
-	public void addMessage(ChatType type, String msg) {
+	public void addMessage(String msg, Color mColor, String hName, Color hColor) {
 		// Add chat header
-		String text = type.getChatHeader() + msg;
-		int headerLength = type.getChatHeader().length();
+		String text = hName + msg;
+		int headerLength = hName.length();
 		boolean isHeader = true;
 		// Create glyph vector
 		GlyphVector gVector = chatFont.layoutGlyphVector(chatFontContext, text.toCharArray(), 0, text.length(), 0);
@@ -111,13 +63,13 @@ public class SChat extends Widget {
 				lastWhitespaceIndex = text.lastIndexOf(' ', i);
 				if (lastWhitespaceIndex > headerLength && lastWhitespaceIndex > translateXIndex) {
 					// Cut new line from next word
-					chatLines.add(new ChatLine(type, text.substring(translateXIndex, lastWhitespaceIndex), isHeader));
+					chatLines.add(new ChatLine(text.substring(translateXIndex, lastWhitespaceIndex), mColor, isHeader ? hName : null, hColor));
 					if (isHeader) isHeader = false;
 					translateXIndex = lastWhitespaceIndex;
 					translateXWidth = gVector.getGlyphPosition(translateXIndex).getX() + gVector.getGlyphMetrics(translateXIndex).getBounds2D().getWidth();
 				} else {
 					// One big word
-					chatLines.add(new ChatLine(type, text.substring(translateXIndex, (i - 1)), isHeader));
+					chatLines.add(new ChatLine(text.substring(translateXIndex, (i - 1)), mColor, isHeader ? hName : null, hColor));
 					if (isHeader) isHeader = false;
 					translateXIndex = (i - 1);
 					translateXWidth = gVector.getGlyphPosition(translateXIndex).getX() + gVector.getGlyphMetrics(translateXIndex).getBounds2D().getWidth();
@@ -125,7 +77,7 @@ public class SChat extends Widget {
 			}
 		}
 		if (translateXIndex < (text.length() - 1)) {
-			chatLines.add(new ChatLine(type, text.substring(translateXIndex, text.length()), isHeader));
+			chatLines.add(new ChatLine(text.substring(translateXIndex, text.length()), mColor, isHeader ? hName : null, hColor));
 			if (isHeader) isHeader = false;
 		}
 	}
