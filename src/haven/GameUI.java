@@ -785,7 +785,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 
 	public boolean globtype(char key, KeyEvent ev) {
 		if(ev.getKeyCode() == 79 && ev.isControlDown()) {
+			//CTRL+O
 			toggleOptions();
+			return true;
+		}
+		if(ev.getKeyCode() == 81 && ev.isControlDown()) {
+			//CTRL+Q
+			openBackpack();
 			return true;
 		}
 		char ukey = Character.toUpperCase(key);

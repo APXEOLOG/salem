@@ -98,7 +98,7 @@ public class MenuGrid extends Widget {
 
 	public MenuGrid(Coord c, Widget parent) {
 		super(c, bgsz.mul(gsz).add(1, 1), parent);
-		new SToolbar(new Coord(10, 10), ui.root, "testbar", 5);
+		new SToolbar(new Coord(10, 10), ui.root, "test", 15);
 	}
 
 	private static Comparator<Pagina> sorter = new Comparator<Pagina>() {
