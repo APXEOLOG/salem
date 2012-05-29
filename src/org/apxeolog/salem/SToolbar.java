@@ -88,7 +88,9 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			backDraw = backDraw.add(5, 5 + windowHeader.sz.y);
 			initGL.image(backGround, backDraw);
 			if(slotList[i] != null) {
-				initGL.image(slotList[i].getRes().layer(Resource.imgc).tex(), backDraw.add(1, 1));
+				Tex slottex = slotList[i].getRes().layer(Resource.imgc).tex();
+				if(slottex == null) continue;
+				initGL.image(slottex, backDraw.add(1, 1));
 				//drawing slot as pressed
 				if(slotList[i].getSlotPagina() == pressPag) {
 					initGL.chcolor(new Color(0, 0, 0, 128));
