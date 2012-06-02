@@ -28,6 +28,7 @@ package haven;
 
 import static haven.MCache.cmaps;
 import static haven.MCache.tilesz;
+import haven.MCache.Grid;
 import haven.Resource.Tile;
 import java.awt.Color;
 import java.util.*;
@@ -414,10 +415,44 @@ public class MapView extends PView implements DTarget {
 		}
 		rl.add(map, null);
 		rl.add(mapol, null);
+		rl.add(mapgrid, null);
 		rl.add(gobs, null);
 		if (placing != null)
 			addgob(rl, placing);
 	}
+	
+	private final Rendered mapgrid = new Rendered() {
+		public void draw(GOut g) {
+		}
+
+		boolean once = false;
+		public boolean setup(RenderList rl) {
+//			Coord o = new Coord();
+//			for (o.y = -view; o.y <= view; o.y++) {
+//				for (o.x = -view; o.x <= view; o.x++) {
+//					Coord pc = cc.add(o).mul(MCache.cutsz).mul(tilesz);
+//					MapMesh cut = glob.map.getcut(cc.add(o));
+//					ALS.alDebugPrint(player().getc(), cut.ul);
+//					
+//					
+////					rl.add(cut, Location.xlate(new Coord3f(pc.x, -pc.y, 0)));
+////					Collection<Gob> fol;
+////					try {
+////						fol = glob.map.getfo(cc.add(o));
+////					} catch (Loading e) {
+////						fol = Collections.emptyList();
+////					}
+////					for (Gob fo : fol)
+////						addgob(rl, fo);
+//				}
+//			}
+			
+			//rl.add(new Rendered.GridCell(), Location.xlate(c));
+			
+			return false;
+		}
+	};
+
 
 	public Gob player() {
 		return (glob.oc.getgob(plgob));

@@ -32,12 +32,8 @@ import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 
 import org.apxeolog.salem.ALS;
-import org.apxeolog.salem.SChat.AreaChatType;
-import org.apxeolog.salem.SChat.ChatType;
-import org.apxeolog.salem.SChat.PMChatType;
-import org.apxeolog.salem.SChat.PartyChatType;
-import org.apxeolog.salem.SChat.UndefinedChatType;
-import org.apxeolog.salem.SChat.VillageChatType;
+import org.apxeolog.salem.ChatWrapper;
+import org.apxeolog.salem.HConfig;
 
 public class ChatUI extends Widget {
 	public static final RichText.Foundry fnd = new RichText.Foundry(
@@ -64,7 +60,6 @@ public class ChatUI extends Widget {
 	}
 
 	public static abstract class Channel extends Widget {
-		protected ChatType chatType;
 		public final List<Message> msgs = new LinkedList<Message>();
 		private final Scrollbar sb;
 
@@ -230,7 +225,7 @@ public class ChatUI extends Widget {
 	}
 
 	public static class MultiChat extends EntryChannel {
-		private final String name;
+		protected final String name;
 		private final boolean notify;
 
 		public class NamedMessage extends Message {
@@ -278,28 +273,24 @@ public class ChatUI extends Widget {
 			super(parent);
 			this.name = name;
 			this.notify = notify;
-			if (name.equals("Area Chat")) {
-				chatType = new AreaChatType();
-			} else if (name.equals("Village")) {
-				chatType = new VillageChatType();
-			} else {
-				chatType = new UndefinedChatType();
-			}
 		}
 
 		public void uimsg(String msg, Object... args) {
-//			if (msg == "msg") {
-//				int from = (Integer) args[0];
-//				String line = (String) args[1];
-//				if (from > 0)
-//					line = String.format("%s: %s", name(from), line);
-//				getparent(GameUI.class).bdsChat.reciveMessage(this, line,
-//						chatType);
-//			}
-
 			if (msg == "msg") {
 				int from = (Integer) args[0];
 				String line = (String) args[1];
+				
+				// BDSChat Wrap
+				Color textColor = name.equals("Village") ? Color.GREEN : Color.WHITE;
+				if (from != -1) {
+					BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(from);
+					String hname = (buddy == null) ? "???" : (buddy.name);
+					Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
+					getparent(GameUI.class).bdsChat.recieveMessage(line, textColor, hname, hcolor, this);
+				} else {
+					getparent(GameUI.class).bdsChat.recieveMessage(line, textColor, Config.currentCharName, Color.WHITE, this);
+				}
+				
 				if (from >= 0) {
 					Message cmsg = new NamedMessage(from, line, Color.WHITE,
 							iw());
@@ -320,20 +311,9 @@ public class ChatUI extends Widget {
 	public static class PartyChat extends MultiChat {
 		public PartyChat(Widget parent) {
 			super(parent, "Party", true);
-			chatType = new PartyChatType();
 		}
 
 		public void uimsg(String msg, Object... args) {
-//			if (msg == "msg") {
-//				int from = (Integer) args[0];
-//				// int gobid = (Integer) args[1];
-//				String line = (String) args[2];
-//
-//				if (from != 0)
-//					line = String.format("%s: %s", name(from), line);
-//				getparent(GameUI.class).bdsChat.reciveMessage(this, line,
-//						chatType);
-//			}
 			if (msg == "msg") {
 				int from = (Integer) args[0];
 				int gobid = (Integer) args[1];
@@ -344,6 +324,17 @@ public class ChatUI extends Widget {
 					if (pm != null)
 						col = pm.col;
 				}
+				
+				// BDSChat Wrap
+				if (from != -1) {
+					BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(from);
+					String hname = (buddy == null) ? "???" : (buddy.name);
+					Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
+					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.CYAN, hname, hcolor, this);
+				} else {
+					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.CYAN, Config.currentCharName, Color.WHITE, this);
+				}
+				
 				if (from >= 0) {
 					Message cmsg = new NamedMessage(from, line, col, iw());
 					append(cmsg);
@@ -373,19 +364,23 @@ public class ChatUI extends Widget {
 		public PrivChat(Widget parent, int other) {
 			super(parent);
 			this.other = other;
-			chatType = new PMChatType(name(other));
 		}
 
 		public void uimsg(String msg, Object... args) {
-//			if (msg == "msg") {
-//				// String t = (String) args[0];
-//				String line = (String) args[1];
-//				getparent(GameUI.class).bdsChat.reciveMessage(this, line,
-//						chatType);
-//			}
 			if (msg == "msg") {
 				String t = (String) args[0];
 				String line = (String) args[1];
+				
+				// BDSChat Wrap
+				if (t.equals("in")) {
+					BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(other);
+					String hname = (buddy == null) ? "???" : (buddy.name);
+					Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
+					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.PINK, hname, hcolor, this);
+				} else {
+					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.PINK, Config.currentCharName, Color.WHITE, this);
+				}
+				
 				if (t.equals("in")) {
 					Message cmsg = new InMessage(line, iw());
 					append(cmsg);
@@ -395,6 +390,13 @@ public class ChatUI extends Widget {
 				}
 			} else if (msg == "err") {
 				String err = (String) args[0];
+				
+				// BDSChat Wrap
+				BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(other);
+				String hname = (buddy == null) ? "???" : (buddy.name);
+				Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
+				getparent(GameUI.class).bdsChat.recieveMessage(err, Color.RED, hname, hcolor, this);
+				
 				Message cmsg = new SimpleMessage(err, Color.RED, iw());
 				append(cmsg);
 				notify(cmsg);
@@ -704,6 +706,8 @@ public class ChatUI extends Widget {
 	}
 
 	public boolean keydown(KeyEvent ev) {
+		if (HConfig.cl_use_new_chat) return (super.keydown(ev));
+		
 		boolean M = (ev.getModifiersEx() & (KeyEvent.META_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) != 0;
 		if (qline != null) {
 			if (M && (ev.getKeyCode() == KeyEvent.VK_UP)) {
@@ -762,6 +766,8 @@ public class ChatUI extends Widget {
 	}
 
 	public boolean type(char key, KeyEvent ev) {
+		if (HConfig.cl_use_new_chat) return (super.type(key, ev));
+		
 		if (qline != null) {
 			qline.key(ev);
 			return (true);
@@ -771,6 +777,8 @@ public class ChatUI extends Widget {
 	}
 
 	public boolean globtype(char key, KeyEvent ev) {
+		if (HConfig.cl_use_new_chat) return (super.globtype(key, ev));
+		
 		if (key == 10) {
 			if (!expanded && (sel instanceof EntryChannel)) {
 				ui.grabkeys(this);
@@ -779,5 +787,41 @@ public class ChatUI extends Widget {
 			}
 		}
 		return (super.globtype(key, ev));
+	}
+	
+	public Widget getAreaChat() {
+		for (Widget w = lchild; w != null; w = w.prev) {
+			if (w instanceof MultiChat) {
+				if (((MultiChat)w).name.equals("Area Chat")) return w;
+			}
+		}
+		return null;
+	}
+	
+	public Widget getVillageChat() {
+		for (Widget w = lchild; w != null; w = w.prev) {
+			if (w instanceof MultiChat) {
+				if (((MultiChat)w).name.equals("Village")) return w;
+			}
+		}
+		return null;
+	}
+	
+	public Widget getPartyChat() {
+		for (Widget w = lchild; w != null; w = w.prev) {
+			if (w instanceof PartyChat) {
+				if (((MultiChat)w).name.equals("Party")) return w;
+			}
+		}
+		return null;
+	}
+	
+	public Widget getPrivChat(int bid) {
+		for (Widget w = lchild; w != null; w = w.prev) {
+			if (w instanceof PrivChat) {
+				if (((PrivChat)w).other == bid) return w;
+			}
+		}
+		return null;
 	}
 }
