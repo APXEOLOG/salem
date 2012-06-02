@@ -1,35 +1,181 @@
 package org.apxeolog.salem;
 
 import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 
+import com.sun.org.apache.bcel.internal.classfile.PMGClass;
+
+import haven.BuddyWnd.Buddy;
+import haven.ChatUI;
+import haven.ChatUI.EntryChannel;
 import haven.Coord;
+import haven.GameUI;
+import haven.Text;
 import haven.Widget;
 
 public class SChatWindow extends SWindow {
+	public static final int MODE_AREA = 0;
+	public static final int MODE_VILLAGE = 1;
+	public static final int MODE_PARTY = 2;
+	public static final int MODE_LINKED = 3;
+	
+	public static final Color[] MODE_COLORS = new Color[4];
+	public static final Text[] MODE_HEADERS = new Text[4];
+	
+	static {
+		MODE_COLORS[MODE_AREA] = Color.WHITE;
+		MODE_COLORS[MODE_VILLAGE] = Color.GREEN;
+		MODE_COLORS[MODE_PARTY] = Color.CYAN;
+		MODE_COLORS[MODE_LINKED] = Color.PINK;
+		
+		MODE_HEADERS[MODE_AREA] = SChat.textFoundry.render("[Area]: ", MODE_COLORS[MODE_AREA]);
+		MODE_HEADERS[MODE_VILLAGE] = SChat.textFoundry.render("[Village]: ", MODE_COLORS[MODE_VILLAGE]);
+		MODE_HEADERS[MODE_PARTY] = SChat.textFoundry.render("[Party]: ", MODE_COLORS[MODE_PARTY]);
+		MODE_HEADERS[MODE_LINKED] = SChat.textFoundry.render("[PM]: ", MODE_COLORS[MODE_LINKED]);
+	}
+	
+	
 	protected SChat chatWidget = null;
 	protected SLineEdit lineEdit = null;
+	
+	protected int currentWriteMode = MODE_AREA;
+	protected Object linkedObject = null;
 	
 	public SChatWindow(Coord c, Coord sz, Widget parent) {
 		super(c, sz, parent, "Chat");
 		chatWidget = new SChat(Coord.z, sz, this);
 		lineEdit = new SLineEdit(new Coord(0, chatWidget.sz.y + 5), new Coord(sz.x, 20), this, "", SChat.textFoundry, SChat.chatFontContext);
+		lineEdit.hide();
 		pack();
+	}
+	
+	@Override
+	public boolean globtype(char key, KeyEvent ev) {
+		if (!HConfig.cl_use_new_chat) return super.globtype(key, ev);
+		
+		boolean ctrl = ev.isControlDown();
+		boolean alt = ev.isAltDown() || ev.isMetaDown();
+		boolean shift = ev.isShiftDown();
+
+		if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && !alt && !shift) {
+			// Area
+			if (getparent(GameUI.class).chat.getAreaChat() != null) {
+				currentWriteMode = MODE_AREA;
+				lineEdit.show();
+				setfocus(lineEdit);
+			}
+		} else if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && !alt && shift) {
+			// Village
+			if (getparent(GameUI.class).chat.getVillageChat() != null) {
+				currentWriteMode = MODE_VILLAGE;
+				lineEdit.show();
+				setfocus(lineEdit);
+			}
+		} else if (ev.getKeyCode() == KeyEvent.VK_ENTER && ctrl && !alt && !shift) {
+			// Party
+			if (getparent(GameUI.class).chat.getPartyChat() != null) {
+			currentWriteMode = MODE_PARTY;
+			lineEdit.show();
+			setfocus(lineEdit);
+			}
+		} else return super.globtype(key, ev);
+		
+		return true;
 	}
 
 	public SChat getChat() {
 		return chatWidget;
 	}
 	
-	public void recieveMessage(String msg, Color mColor, String hName, Color hColor) {
-		chatWidget.addMessage(msg, mColor, "[" + hName + "]: ", hColor);
+	public void recieveMessage(String msg, Color mColor, String hName, Color hColor, Widget sender) {
+		chatWidget.addMessage(msg, mColor, hName, hColor, sender);
+	}
+	
+	public void showLine(Object... objs) {
+		lineEdit.show();
+		
+		Text header = MODE_HEADERS[currentWriteMode];
+		if (objs.length > 0 && objs[0] instanceof Text) header = (Text)objs[0];
+		
+		lineEdit.setupLine(header, MODE_COLORS[currentWriteMode]);
+		setfocus(lineEdit);
+	}
+	
+	public void setLinkedMode(String pureName, Text header, WeakReference<Widget> wdgRef, boolean pm) {
+		ALS.alDebugPrint(pureName, header, wdgRef.get(), pm);
+		if (!pm && wdgRef.get() != null) {
+			if (getparent(GameUI.class).chat.getAreaChat() == wdgRef.get()) {
+				currentWriteMode = MODE_AREA;
+				showLine();
+			} else if (getparent(GameUI.class).chat.getVillageChat() == wdgRef.get()) {
+				currentWriteMode = MODE_VILLAGE;
+				showLine();
+			} else if (getparent(GameUI.class).chat.getPartyChat() == wdgRef.get()) {
+				currentWriteMode = MODE_PARTY;
+				showLine();
+			} else {
+				// Private chat
+				currentWriteMode = MODE_LINKED;
+				linkedObject = wdgRef;
+				showLine(header);
+			}
+		} else if (pm) {
+			if (pureName.equals("???")) return;
+			
+			Buddy buddy = getparent(GameUI.class).buddies.find(pureName);
+			if (buddy != null) {
+				Widget chat = getparent(GameUI.class).chat.getPrivChat(buddy.id);
+				if (chat != null) {
+					currentWriteMode = MODE_LINKED;
+					linkedObject = new WeakReference<Widget>(chat);
+					showLine(header);
+				} else {
+					buddy.chat();
+					currentWriteMode = MODE_LINKED;
+					linkedObject = new Integer(buddy.id);
+					showLine(header);
+				}
+			}
+		}
 	}
 
 	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
-//		if (sender == lineEdit) {
-//			chatWidget.addMessage(lineEdit.getText());
-//			lineEdit.clear();
-//		} else super.wdgmsg(sender, msg, args);
+		if (sender == lineEdit) {
+			String text = lineEdit.getText();
+			
+			switch (currentWriteMode) {
+			case MODE_AREA:
+				((ChatUI.EntryChannel) getparent(GameUI.class).chat.getAreaChat()).send(text);
+				break;
+			case MODE_VILLAGE:
+				((ChatUI.EntryChannel) getparent(GameUI.class).chat.getVillageChat()).send(text);
+				break;
+			case MODE_PARTY:
+				((ChatUI.EntryChannel) getparent(GameUI.class).chat.getPartyChat()).send(text);
+				break;
+			case MODE_LINKED:
+				if (linkedObject instanceof WeakReference<?>) {
+					Widget reffered = ((WeakReference<Widget>)linkedObject).get();
+					if (reffered instanceof EntryChannel) {
+						((EntryChannel)reffered).send(text);
+					}
+				} else if (linkedObject instanceof Integer) {
+					Widget chat = getparent(GameUI.class).chat.getPrivChat((Integer)linkedObject);
+					if (chat != null) {
+						((EntryChannel)chat).send(text);
+					}
+				}
+				break;
+			default:
+				break;
+			}
+			
+			lineEdit.clear();
+			parent.setfocus(this);
+			lineEdit.hide();
+		} else super.wdgmsg(sender, msg, args);
 	}
 }

@@ -766,7 +766,7 @@ public class Widget {
 		if (canfocus)
 			parent.delfocusable(this);
 	}
-
+	
 	public void show() {
 		visible = true;
 		if (canfocus)

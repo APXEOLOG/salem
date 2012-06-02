@@ -85,7 +85,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 	}
 
 	public class Buddy {
-		int id;
+		public int id;
 		public String name;
 		Text rname = null;
 		int online;
@@ -141,6 +141,15 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		synchronized (buddies) {
 			return (idmap.get(id));
 		}
+	}
+	
+	public Buddy find(String name) {
+		synchronized (buddies) {
+			for (Buddy b : idmap.values()) {
+				if (b.name.equals(name)) return b;
+			}
+		}
+		return null;
 	}
 
 	public static class GroupSelector extends Widget {

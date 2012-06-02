@@ -32,6 +32,9 @@ public class SLineEdit extends Widget implements ClipboardOwner {
 	protected long lastPointerRenderTime = 0;
 	protected boolean renderPointer = true;
 	
+	protected Text defHeader = null;
+	protected Color defColor = Color.WHITE;
+	
 	public SLineEdit(Coord c, Coord sz, Widget parent, String text, Text.Foundry foundry, FontRenderContext context) {
 		super(c, sz, parent);
 		renderFoundry = foundry;
@@ -143,6 +146,11 @@ public class SLineEdit extends Widget implements ClipboardOwner {
 	public String getText() {
 		return textBuilder.toString();
 	}
+
+	public void setupLine(Text header, Color lineCol) {
+		defColor = lineCol;
+		defHeader = header;
+	}
 	
 	@Override
 	public void draw(GOut g) {
@@ -150,7 +158,7 @@ public class SLineEdit extends Widget implements ClipboardOwner {
 		int startPos = getStartRenderIndex();
 		int lineHeight = renderFoundry.getFontMetrics().getHeight();
 		if (needUpdate) {
-			textCache = renderFoundry.render(textBuilder.substring(startPos), Color.WHITE);
+			textCache = renderFoundry.render(textBuilder.substring(startPos), defColor);
 			needUpdate = false;
 		}
 		if (textSelection != null) {
