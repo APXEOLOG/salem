@@ -297,6 +297,8 @@ public class SWindow extends Widget {
 	protected SSimpleBorderBox windowBox = null;
 	protected boolean isMinimized = false;
 	
+	protected boolean allowResize = true;
+	
 	protected boolean dropTarget = false;
 	protected boolean dragMode = false;
 	protected Coord doff = Coord.z;
@@ -306,6 +308,10 @@ public class SWindow extends Widget {
 		windowHeader = new SWindowHeader(Coord.z, Coord.z, this, cap.replaceAll("[^a-zA-Z0-9 ]", ""), minimizable, closeable);
 		windowBox = new SSimpleBorderBox(sz, 0, 2, 1);
 		windowBox.marginTop = windowHeader.sz.y;
+		if (allowResize) {
+			windowBox.marginBottom = 4;
+			windowBox.marginRight = 4;
+		}
 		loadPosition();
 		resize(sz);
 		//setfocustab(true);
@@ -386,6 +392,12 @@ public class SWindow extends Widget {
 				initialGL.chcolor(255, 255, 255, 255);
 				initialGL.rect(windowBox.getBorderPosition(), windowBox.getBorderSize().add(3, 3));
 			}
+			if (allowResize) {
+				initialGL.chcolor(255, 255, 255, 255);
+				Coord corner = windowBox.getBorderPosition().add(windowBox.getBorderSize()).add(4, 4);
+				initialGL.line(corner, corner.sub(10, 0), 1);
+				initialGL.line(corner, corner.sub(0, 10), 1);
+			}
 		}
 		super.draw(initialGL);
 	}
@@ -432,7 +444,10 @@ public class SWindow extends Widget {
 		if (in) return c.add(windowBox.getContentPosition());
 		else return c.sub(windowBox.getContentPosition());
 	}
-
+	
+	protected Coord szOff = Coord.z;
+	protected boolean resizeMode = false;
+	
 	public boolean mousedown(Coord c, int button) {
 		parent.setfocus(this);
 		raise();
@@ -440,6 +455,18 @@ public class SWindow extends Widget {
 		if (super.mousedown(c, button)) return true;
 		
 		if (isMinimized) return false;
+		
+		if (allowResize) {
+			Coord corner = windowBox.getBorderPosition().add(windowBox.getBorderSize()).add(4, 4);
+			if (c.isect(corner.sub(10, 10), new Coord(10, 10))) {
+				if (button == 1) {
+					ui.grabmouse(this);
+					szOff = c;
+					resizeMode = true;
+				}
+				return true;
+			}
+		}
 		
 		if (c.isect(windowBox.getBorderPosition(), windowBox.getBorderSize())) {
 			if (button == 1) {
@@ -455,6 +482,9 @@ public class SWindow extends Widget {
 		if (dragMode) {
 			ui.grabmouse(null);
 			dragMode = false;
+		} else if (resizeMode) {
+			ui.grabmouse(null);
+			resizeMode = false;
 		} else {
 			super.mouseup(c, button);
 		}
@@ -464,6 +494,9 @@ public class SWindow extends Widget {
 	public void mousemove(Coord c) {
 		if (dragMode) {
 			this.c = this.c.add(c.add(doff.inv()));
+		} else if (resizeMode) {
+			resize(windowBox.getContentSize().add(c.add(szOff.inv())));
+			szOff = c;
 		} else {
 			super.mousemove(c);
 		}
