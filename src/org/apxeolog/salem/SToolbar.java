@@ -88,6 +88,8 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			backDraw = backDraw.add(5, 5 + windowHeader.sz.y);
 			initGL.image(backGround, backDraw);
 			if(slotList[i] != null) {
+				if(slotList[i].getRes() == null)
+					continue;
 				Tex slottex = slotList[i].getRes().layer(Resource.imgc).tex();
 				if(slottex == null) continue;
 				initGL.image(slottex, backDraw.add(1, 1));
@@ -280,6 +282,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	private void fillBar() {
 		synchronized (tbConfig) {
 			for (int slot = 0; slot < slotCount; slot++) {
+				slotList[slot] = null;
 				String itemName = tbConfig.getProperty(barName + "_slot_" + slot, "");
 				if (itemName.length() > 0) {
 					Resource sres = Resource.load(itemName);
@@ -288,8 +291,6 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 					} else {
 						slotList[slot] = new Slot(sres);
 					}
-				} else {
-					slotList[slot] = null;
 				}
 			}//for
 		}//sync

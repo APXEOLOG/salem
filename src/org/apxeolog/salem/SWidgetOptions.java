@@ -77,7 +77,7 @@ public class SWidgetOptions extends Hidewnd {
 		Tab tab;
 		
 		{ /* Highlight TAB */
-			ftab = tab = body.new Tab(new Coord(10, 10), 70, "Highlight") {
+			tab = body.new Tab(new Coord(90, 10), 70, "Highlight") {
 				@Override
 				public void draw(GOut g) {
 					g.chcolor(255, 255, 255, 255);
@@ -95,9 +95,21 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 		}
+		
+		{ /* Toolbars TAB */
+			tab = body.new Tab(new Coord(170, 10), 70, "Toolbars") {
+				@Override
+				public void draw(GOut g) {
+					g.chcolor(255, 255, 255, 255);
+					g.rect(Coord.z, sz.add(1, 1));
+					super.draw(g);
+				}
+			};
+		}
+		
 		GameUI gui = getparent(GameUI.class);
-		{ /* Other TAB */
-			tab = body.new Tab(new Coord(90, 10), 70, "General") {
+		{ /* General TAB */
+			ftab = tab = body.new Tab(new Coord(10, 10), 70, "General") {
 				@Override
 				public void draw(GOut g) {
 					g.chcolor(255, 255, 255, 255);

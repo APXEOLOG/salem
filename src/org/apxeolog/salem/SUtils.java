@@ -156,8 +156,8 @@ public class SUtils {
 		mmapHighlightInfoCache.put("wildgarlic", new HighlightInfo("wildgarlic"));
 		mmapHighlightInfoCache.put("witchshroom", new HighlightInfo("witchshroom"));
 		mmapHighlightInfoCache.put("autumngrass", new HighlightInfo("autumngrass"));
-		mmapHighlightInfoCache.put("bellpeppersgreen", new HighlightInfo("bellpeppersgreen"));
-		mmapHighlightInfoCache.put("bellpeppersred", new HighlightInfo("bellpeppersred"));
+		//mmapHighlightInfoCache.put("bellpeppersgreen", new HighlightInfo("bellpeppersgreen"));
+		//mmapHighlightInfoCache.put("bellpeppersred", new HighlightInfo("bellpeppersred"));
 		mmapHighlightInfoCache.put("blackberry", new HighlightInfo("blackberry"));
 		mmapHighlightInfoCache.put("chestnut", new HighlightInfo("chestnut"));
 		mmapHighlightInfoCache.put("coarsesalt", new HighlightInfo("coarsesalt"));
