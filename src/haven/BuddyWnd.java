@@ -30,6 +30,7 @@ import java.awt.Color;
 import java.util.*;
 import java.text.Collator;
 
+import org.apxeolog.salem.SChatWindow;
 import org.apxeolog.salem.SWindow;
 
 public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
@@ -110,6 +111,8 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 
 		public void chat() {
 			wdgmsg("chat", id);
+			// GOD I HATE THIS HACK
+			getparent(GameUI.class).bdsChat.setWaitingForChat();
 		}
 
 		public void invite() {

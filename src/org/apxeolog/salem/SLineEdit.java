@@ -46,17 +46,19 @@ public class SLineEdit extends Widget implements ClipboardOwner {
 	
 	protected int getStartRenderIndex() {
 		if (textBuilder.length() == 0) return textBuilder.length();
+		Coord shareX = new Coord(defHeader != null ? defHeader.sz().x : 0, 0);
 		int wlen = 0;
 		for (int i = (textBuilder.length() - 1); i >= 0; i--) {
 			wlen += renderFoundry.getFontMetrics().charWidth(textBuilder.charAt(i));
-			if (wlen >= (sz.x - 5)) return i;
+			if (wlen >= (sz.x - 5 - shareX.x)) return i;
 		}
 		return 0;
 	}
 	
 	protected int getPointerPosition(int startIndex, int pointerIndex) {
-		if (pointerIndex == 0) return pointerIndex;
-		return renderFoundry.getFontMetrics().charsWidth(textBuilder.toString().toCharArray(), startIndex, (pointerIndex - startIndex));
+		Coord shareX = new Coord(defHeader != null ? defHeader.sz().x : 0, 0);
+		if (pointerIndex == 0) return shareX.x;
+		return shareX.x + renderFoundry.getFontMetrics().charsWidth(textBuilder.toString().toCharArray(), startIndex, (pointerIndex - startIndex));
 	}
 	
 	@Override
@@ -155,6 +157,7 @@ public class SLineEdit extends Widget implements ClipboardOwner {
 	@Override
 	public void draw(GOut g) {
 		super.draw(g);
+		Coord shareX = new Coord(defHeader != null ? defHeader.sz().x : 0, 0);
 		int startPos = getStartRenderIndex();
 		int lineHeight = renderFoundry.getFontMetrics().getHeight();
 		if (needUpdate) {
@@ -165,13 +168,16 @@ public class SLineEdit extends Widget implements ClipboardOwner {
 			int left = Math.max(textSelection.x - startPos, 0);
 			int right = Math.min(textSelection.y - startPos, textBuilder.length() - startPos);
 			g.chcolor(Color.GRAY);
-			g.frect(new Coord(getPointerPosition(startPos, left), 0), new Coord(getPointerPosition(left, right), lineHeight));
+			g.frect(new Coord(getPointerPosition(startPos, left), 0), new Coord(getPointerPosition(left, right) - shareX.x, lineHeight));
 		}
 		g.chcolor(0, 0, 0, 128);
 		g.frect(Coord.z, sz);
 		
 		g.chcolor(Color.WHITE);
-		g.image(textCache.img, Coord.z);
+		
+		if (defHeader != null) g.image(defHeader.img, Coord.z);
+		
+		g.image(textCache.img, shareX);
 		
 		if (hasfocus && renderPointer) {
 			int x = getPointerPosition(startPos, pointIndexAfter);

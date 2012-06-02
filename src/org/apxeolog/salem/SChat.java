@@ -130,7 +130,7 @@ public class SChat extends Widget {
 	public void draw(GOut initialGL) {
 		super.draw(initialGL);
 		
-		int first = appendMode ? chatLines.size() - getLinesCount() + 1 : firstLineIndex;
+		int first = appendMode ? chatLines.size() - getLinesCount() : firstLineIndex;
 		int last = Math.min(first + getLinesCount(), chatLines.size() - 1);
 		
 		for (int i = firstLineIndex; i <= last; i++) {
@@ -154,12 +154,12 @@ public class SChat extends Widget {
 			pressed = false;
 			ui.grabmouse(null);
 			if (c.isect(new Coord(0, 0), sz))
-				click(c);
-			return true;
-		} else return false;
+				return click(c);
+		}
+		return false;
 	}
 	
-	public void click(Coord c) {
+	public boolean click(Coord c) {
 		int index = appendMode ? chatLines.size() - getLinesCount() + 1 : firstLineIndex + (int)((double)c.y / (double)chatLineBound.getHeight());
 		if (index < chatLines.size()) {
 			if (c.x <= chatLines.get(index).getHeader().getSizeX()) {
@@ -168,8 +168,10 @@ public class SChat extends Widget {
 					((SChatWindow)parent).setLinkedMode(selected.pureName, selected.cachedHeader, selected.linkedChat, true);
 				else
 					((SChatWindow)parent).setLinkedMode(selected.pureName, selected.cachedHeader, selected.linkedChat, false);
+				return true;
 			}
 		}
+		return false;
 	}
 	
 	@Override
@@ -177,7 +179,7 @@ public class SChat extends Widget {
 		if (c.isect(Coord.z, sz)) {
 			if (amount > 0) {
 				// Scroll down
-				if (firstLineIndex <= chatLines.size() - getLinesCount()) firstLineIndex++;
+				if (firstLineIndex <= chatLines.size() - getLinesCount() - 1) firstLineIndex++;
 				else appendMode = true;
 			} else {
 				// Scroll up

@@ -10,6 +10,7 @@ import com.sun.org.apache.bcel.internal.classfile.PMGClass;
 import haven.BuddyWnd.Buddy;
 import haven.ChatUI;
 import haven.ChatUI.EntryChannel;
+import haven.ChatUI.PrivChat;
 import haven.Coord;
 import haven.GameUI;
 import haven.Text;
@@ -63,22 +64,19 @@ public class SChatWindow extends SWindow {
 			// Area
 			if (getparent(GameUI.class).chat.getAreaChat() != null) {
 				currentWriteMode = MODE_AREA;
-				lineEdit.show();
-				setfocus(lineEdit);
+				showLine();
 			}
 		} else if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && !alt && shift) {
 			// Village
 			if (getparent(GameUI.class).chat.getVillageChat() != null) {
 				currentWriteMode = MODE_VILLAGE;
-				lineEdit.show();
-				setfocus(lineEdit);
+				showLine();
 			}
 		} else if (ev.getKeyCode() == KeyEvent.VK_ENTER && ctrl && !alt && !shift) {
 			// Party
 			if (getparent(GameUI.class).chat.getPartyChat() != null) {
-			currentWriteMode = MODE_PARTY;
-			lineEdit.show();
-			setfocus(lineEdit);
+				currentWriteMode = MODE_PARTY;
+				showLine();
 			}
 		} else return super.globtype(key, ev);
 		
@@ -101,10 +99,10 @@ public class SChatWindow extends SWindow {
 		
 		lineEdit.setupLine(header, MODE_COLORS[currentWriteMode]);
 		setfocus(lineEdit);
+		ui.grabkeys(lineEdit);
 	}
 	
 	public void setLinkedMode(String pureName, Text header, WeakReference<Widget> wdgRef, boolean pm) {
-		ALS.alDebugPrint(pureName, header, wdgRef.get(), pm);
 		if (!pm && wdgRef.get() != null) {
 			if (getparent(GameUI.class).chat.getAreaChat() == wdgRef.get()) {
 				currentWriteMode = MODE_AREA;
@@ -140,41 +138,62 @@ public class SChatWindow extends SWindow {
 			}
 		}
 	}
+	
+	/* GOD I HATE THIS UGLY CODE */
+	protected boolean waitingForChat = false;
+	
+	public boolean isWaitingForChat() {
+		return waitingForChat;
+	}
+	
+	public void setWaitingForChat() {
+		waitingForChat = true;
+	}
+	
+	public void receiveChat(WeakReference<Widget> wdgRef) {
+		waitingForChat = false;
+		currentWriteMode = MODE_LINKED;
+		linkedObject = wdgRef;
+		showLine(SChat.textFoundry.render(String.format("[%s]: ", ((PrivChat)(wdgRef.get())).name()), MODE_COLORS[MODE_LINKED]));
+	}
 
 	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (sender == lineEdit) {
 			String text = lineEdit.getText();
 			
-			switch (currentWriteMode) {
-			case MODE_AREA:
-				((ChatUI.EntryChannel) getparent(GameUI.class).chat.getAreaChat()).send(text);
-				break;
-			case MODE_VILLAGE:
-				((ChatUI.EntryChannel) getparent(GameUI.class).chat.getVillageChat()).send(text);
-				break;
-			case MODE_PARTY:
-				((ChatUI.EntryChannel) getparent(GameUI.class).chat.getPartyChat()).send(text);
-				break;
-			case MODE_LINKED:
-				if (linkedObject instanceof WeakReference<?>) {
-					Widget reffered = ((WeakReference<Widget>)linkedObject).get();
-					if (reffered instanceof EntryChannel) {
-						((EntryChannel)reffered).send(text);
+			if (!text.equals("")) {
+				
+				switch (currentWriteMode) {
+				case MODE_AREA:
+					((ChatUI.EntryChannel) getparent(GameUI.class).chat.getAreaChat()).send(text);
+					break;
+				case MODE_VILLAGE:
+					((ChatUI.EntryChannel) getparent(GameUI.class).chat.getVillageChat()).send(text);
+					break;
+				case MODE_PARTY:
+					((ChatUI.EntryChannel) getparent(GameUI.class).chat.getPartyChat()).send(text);
+					break;
+				case MODE_LINKED:
+					if (linkedObject instanceof WeakReference<?>) {
+						Widget reffered = ((WeakReference<Widget>)linkedObject).get();
+						if (reffered instanceof EntryChannel) {
+							((EntryChannel)reffered).send(text);
+						}
+					} else if (linkedObject instanceof Integer) {
+						Widget chat = getparent(GameUI.class).chat.getPrivChat((Integer)linkedObject);
+						if (chat != null) {
+							((EntryChannel)chat).send(text);
+						}
 					}
-				} else if (linkedObject instanceof Integer) {
-					Widget chat = getparent(GameUI.class).chat.getPrivChat((Integer)linkedObject);
-					if (chat != null) {
-						((EntryChannel)chat).send(text);
-					}
+					break;
+				default:
+					break;
 				}
-				break;
-			default:
-				break;
 			}
-			
 			lineEdit.clear();
 			parent.setfocus(this);
+			ui.grabkeys(null);
 			lineEdit.hide();
 		} else super.wdgmsg(sender, msg, args);
 	}

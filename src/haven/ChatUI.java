@@ -26,6 +26,7 @@
 
 package haven;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -364,6 +365,9 @@ public class ChatUI extends Widget {
 		public PrivChat(Widget parent, int other) {
 			super(parent);
 			this.other = other;
+			if (getparent(GameUI.class).bdsChat.isWaitingForChat()) {
+				getparent(GameUI.class).bdsChat.receiveChat(new WeakReference<Widget>(this));
+			}
 		}
 
 		public void uimsg(String msg, Object... args) {
@@ -428,6 +432,7 @@ public class ChatUI extends Widget {
 		addtype("pmchat", new WidgetFactory() {
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				int other = (Integer) args[0];
+				
 				return (new PrivChat(parent, other));
 			}
 		});
