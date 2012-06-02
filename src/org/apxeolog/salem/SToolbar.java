@@ -15,6 +15,7 @@ import haven.DTarget;
 import haven.DropTarget;
 import haven.GOut;
 import haven.Glob.Pagina;
+import haven.Loading;
 import haven.MenuGrid;
 import haven.Resource;
 import haven.RichText;
@@ -282,12 +283,14 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			for (int slot = 0; slot < slotCount; slot++) {
 				String itemName = tbConfig.getProperty(barName + "_slot_" + slot, "");
 				if (itemName.length() > 0) {
-					Resource sres = Resource.load(itemName);
-					if (sres == null) {
-						slotList[slot] = null;
-					} else {
+					try {
+						Resource sres = Resource.load(itemName);
+						sres.loadwait();
 						slotList[slot] = new Slot(sres);
+					} catch (Loading ex) {
+						slotList[slot] = null;
 					}
+					
 				} else {
 					slotList[slot] = null;
 				}
