@@ -247,7 +247,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 	}
 	
-	public boolean  keydown(KeyEvent ev) {
+	public boolean keydown(KeyEvent ev) {
 		if(ev.getKeyCode() == 70 && ui.modctrl) {
 			isVert = !isVert;
 			barSize = new Coord(barSize.y, barSize.x);
@@ -281,6 +281,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	private void fillBar() {
 		synchronized (tbConfig) {
 			for (int slot = 0; slot < slotCount; slot++) {
+				slotList[slot] = null;
 				String itemName = tbConfig.getProperty(barName + "_slot_" + slot, "");
 				if (itemName.length() > 0) {
 					try {
@@ -290,9 +291,6 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 					} catch (Loading ex) {
 						slotList[slot] = null;
 					}
-					
-				} else {
-					slotList[slot] = null;
 				}
 			}//for
 		}//sync

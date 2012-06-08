@@ -33,16 +33,20 @@ import haven.Coord;
 import haven.GOut;
 import haven.GameUI;
 import haven.GameUI.Hidewnd;
+import haven.IBox;
 import haven.Label;
+import haven.LineEdit;
 import haven.Loading;
 import haven.Resource;
 import haven.RichText;
 import haven.Scrollbar;
 import haven.Tabs;
 import haven.Tabs.Tab;
+import haven.TextEntry;
 import haven.WItem;
 import haven.Widget;
 
+import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -77,7 +81,7 @@ public class SWidgetOptions extends Hidewnd {
 		Tab tab;
 		
 		{ /* Highlight TAB */
-			ftab = tab = body.new Tab(new Coord(10, 10), 70, "Highlight") {
+			tab = body.new Tab(new Coord(90, 10), 70, "Highlight") {
 				@Override
 				public void draw(GOut g) {
 					g.chcolor(255, 255, 255, 255);
@@ -95,9 +99,46 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 		}
+		
+		{ /* Toolbars TAB */
+			tab = body.new Tab(new Coord(170, 10), 70, "Toolbars") {
+				@Override
+				public void draw(GOut g) {
+					g.chcolor(255, 255, 255, 255);
+					g.rect(Coord.z, sz.add(1, 1));
+					super.draw(g);
+				}
+			};
+			
+			new TextEntry(new Coord(10, 50), new Coord(100, 20), tab, "") {
+				@Override
+				public boolean type(char c, KeyEvent e){
+					return true;
+				}
+				
+				@Override
+				public boolean keydown(KeyEvent event) {
+					int kcode = event.getKeyCode();
+					String hotkey = String.valueOf(KeyEvent.getKeyText(kcode)).toLowerCase();
+					if(hotkey.equals("shift") || hotkey.equals("ctrl") || hotkey.equals("alt"))
+						return true;
+					hotkey = hotkey.toUpperCase();
+					String mods = "";
+					if(event.isControlDown())
+						mods += "Ctrl+";
+					if(event.isAltDown())
+						mods += "Alt+";
+					if(event.isShiftDown())
+						mods += "Shift+";
+					settext(mods+hotkey);
+					return true;
+				}
+			};
+		}
+		
 		GameUI gui = getparent(GameUI.class);
-		{ /* Other TAB */
-			tab = body.new Tab(new Coord(90, 10), 70, "General") {
+		{ /* General TAB */
+			ftab = tab = body.new Tab(new Coord(10, 10), 70, "General") {
 				@Override
 				public void draw(GOut g) {
 					g.chcolor(255, 255, 255, 255);
