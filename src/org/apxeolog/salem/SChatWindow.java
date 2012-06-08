@@ -3,6 +3,7 @@ package org.apxeolog.salem;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.sun.org.apache.bcel.internal.classfile.PMGClass;
@@ -17,6 +18,8 @@ import haven.Text;
 import haven.Widget;
 
 public class SChatWindow extends SWindow {
+	public static final int CHAT_BUFFER_SIZE = 300;
+	
 	public static final int MODE_AREA = 0;
 	public static final int MODE_VILLAGE = 1;
 	public static final int MODE_PARTY = 2;
@@ -46,7 +49,7 @@ public class SChatWindow extends SWindow {
 	
 	public SChatWindow(Coord c, Coord sz, Widget parent) {
 		super(c, sz, parent, "Chat");
-		chatWidget = new SChat(Coord.z, sz, this);
+		chatWidget = new SChat(Coord.z, windowBox.getContentSize(), this);
 		lineEdit = new SLineEdit(new Coord(0, chatWidget.sz.y + 5), new Coord(sz.x, 20), this, "", SChat.textFoundry, SChat.chatFontContext);
 		lineEdit.hide();
 		pack();
@@ -87,8 +90,43 @@ public class SChatWindow extends SWindow {
 		return chatWidget;
 	}
 	
+	public static class MessageBuf {
+		public String bMsg;
+		public Color bMColor;
+		public String bHName;
+		public Color bHColor;
+		public WeakReference<Widget> bSender;
+		
+		public MessageBuf(String msg, Color mColor, String hName, Color hColor, WeakReference<Widget> sender) {
+			bMsg = msg;
+			bMColor = mColor;
+			bHName = hName;
+			bHColor = hColor;
+			bSender = sender;
+		}
+	}
+	
+	public ArrayList<MessageBuf> chatCache = new ArrayList<SChatWindow.MessageBuf>(CHAT_BUFFER_SIZE);
+	
 	public void recieveMessage(String msg, Color mColor, String hName, Color hColor, Widget sender) {
-		chatWidget.addMessage(msg, mColor, hName, hColor, sender);
+		WeakReference<Widget> ref = new WeakReference<Widget>(sender);
+		
+		// Cache message
+		MessageBuf cachedMsg = new MessageBuf(msg, mColor, hName, hColor, ref);
+		chatCache.add(cachedMsg);
+		if (chatCache.size() > CHAT_BUFFER_SIZE) chatCache.remove(0);
+		
+		chatWidget.addMessage(cachedMsg);
+	}
+	
+	@Override
+	public void resizeFinish() {
+		chatWidget.clear();
+		chatWidget.resize(windowBox.getContentSize());
+		
+		for (int i = 0; i < chatCache.size(); i++) {
+			chatWidget.addMessage(chatCache.get(i));
+		}
 	}
 	
 	public void showLine(Object... objs) {

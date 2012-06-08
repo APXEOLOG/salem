@@ -304,18 +304,36 @@ public class SWindow extends Widget {
 	protected Coord doff = Coord.z;
 
 	public SWindow(Coord c, Coord sz, Widget parent, String cap, boolean closeable, boolean minimizable) {
+		this(c, sz, parent, cap, closeable, minimizable, false);
+	}
+	
+	public SWindow(Coord c, Coord sz, Widget parent, String cap, boolean closeable, boolean minimizable, boolean resizable) {
 		super(c, new Coord(0, 0), parent);
-		windowHeader = new SWindowHeader(Coord.z, Coord.z, this, cap.replaceAll("[^a-zA-Z0-9 ]", ""), minimizable, closeable);
-		windowBox = new SSimpleBorderBox(sz, 0, 2, 1);
-		windowBox.marginTop = windowHeader.sz.y;
+		allowResize = resizable;
 		if (allowResize) {
 			windowBox.marginBottom = 4;
 			windowBox.marginRight = 4;
 		}
+		windowHeader = new SWindowHeader(Coord.z, Coord.z, this, cap.replaceAll("[^a-zA-Z0-9 ]", ""), minimizable, closeable);
+		windowBox = new SSimpleBorderBox(sz, 0, 2, 1);
+		windowBox.marginTop = windowHeader.sz.y;
 		loadPosition();
 		resize(sz);
 		//setfocustab(true);
 		parent.setfocus(this);
+	}
+	
+	public void setResizable(boolean resizable) {
+		allowResize = resizable;
+		if (allowResize) {
+			windowBox.marginBottom = 4;
+			windowBox.marginRight = 4;
+			resize(windowBox.getContentSize());
+		} else {
+			windowBox.marginBottom = 0;
+			windowBox.marginRight = 0;
+			resize(windowBox.getContentSize());
+		}
 	}
 	
 	@Override
@@ -477,6 +495,10 @@ public class SWindow extends Widget {
 			return true;
 		} else return false;
 	}
+	
+	public void resizeFinish() {
+		
+	}
 
 	public boolean mouseup(Coord c, int button) {
 		if (dragMode) {
@@ -485,6 +507,7 @@ public class SWindow extends Widget {
 		} else if (resizeMode) {
 			ui.grabmouse(null);
 			resizeMode = false;
+			resizeFinish();
 		} else {
 			super.mouseup(c, button);
 		}

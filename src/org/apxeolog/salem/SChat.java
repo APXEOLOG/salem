@@ -15,6 +15,8 @@ import java.awt.geom.Rectangle2D;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
+import org.apxeolog.salem.SChatWindow.MessageBuf;
+
 public class SChat extends Widget {
 	public final static Font chatFont = new Font("Serif", Font.BOLD, 14);
 	public final static FontRenderContext chatFontContext = new FontRenderContext(null, true, true);
@@ -35,10 +37,10 @@ public class SChat extends Widget {
 		public WeakReference<Widget> linkedChat;
 		public Color headerColor;
 		
-		public Header(String pure, Color hColor, WeakReference<Widget> wdgRef) {
-			pureName = pure;
-			headerColor = hColor;
-			linkedChat = wdgRef;
+		public Header(MessageBuf bufMsg) {
+			pureName = bufMsg.bHName;
+			headerColor = bufMsg.bHColor;
+			linkedChat = bufMsg.bSender;
 			cachedHeader = richTextFoundry.render(String.format(headerRichMask, 
 							headerColor.getRed(), headerColor.getGreen(), headerColor.getBlue(), pureName));
 		}
@@ -86,11 +88,11 @@ public class SChat extends Widget {
 		chatLines = new ArrayList<ChatLine>();
 	}
 	
-	public void addMessage(String msg, Color mColor, String hName, Color hColor, Widget from) {
+	public void addMessage(MessageBuf mBuf) {
 		// Header
-		Header msgHeader = new Header(hName, hColor, new WeakReference<Widget>(from));
+		Header msgHeader = new Header(mBuf);
 		// Add chat header
-		String text = msgHeader.getFullHeader() + msg;
+		String text = msgHeader.getFullHeader() + mBuf.bMsg;
 		int headerLength = msgHeader.getFullHeader().length();
 		boolean isHeader = true;
 		// Create glyph vector
@@ -103,13 +105,13 @@ public class SChat extends Widget {
 				lastWhitespaceIndex = text.lastIndexOf(' ', i);
 				if (lastWhitespaceIndex > headerLength && lastWhitespaceIndex > translateXIndex) {
 					// Cut new line from next word
-					chatLines.add(new ChatLine(text.substring(translateXIndex, lastWhitespaceIndex), mColor, isHeader ? msgHeader : null));
+					chatLines.add(new ChatLine(text.substring(translateXIndex, lastWhitespaceIndex), mBuf.bMColor, isHeader ? msgHeader : null));
 					if (isHeader) isHeader = false;
 					translateXIndex = lastWhitespaceIndex;
 					translateXWidth = gVector.getGlyphPosition(translateXIndex).getX() + gVector.getGlyphMetrics(translateXIndex).getBounds2D().getWidth();
 				} else {
 					// One big word
-					chatLines.add(new ChatLine(text.substring(translateXIndex, (i - 1)), mColor, isHeader ? msgHeader : null));
+					chatLines.add(new ChatLine(text.substring(translateXIndex, (i - 1)), mBuf.bMColor, isHeader ? msgHeader : null));
 					if (isHeader) isHeader = false;
 					translateXIndex = (i - 1);
 					translateXWidth = gVector.getGlyphPosition(translateXIndex).getX() + gVector.getGlyphMetrics(translateXIndex).getBounds2D().getWidth();
@@ -117,9 +119,14 @@ public class SChat extends Widget {
 			}
 		}
 		if (translateXIndex < (text.length() - 1)) {
-			chatLines.add(new ChatLine(text.substring(translateXIndex, text.length()), mColor, isHeader ? msgHeader : null));
+			chatLines.add(new ChatLine(text.substring(translateXIndex, text.length()), mBuf.bMColor, isHeader ? msgHeader : null));
 			if (isHeader) isHeader = false;
 		}
+	}
+	
+	public void clear() {
+		chatLines.clear();
+		firstLineIndex = 0;
 	}
 	
 	public int getLinesCount() {

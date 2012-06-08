@@ -163,7 +163,9 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 		
 		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),	this);
-
+		bdsChat.setResizable(true);
+		bdsChat.setClosable(false);
+		
 		syslog = new ChatUI.Log(chat, "System");
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {
 			StringBuilder buf = new StringBuilder();
@@ -272,7 +274,17 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 						HConfig.cl_minimap_show_grid = !HConfig.cl_minimap_show_grid;
 					} else super.wdgmsg(sender, msg, args);
 				};
+				
+				public void resize(Coord sz) {
+					super.resize(sz);
+					
+					LocalMiniMap mmap = findchild(LocalMiniMap.class);
+					if (mmap != null) {
+						mmap.resize(windowBox.getContentSize());
+					}
+				};
 			};
+			mmapWindow.setResizable(true);
 			mmapWindow.setClosable(false);
 			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-r"), "mmap_reset");
 			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-g"), "mmap_grid");
