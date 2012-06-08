@@ -15,6 +15,7 @@ import haven.DTarget;
 import haven.DropTarget;
 import haven.GOut;
 import haven.Glob.Pagina;
+import haven.Loading;
 import haven.MenuGrid;
 import haven.Resource;
 import haven.RichText;
@@ -246,7 +247,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 	}
 	
-	public boolean  keydown(KeyEvent ev) {
+	public boolean keydown(KeyEvent ev) {
 		if(ev.getKeyCode() == 70 && ui.modctrl) {
 			isVert = !isVert;
 			barSize = new Coord(barSize.y, barSize.x);
@@ -283,11 +284,12 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 				slotList[slot] = null;
 				String itemName = tbConfig.getProperty(barName + "_slot_" + slot, "");
 				if (itemName.length() > 0) {
-					Resource sres = Resource.load(itemName);
-					if (sres == null) {
-						slotList[slot] = null;
-					} else {
+					try {
+						Resource sres = Resource.load(itemName);
+						sres.loadwait();
 						slotList[slot] = new Slot(sres);
+					} catch (Loading ex) {
+						slotList[slot] = null;
 					}
 				}
 			}//for
