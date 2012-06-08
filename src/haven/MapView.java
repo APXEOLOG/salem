@@ -44,7 +44,7 @@ public class MapView extends PView implements DTarget {
 	private final Glob glob;
 	private int view = 2;
 	private Collection<Delayed> delayed = new LinkedList<Delayed>();
-	public Camera camera = new FollowCam();
+	public Camera camera;
 	private Plob placing = null;
 	private int[] visol = new int[32];
 	private Grabber grab;
@@ -261,9 +261,20 @@ public class MapView extends PView implements DTarget {
 			}
 		});
 	}
+	
+	public void setupCamera() {
+		if (HConfig.cl_use_free_cam) {
+			if (!(camera instanceof FreeCam))
+				camera = new FreeCam();
+		} else {
+			if (!(camera instanceof FollowCam))
+				camera = new FollowCam();
+		}
+	}
 
 	public MapView(Coord c, Coord sz, Widget parent, Coord cc, long plgob) {
 		super(c, sz, parent);
+		setupCamera();
 		glob = ui.sess.glob;
 		this.cc = cc;
 		this.plgob = plgob;

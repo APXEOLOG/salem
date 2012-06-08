@@ -248,6 +248,17 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			aligns[HConfig.cl_swindow_header_align].a = true;
+			
+			checkb = new CheckBox(new Coord(20, 210), tab, "Use Free Camera") {
+				@Override
+				public void changed(boolean val) {
+					HConfig.cl_use_free_cam = val;
+					HConfig.saveConfig();
+					GameUI ui = getparent(GameUI.class);
+					if (ui != null && ui.map != null) ui.map.setupCamera();
+				}
+			};
+			checkb.set(HConfig.cl_use_free_cam);
 		}
 		body.showtab(ftab);
 	}
