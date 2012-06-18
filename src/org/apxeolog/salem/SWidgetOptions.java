@@ -48,6 +48,7 @@ import haven.Widget;
 
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -110,6 +111,23 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			
+			new Label(new Coord(20, 40), tab, "Defined toolbars:");
+			final TextList toolbarsList = new TextList(new Coord(20, 60),	new Coord(150, 200), tab) {
+				@Override
+				protected void changed(int index) {
+					// Setup selected toolbar
+				}
+			};
+			final TextEntry toolbarName = new TextEntry(new Coord(20, 270), new Coord(100, 20), tab, "ToolbarName") {
+				
+			};
+			new Button(new Coord(20, 290), 100, tab, "Add") {
+				public void click() {
+					toolbarsList.addText(toolbarName.text);
+				};
+			};
+			
+			
 			new TextEntry(new Coord(10, 50), new Coord(100, 20), tab, "") {
 				@Override
 				public boolean type(char c, KeyEvent e){
@@ -136,8 +154,9 @@ public class SWidgetOptions extends Hidewnd {
 			};
 		}
 		
-		GameUI gui = getparent(GameUI.class);
+		
 		{ /* General TAB */
+			GameUI gui = getparent(GameUI.class);
 			ftab = tab = body.new Tab(new Coord(10, 10), 70, "General") {
 				@Override
 				public void draw(GOut g) {
@@ -393,6 +412,88 @@ public class SWidgetOptions extends Hidewnd {
 		public void unsel() {
 			sel = -1;
 			changed(null);
+		}
+	}
+	
+	public static class TextList extends Widget {
+		private int iCannotRememberWhyDoINeedThisVariable;
+		private Scrollbar scrollbar;
+		private int selectedIndex;
+		private ArrayList<String> textList;
+
+		public TextList(Coord c, Coord sz, Widget parent) {
+			super(c, sz, parent);
+			
+			iCannotRememberWhyDoINeedThisVariable = sz.y / 20;
+			
+			scrollbar = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
+			scrollbar.val = 0;
+			
+			selectedIndex = -1;
+			
+			textList = new ArrayList<String>();
+		}
+		
+		public void addText(String text) {
+			textList.add(text);
+			scrollbar.max = textList.size() - iCannotRememberWhyDoINeedThisVariable;
+		}
+		
+		public String getSelectedText() {
+			if (selectedIndex >= 0 && selectedIndex < textList.size()) return textList.get(selectedIndex);
+			return null;
+		}
+		
+		public int getSelectedIndex() {
+			return selectedIndex;
+		}
+
+		public void draw(GOut g) {
+			g.chcolor(0, 0, 0, 255);
+			g.frect(Coord.z, sz);
+			g.chcolor(255, 255, 255, 255);
+			g.rect(Coord.z, sz.add(1, 1));
+			g.chcolor();
+			
+			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
+				if (i + scrollbar.val >= textList.size()) continue;
+				String hl = textList.get(i + scrollbar.val);
+				if (i + scrollbar.val == selectedIndex) {
+					g.chcolor(255, 255, 0, 128);
+					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));
+					g.chcolor();
+				}
+				g.atext(hl, new Coord(25, i * 20 + 10), 0, 0.5);
+				g.chcolor();
+			}
+			super.draw(g);
+		}
+
+		public boolean mousewheel(Coord c, int amount) {
+			scrollbar.ch(amount);
+			return (true);
+		}
+
+		public boolean mousedown(Coord c, int button) {
+			if (super.mousedown(c, button))
+				return (true);
+			if (button == 1) {
+				selectedIndex = (c.y / 20) + scrollbar.val;
+				if (selectedIndex >= textList.size())
+					selectedIndex = -1;
+				changed(selectedIndex);
+				return (true);
+			}
+			return (false);
+		}
+
+		protected void changed(int index) {
+			
+		}
+
+		public void unsel() {
+			selectedIndex = -1;
+			changed(selectedIndex);
 		}
 	}
 }
