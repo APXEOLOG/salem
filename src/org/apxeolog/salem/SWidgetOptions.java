@@ -87,7 +87,7 @@ public class SWidgetOptions extends Hidewnd {
 	public SWidgetOptions(Coord c, Widget parent) {
 		super(c, new Coord(345, 300), parent, "Options");
 
-		body = new Tabs(Coord.z, new Coord(345, 280), this);
+		body = new Tabs(Coord.z, new Coord(345, 290), this);
 
 		Tab tab;
 		
@@ -343,6 +343,33 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			checkb.set(HConfig.cl_use_free_cam);
+			
+			checkb = new CheckBox(new Coord(20, 250), tab, "Use New Chat") {
+				@Override
+				public void changed(boolean val) {
+					HConfig.cl_use_new_chat = val;
+					HConfig.saveConfig();
+					GameUI ui = getparent(GameUI.class);
+					if (ui.bdsChat != null) {
+						if (HConfig.cl_use_new_chat) {
+							ui.bdsChat.show();
+						} else {
+							ui.bdsChat.hide();
+						}
+					}
+				}
+			};
+			checkb.set(HConfig.cl_use_new_chat);
+			
+			checkb = new CheckBox(new Coord(120, 250), tab, "Use New Toolbars") {
+				@Override
+				public void changed(boolean val) {
+					HConfig.cl_use_new_toolbars = val;
+					HConfig.saveConfig();
+					SToolbarConfig.updateToolbars(parent.ui.root);
+				}
+			};
+			checkb.set(HConfig.cl_use_new_toolbars);
 		}
 		body.showtab(ftab);
 	}

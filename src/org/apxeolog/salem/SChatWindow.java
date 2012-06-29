@@ -49,7 +49,7 @@ public class SChatWindow extends SWindow {
 	
 	public SChatWindow(Coord c, Coord sz, Widget parent) {
 		super(c, sz, parent, "Chat");
-		chatWidget = new SChat(Coord.z, windowBox.getContentSize(), this);
+		chatWidget = new SChat(Coord.z, windowBox.getContentSize().sub(0, 25), this);
 		lineEdit = new SLineEdit(new Coord(0, chatWidget.sz.y + 5), new Coord(sz.x, 20), this, "", SChat.textFoundry, SChat.chatFontContext);
 		lineEdit.hide();
 		pack();
@@ -57,7 +57,7 @@ public class SChatWindow extends SWindow {
 	
 	@Override
 	public boolean globtype(char key, KeyEvent ev) {
-		if (!HConfig.cl_use_new_chat) return super.globtype(key, ev);
+		if (!HConfig.cl_use_new_chat) return false;
 		
 		boolean ctrl = ev.isControlDown();
 		boolean alt = ev.isAltDown() || ev.isMetaDown();
@@ -81,7 +81,10 @@ public class SChatWindow extends SWindow {
 				currentWriteMode = MODE_PARTY;
 				showLine();
 			}
+		} else if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && alt && !shift) {
+			showLine();
 		} else return super.globtype(key, ev);
+		
 		
 		return true;
 	}
@@ -122,11 +125,14 @@ public class SChatWindow extends SWindow {
 	@Override
 	public void resizeFinish() {
 		chatWidget.clear();
-		chatWidget.resize(windowBox.getContentSize());
+		chatWidget.resize(windowBox.getContentSize().sub(0, 25));
 		
 		for (int i = 0; i < chatCache.size(); i++) {
 			chatWidget.addMessage(chatCache.get(i));
 		}
+		
+		lineEdit.c = new Coord(0, chatWidget.sz.y + 5);
+		lineEdit.resize(new Coord(windowBox.getContentSize().x, 20));
 	}
 	
 	public void showLine(Object... objs) {

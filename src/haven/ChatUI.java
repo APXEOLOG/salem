@@ -32,8 +32,6 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 
-import org.apxeolog.salem.ALS;
-import org.apxeolog.salem.ChatWrapper;
 import org.apxeolog.salem.HConfig;
 
 public class ChatUI extends Widget {
@@ -321,9 +319,18 @@ public class ChatUI extends Widget {
 
 		public void uimsg(String msg, Object... args) {
 			if (msg == "msg") {
-				Integer from = (Integer) args[0];
-				int gobid = (Integer) args[1];
-				String line = (String) args[2];
+				Integer from = null;//(Integer) args[0];
+				Integer gobid = null;//(Integer) args[0];
+				String line = null;//(String) args[1];
+				if (args.length == 3) {
+					from = (Integer) args[0];
+					gobid = (Integer) args[1];
+					line = (String) args[2];
+				} else {
+					gobid = (Integer) args[0];
+					line = (String) args[1];
+				}
+				
 				Color col = Color.WHITE;
 				synchronized (ui.sess.glob.party.memb) {
 					Party.Member pm = ui.sess.glob.party.memb.get((long) gobid);
@@ -379,15 +386,15 @@ public class ChatUI extends Widget {
 			if (msg == "msg") {
 				String t = (String) args[0];
 				String line = (String) args[1];
-				
+				//Config.currentCharName
 				// BDSChat Wrap
+				BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(other);
+				String hname = (buddy == null) ? "???" : (buddy.name);
+				Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
 				if (t.equals("in")) {
-					BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(other);
-					String hname = (buddy == null) ? "???" : (buddy.name);
-					Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
-					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.PINK, hname, hcolor, this);
+					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.PINK, hname + " > Me", hcolor, this);
 				} else {
-					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.PINK, Config.currentCharName, Color.WHITE, this);
+					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.PINK, "Me > " + hname, Color.WHITE, this);
 				}
 				
 				if (t.equals("in")) {
@@ -716,7 +723,7 @@ public class ChatUI extends Widget {
 	}
 
 	public boolean keydown(KeyEvent ev) {
-		if (HConfig.cl_use_new_chat) return (super.keydown(ev));
+		//if (HConfig.cl_use_new_chat) return false;
 		
 		boolean M = (ev.getModifiersEx() & (KeyEvent.META_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) != 0;
 		if (qline != null) {
@@ -776,7 +783,7 @@ public class ChatUI extends Widget {
 	}
 
 	public boolean type(char key, KeyEvent ev) {
-		if (HConfig.cl_use_new_chat) return (super.type(key, ev));
+		//if (HConfig.cl_use_new_chat) return (super.type(key, ev));
 		
 		if (qline != null) {
 			qline.key(ev);
@@ -787,7 +794,7 @@ public class ChatUI extends Widget {
 	}
 
 	public boolean globtype(char key, KeyEvent ev) {
-		if (HConfig.cl_use_new_chat) return (super.globtype(key, ev));
+		if (HConfig.cl_use_new_chat) return false;
 		
 		if (key == 10) {
 			if (!expanded && (sel instanceof EntryChannel)) {

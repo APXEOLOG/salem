@@ -30,6 +30,7 @@ public class HConfig {
 	public static Integer 	cl_swindow_header_align = SWindow.HEADER_ALIGN_CENTER;
 	public static Boolean	cl_use_new_chat = true;
 	public static Boolean	cl_use_free_cam = false;
+	public static Boolean	cl_use_new_toolbars = true;
 	
 	private static Properties configFile = new Properties();
 	private static HashMap<String, String> additionTokens= new HashMap<String, String>();

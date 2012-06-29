@@ -36,7 +36,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apxeolog.salem.ChatWrapper;
 import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SChatWindow;
 import org.apxeolog.salem.SGobble;
@@ -168,6 +167,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),	this);
 		bdsChat.setResizable(true);
 		bdsChat.setClosable(false);
+		if (!HConfig.cl_use_new_chat) bdsChat.hide();
 		
 		syslog = new ChatUI.Log(chat, "System");
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {
@@ -335,7 +335,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 					SUtils.minimapMarkerRealCoords = null;
 				}
 			};
-			new MenuButton(new Coord(72, 0), mapmenu, "chat", 3,
+			new MenuButton(new Coord(72, 0), mapmenu, "chat", -1,
 					"Chat (Ctrl+C)") {
 				public void click() {
 					chat.toggle();
@@ -433,7 +433,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	}
 
 	private boolean showbeltp() {
-		return (!chat.expanded);
+		return (!chat.expanded && !HConfig.cl_use_new_toolbars);
 	}
 
 	static Text.Foundry progf = new Text.Foundry(new java.awt.Font("serif",
@@ -444,7 +444,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	Text progt = null;
 
 	public void draw(GOut g) {
-		mainmenu.show(showbeltp());
+		mainmenu.show(!chat.expanded);
 		super.draw(g);
 		togglesdw(g.gc);
 		if (prog >= 0) {
@@ -823,7 +823,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			dwalkdown(ukey, ev);
 			return (true);
 		}
-		if ((key == 0) && beltwdg.key(ev))
+		if ((key == 0) && beltwdg.key(ev) && !HConfig.cl_use_new_toolbars)
 			return (true);
 		return (super.globtype(key, ev));
 	}

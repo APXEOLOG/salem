@@ -317,8 +317,8 @@ public class SWindow extends Widget {
 		windowHeader = new SWindowHeader(Coord.z, Coord.z, this, cap.replaceAll("[^a-zA-Z0-9 ]", ""), minimizable, closeable);
 		windowBox = new SSimpleBorderBox(sz, 0, 2, 1);
 		windowBox.marginTop = windowHeader.sz.y;
-		loadPosition();
 		resize(sz);
+		loadPosition();
 		//setfocustab(true);
 		parent.setfocus(this);
 	}
@@ -354,13 +354,21 @@ public class SWindow extends Widget {
 				Coord cc = Coord.fromString((String) obj);
 				if (cc != null) c = cc;
 			}
+			obj = HConfig.getValue("swnd_size_" + windowHeader.headerText.text, String.class);
+			if (obj instanceof String) {
+				Coord cc = Coord.fromString((String) obj);
+				if (cc != null) resize(cc);
+			}
 		} catch (Exception ex) {
 		}
 	}
 	
 	public void savePosition() {
 		try {
+			if (windowHeader.headerText == null) return;
 			HConfig.addValue("swnd_pos_" + windowHeader.headerText.text, c);
+			if (allowResize)
+				HConfig.addValue("swnd_size_" + windowHeader.headerText.text, windowBox.getContentSize());
 			HConfig.saveConfig();
 		} catch (NullPointerException ex) {
 		}
@@ -504,9 +512,11 @@ public class SWindow extends Widget {
 		if (dragMode) {
 			ui.grabmouse(null);
 			dragMode = false;
+			savePosition();
 		} else if (resizeMode) {
 			ui.grabmouse(null);
 			resizeMode = false;
+			savePosition();
 			resizeFinish();
 		} else {
 			super.mouseup(c, button);

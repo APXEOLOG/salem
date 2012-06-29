@@ -130,7 +130,7 @@ public class SChat extends Widget {
 	}
 	
 	public int getLinesCount() {
-		return Math.min((int)(sz.y / chatLineBound.getHeight()) + 1, chatLines.size());
+		return Math.min((int)(sz.y / chatLineBound.getHeight()), chatLines.size());
 	}
 	
 	@Override
@@ -169,13 +169,15 @@ public class SChat extends Widget {
 	public boolean click(Coord c) {
 		int index = appendMode ? chatLines.size() - getLinesCount() + 1 : firstLineIndex + (int)((double)c.y / (double)chatLineBound.getHeight());
 		if (index < chatLines.size()) {
-			if (c.x <= chatLines.get(index).getHeader().getSizeX()) {
-				Header selected = chatLines.get(index).getHeader();
-				if (ui.modctrl)
-					((SChatWindow)parent).setLinkedMode(selected.pureName, selected.cachedHeader, selected.linkedChat, true);
-				else
-					((SChatWindow)parent).setLinkedMode(selected.pureName, selected.cachedHeader, selected.linkedChat, false);
-				return true;
+			if (chatLines.get(index).getHeader() != null) {
+				if (c.x <= chatLines.get(index).getHeader().getSizeX()) {
+					Header selected = chatLines.get(index).getHeader();
+					if (ui.modctrl)
+						((SChatWindow)parent).setLinkedMode(selected.pureName, selected.cachedHeader, selected.linkedChat, true);
+					else
+						((SChatWindow)parent).setLinkedMode(selected.pureName, selected.cachedHeader, selected.linkedChat, false);
+					return true;
+				}
 			}
 		}
 		return false;

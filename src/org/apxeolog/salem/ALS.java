@@ -8,7 +8,7 @@ public class ALS {
 		for (Object obj : objects) {
 			if (obj instanceof Iterable<?>) {
 				System.out.print("[ ");
-				for (Object o : (Iterable<?>)obj) System.out.print(o == null ? "null" : o.toString() + " ");
+				for (Object o : (Iterable<?>)obj) System.out.print(o == null ? "null" : "["+o.getClass().getCanonicalName()+"]" + o.toString() + " ");
 				System.out.print("]");
 			} /*else if (obj instanceof Collection<?>) {
 				System.out.print("[ ");

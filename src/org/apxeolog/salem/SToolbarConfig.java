@@ -2,11 +2,14 @@ package org.apxeolog.salem;
 
 import haven.Coord;
 import haven.GameUI;
+import haven.MainFrame;
+import haven.Resource;
 import haven.Widget;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -75,7 +78,15 @@ public class SToolbarConfig {
 	
 	public static void load() {
 		File tbConf = new File("toolbars.xml");
-		if (tbConf.exists() && tbConf.canRead()) {
+		if (!tbConf.exists()) {
+			try {
+				tbConf.createNewFile();
+				FileUtils.copyStream(Resource.class.getResourceAsStream("/res/toolbars_default.xml"), tbConf);
+			} catch (IOException e) {
+				ALS.alDebugPrint("Deafult toolbars.xml creation failed :(");
+			}
+		}
+		if (tbConf.canRead()) {
 			Document tbConfXML = HXml.readXMLFile(tbConf);
 			if (tbConfXML != null) {
 				NodeList toolbars = tbConfXML.getElementsByTagName("toolbar");
@@ -137,9 +148,11 @@ public class SToolbarConfig {
 				gUI.bdsToolbars.clear();
 			}
 			
-			for (SToolbarConfig cfg : definedToolbars.values()) {
-				if (cfg.enabled)
-					new SToolbar(new Coord(10, 10), gUI, cfg);
+			if (HConfig.cl_use_new_toolbars) {
+				for (SToolbarConfig cfg : definedToolbars.values()) {
+					if (cfg.enabled)
+						new SToolbar(new Coord(10, 10), gUI, cfg);
+				}
 			}
 		}
 	}

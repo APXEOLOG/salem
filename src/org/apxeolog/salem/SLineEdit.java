@@ -172,7 +172,8 @@ public class SLineEdit extends Widget implements ClipboardOwner {
 		}
 		g.chcolor(0, 0, 0, 128);
 		g.frect(Coord.z, sz);
-		
+		g.chcolor(255, 255, 255, 255);
+		g.rect(Coord.z, sz.add(1, 1));
 		g.chcolor(Color.WHITE);
 		
 		if (defHeader != null) g.image(defHeader.img, Coord.z);
