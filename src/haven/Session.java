@@ -33,7 +33,7 @@ import java.io.*;
 import org.apxeolog.salem.ALS;
 
 public class Session {
-	public static final int PVER = 16;
+	public static final int PVER = 17;
 
 	public static final int MSG_SESS = 0;
 	public static final int MSG_REL = 1;

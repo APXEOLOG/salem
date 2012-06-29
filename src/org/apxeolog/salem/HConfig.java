@@ -76,6 +76,8 @@ public class HConfig {
 					} catch (IllegalAccessException e) {
 					}
 			}
+			
+			SToolbarConfig.load();
 		} catch (IOException e) {
 		} finally {
 			configFile.clear();

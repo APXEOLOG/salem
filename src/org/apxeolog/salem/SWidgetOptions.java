@@ -32,6 +32,7 @@ import haven.CheckBox;
 import haven.Coord;
 import haven.GOut;
 import haven.GameUI;
+import haven.GLFrameBuffer.RenderBuffer.RBO;
 import haven.GameUI.Hidewnd;
 import haven.IBox;
 import haven.Label;
@@ -51,7 +52,11 @@ import java.awt.font.TextAttribute;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 
+import javax.security.auth.login.AccountException;
+
+import org.apxeolog.salem.SToolbarConfig.SToolbarConfigSlot;
 import org.apxeolog.salem.SUtils.HighlightInfo;
 
 public class SWidgetOptions extends Hidewnd {
@@ -62,6 +67,7 @@ public class SWidgetOptions extends Hidewnd {
 	@Override
 	public void unlink() {
 		HConfig.saveConfig();
+		SToolbarConfig.save();
 		super.unlink();
 	}
 	
@@ -73,6 +79,9 @@ public class SWidgetOptions extends Hidewnd {
 	};
 	
 	Tab ftab;
+	
+	int tb_buf_mode = -1;
+	int tb_buf_key = -1;
 	
 	public SWidgetOptions(Coord c, Widget parent) {
 		super(c, new Coord(345, 300), parent, "Options");
@@ -112,23 +121,8 @@ public class SWidgetOptions extends Hidewnd {
 			};
 			
 			new Label(new Coord(20, 40), tab, "Defined toolbars:");
-			final TextList toolbarsList = new TextList(new Coord(20, 60),	new Coord(150, 200), tab) {
-				@Override
-				protected void changed(int index) {
-					// Setup selected toolbar
-				}
-			};
-			final TextEntry toolbarName = new TextEntry(new Coord(20, 270), new Coord(100, 20), tab, "ToolbarName") {
-				
-			};
-			new Button(new Coord(20, 290), 100, tab, "Add") {
-				public void click() {
-					toolbarsList.addText(toolbarName.text);
-				};
-			};
 			
-			
-			new TextEntry(new Coord(10, 50), new Coord(100, 20), tab, "") {
+			final TextEntry hotkeyGrabber = new TextEntry(new Coord(180, 60), new Coord(80, 20), tab, "") {
 				@Override
 				public boolean type(char c, KeyEvent e){
 					return true;
@@ -149,9 +143,82 @@ public class SWidgetOptions extends Hidewnd {
 					if(event.isShiftDown())
 						mods += "Shift+";
 					settext(mods+hotkey);
+					
+					tb_buf_mode = event.getModifiersEx();
+					tb_buf_key = event.getKeyCode();
+					
 					return true;
 				}
 			};
+			
+			final TextEntry toolbarName = new TextEntry(new Coord(20, 190), new Coord(90, 20), tab, "ToolbarName");
+			
+			final SlotsList slotSet = new SlotsList(new Coord(180, 90), new Coord(150, 120), tab) {
+				@Override
+				protected void changed(int index) {
+					if (getSelectedSlot() != null)
+						hotkeyGrabber.settext(getSelectedSlot().getString());
+				}
+			};
+			
+			final ToolbarsList toolbarsList = new ToolbarsList(new Coord(20, 60),	new Coord(150, 120), tab, SToolbarConfig.definedToolbars) {
+				@Override
+				protected void changed(int index) {
+					if (index == -1) return;
+					toolbarName.settext(getSelectedToolbar().tbName);
+					
+					slotSet.setupToolbar(getSelectedToolbar());
+				}
+			};
+						
+			new Button(new Coord(120, 190), 50, tab, "Add") {
+				public void click() {
+					if (!SToolbarConfig.definedToolbars.containsKey(toolbarName.text)) {
+						toolbarsList.addToolbar(toolbarName.text);
+					}
+				};
+			};
+			
+			new Button(new Coord(30, 220), 60, tab, "Remove") {
+				public void click() {
+					if (toolbarsList.getSelectedToolbar() != null) {
+						toolbarsList.removeCurrent();
+					}
+				};
+			};
+			new Button(new Coord(100, 220), 60, tab, "Toggle") {
+				public void click() {
+					if (toolbarsList.getSelectedToolbar() != null) {
+						toolbarsList.toggleCurrent();
+					}
+				};
+			};
+			
+			new Label(new Coord(220, 40), tab, "Toolbar settings:");
+			
+			
+			
+			new Button(new Coord(270, 60), 60, tab, "Add") {
+				public void click() {
+					if (tb_buf_key > -1 && tb_buf_mode > -1)
+						slotSet.addSlot(tb_buf_mode, tb_buf_key);
+				};
+			};
+			
+			new Button(new Coord(190, 220), 60, tab, "Set") {
+				public void click() {
+					if (tb_buf_key > -1 && tb_buf_mode > -1)
+						slotSet.setSlot(tb_buf_mode, tb_buf_key);
+				};
+			};
+			
+			new Button(new Coord(260, 220), 60, tab, "Remove") {
+				public void click() {
+					if (tb_buf_key > -1 && tb_buf_mode > -1)
+						slotSet.removeCurrent();
+				};
+			};
+			
 		}
 		
 		
@@ -447,6 +514,12 @@ public class SWidgetOptions extends Hidewnd {
 		public int getSelectedIndex() {
 			return selectedIndex;
 		}
+		
+		public void removeCurrent() {
+			textList.remove(selectedIndex);
+			scrollbar.max = textList.size() - iCannotRememberWhyDoINeedThisVariable;
+			selectedIndex = -1;
+		}
 
 		public void draw(GOut g) {
 			g.chcolor(0, 0, 0, 255);
@@ -480,6 +553,218 @@ public class SWidgetOptions extends Hidewnd {
 			if (button == 1) {
 				selectedIndex = (c.y / 20) + scrollbar.val;
 				if (selectedIndex >= textList.size())
+					selectedIndex = -1;
+				changed(selectedIndex);
+				return (true);
+			}
+			return (false);
+		}
+
+		protected void changed(int index) {
+			
+		}
+
+		public void unsel() {
+			selectedIndex = -1;
+			changed(selectedIndex);
+		}
+	}
+	
+	
+	/* Toolbars */
+	public static class ToolbarsList extends Widget {
+		private int iCannotRememberWhyDoINeedThisVariable;
+		private Scrollbar scrollbar;
+		private int selectedIndex;
+		private ArrayList<String> textListBuf;
+		private HashMap<String, SToolbarConfig> toolbarsMap;
+
+		public ToolbarsList(Coord c, Coord sz, Widget parent, HashMap<String, SToolbarConfig> tbMap) {
+			super(c, sz, parent);
+			
+			iCannotRememberWhyDoINeedThisVariable = sz.y / 20;
+			
+			scrollbar = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
+			scrollbar.val = 0;
+			toolbarsMap = tbMap;
+			selectedIndex = -1;
+			
+			textListBuf = new ArrayList<String>();
+			for (String str : toolbarsMap.keySet()) {
+				textListBuf.add(str);
+			}
+		}
+		
+		public void addToolbar(String text) {
+			SToolbarConfig newtb = new SToolbarConfig(text);
+			toolbarsMap.put(text, newtb);
+			textListBuf.add(text);
+			scrollbar.max = textListBuf.size() - iCannotRememberWhyDoINeedThisVariable;
+		}
+		
+		public SToolbarConfig getSelectedToolbar() {
+			if (selectedIndex >= 0 && selectedIndex < textListBuf.size()) return toolbarsMap.get(textListBuf.get(selectedIndex));
+			return null;
+		}
+		
+		public int getSelectedIndex() {
+			return selectedIndex;
+		}
+		
+		public void removeCurrent() {
+			toolbarsMap.remove(textListBuf.get(selectedIndex));
+			textListBuf.remove(selectedIndex);
+			scrollbar.max = textListBuf.size() - iCannotRememberWhyDoINeedThisVariable;
+			selectedIndex = -1;
+		}
+		
+		public void toggleCurrent() {
+			SToolbarConfig tbcfg = getSelectedToolbar();
+			if (tbcfg != null) {
+				tbcfg.toggle();
+			}
+		}
+
+		public void draw(GOut g) {
+			g.chcolor(0, 0, 0, 255);
+			g.frect(Coord.z, sz);
+			g.chcolor(255, 255, 255, 255);
+			g.rect(Coord.z, sz.add(1, 1));
+			g.chcolor();
+			
+			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
+				if (i + scrollbar.val >= textListBuf.size()) continue;
+				String hl = textListBuf.get(i + scrollbar.val);
+				if (i + scrollbar.val == selectedIndex) {
+					g.chcolor(255, 255, 0, 128);
+					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));
+					g.chcolor();
+				}
+				g.atext(hl, new Coord(5, i * 20 + 10), 0, 0.5);
+				g.chcolor();
+			}
+			super.draw(g);
+		}
+
+		public boolean mousewheel(Coord c, int amount) {
+			scrollbar.ch(amount);
+			return (true);
+		}
+
+		public boolean mousedown(Coord c, int button) {
+			if (super.mousedown(c, button))
+				return (true);
+			if (button == 1) {
+				selectedIndex = (c.y / 20) + scrollbar.val;
+				if (selectedIndex >= textListBuf.size())
+					selectedIndex = -1;
+				changed(selectedIndex);
+				return (true);
+			}
+			return (false);
+		}
+
+		protected void changed(int index) {
+			
+		}
+
+		public void unsel() {
+			selectedIndex = -1;
+			changed(selectedIndex);
+		}
+	}
+	
+	public static class SlotsList extends Widget {
+		private int iCannotRememberWhyDoINeedThisVariable;
+		private Scrollbar scrollbar;
+		private int selectedIndex;
+		private SToolbarConfig assocedToolbar;
+
+		public SlotsList(Coord c, Coord sz, Widget parent) {
+			super(c, sz, parent);
+			
+			iCannotRememberWhyDoINeedThisVariable = sz.y / 20;
+			
+			scrollbar = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
+			scrollbar.val = 0;
+			
+			selectedIndex = -1;
+		}
+		
+		public void setSlot(int mode, int key) {
+			SToolbarConfigSlot slot = getSelectedSlot();
+			if (slot != null) {
+				slot.sKey = key;
+				slot.sMode = mode;
+				slot.rebuildString();
+			}
+		}
+
+		public void setupToolbar(SToolbarConfig tb) {
+			assocedToolbar = tb;
+		}
+		
+		public int size() {
+			if (assocedToolbar != null) {
+				return assocedToolbar.slotList.size();
+			} else return 0;
+		}
+		
+		public void addSlot(int mode, int key) {
+			SToolbarConfigSlot slot = new SToolbarConfigSlot(mode, key);
+			assocedToolbar.slotList.add(slot);
+			scrollbar.max = size() - iCannotRememberWhyDoINeedThisVariable;
+		}
+		
+		public SToolbarConfigSlot getSelectedSlot() {
+			if (selectedIndex >= 0 && selectedIndex < size()) return assocedToolbar.slotList.get(selectedIndex);
+			return null;
+		}
+		
+		public int getSelectedIndex() {
+			return selectedIndex;
+		}
+		
+		public void removeCurrent() {
+			if (size() <= 0) return;
+			ALS.alDebugPrint("rem");
+			assocedToolbar.slotList.remove(selectedIndex);
+			scrollbar.max = size() - iCannotRememberWhyDoINeedThisVariable;
+			selectedIndex = -1;
+		}
+
+		public void draw(GOut g) {
+			g.chcolor(0, 0, 0, 255);
+			g.frect(Coord.z, sz);
+			g.chcolor(255, 255, 255, 255);
+			g.rect(Coord.z, sz.add(1, 1));
+			g.chcolor();
+			
+			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
+				if (i + scrollbar.val >= size()) continue;
+				SToolbarConfigSlot hl = assocedToolbar.slotList.get(i + scrollbar.val);
+				if (i + scrollbar.val == selectedIndex) {
+					g.chcolor(255, 255, 0, 128);
+					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));
+					g.chcolor();
+				}
+				g.atext(hl.getString(), new Coord(5, i * 20 + 10), 0, 0.5);
+				g.chcolor();
+			}
+			super.draw(g);
+		}
+
+		public boolean mousewheel(Coord c, int amount) {
+			scrollbar.ch(amount);
+			return (true);
+		}
+
+		public boolean mousedown(Coord c, int button) {
+			if (super.mousedown(c, button))
+				return (true);
+			if (button == 1) {
+				selectedIndex = (c.y / 20) + scrollbar.val;
+				if (selectedIndex >= size())
 					selectedIndex = -1;
 				changed(selectedIndex);
 				return (true);
