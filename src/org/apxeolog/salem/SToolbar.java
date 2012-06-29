@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apxeolog.salem.SToolbarConfig.SToolbarConfigSlot;
+
 import haven.Config;
 import haven.Coord;
 import haven.DTarget;
@@ -46,6 +48,13 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		initBar(slots);
 		loadBar();
 		fillBar();
+	}
+	
+	public SToolbar(Coord c, Widget w, SToolbarConfig cfg) {
+		this(c, w, cfg.tbName, cfg.slotList.size());
+		for (int slot = 0; slot < slotCount; slot++) {
+			//slotList[slot]
+		}
 	}
 
 	@Override
@@ -311,10 +320,27 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	}
 	
 	//Ќо ведь вс€ эта поебота в принципе чисто дл€ удобства
-	private static class Slot {
+	public static class Slot {
 		private Resource resSlot;
 		private String action;
 		private Pagina slotPagina;
+		private SToolbarConfigSlot slotConfig;
+		
+		public void setHotkey(SToolbarConfigSlot scfg) {
+			slotConfig = scfg;
+		}
+		
+		public boolean hotkey(KeyEvent ev) {
+			if (slotConfig != null) {
+				return (slotConfig.sKey == ev.getKeyCode() && slotConfig.sMode == ev.getModifiersEx());
+			} else return false;
+		}
+		
+		public String getString() {
+			if (slotConfig != null)
+				return slotConfig.getString();
+			else return null;
+		}
 		
 		public Slot(Resource r) {
 			resSlot = r;

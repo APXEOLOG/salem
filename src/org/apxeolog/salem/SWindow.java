@@ -518,7 +518,14 @@ public class SWindow extends Widget {
 		if (dragMode) {
 			this.c = this.c.add(c.add(doff.inv()));
 		} else if (resizeMode) {
-			resize(windowBox.getContentSize().add(c.add(szOff.inv())));
+			Coord newSz = windowBox.getContentSize().add(c.add(szOff.inv()));
+			if (newSz.x < windowHeader.headerBox.getBoxSize().x) {
+				newSz.x = windowHeader.headerBox.getBoxSize().x;
+			}
+			if (newSz.y < windowHeader.headerBox.getBoxSize().y) {
+				newSz.y = windowHeader.headerBox.getBoxSize().y;
+			}
+			resize(newSz);
 			szOff = c;
 		} else {
 			super.mousemove(c);

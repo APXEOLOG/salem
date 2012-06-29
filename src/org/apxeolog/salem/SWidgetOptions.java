@@ -68,6 +68,7 @@ public class SWidgetOptions extends Hidewnd {
 	public void unlink() {
 		HConfig.saveConfig();
 		SToolbarConfig.save();
+		SToolbarConfig.updateToolbars(ui.root);
 		super.unlink();
 	}
 	
@@ -156,8 +157,7 @@ public class SWidgetOptions extends Hidewnd {
 			final SlotsList slotSet = new SlotsList(new Coord(180, 90), new Coord(150, 120), tab) {
 				@Override
 				protected void changed(int index) {
-					if (getSelectedSlot() != null)
-						hotkeyGrabber.settext(getSelectedSlot().getString());
+					hotkeyGrabber.settext("");
 				}
 			};
 			
@@ -183,6 +183,7 @@ public class SWidgetOptions extends Hidewnd {
 				public void click() {
 					if (toolbarsList.getSelectedToolbar() != null) {
 						toolbarsList.removeCurrent();
+						slotSet.setupToolbar(null);
 					}
 				};
 			};
@@ -195,8 +196,6 @@ public class SWidgetOptions extends Hidewnd {
 			};
 			
 			new Label(new Coord(220, 40), tab, "Toolbar settings:");
-			
-			
 			
 			new Button(new Coord(270, 60), 60, tab, "Add") {
 				public void click() {
@@ -214,8 +213,7 @@ public class SWidgetOptions extends Hidewnd {
 			
 			new Button(new Coord(260, 220), 60, tab, "Remove") {
 				public void click() {
-					if (tb_buf_key > -1 && tb_buf_mode > -1)
-						slotSet.removeCurrent();
+					slotSet.removeCurrent();
 				};
 			};
 			
@@ -635,11 +633,16 @@ public class SWidgetOptions extends Hidewnd {
 			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
 				if (i + scrollbar.val >= textListBuf.size()) continue;
 				String hl = textListBuf.get(i + scrollbar.val);
+				SToolbarConfig tbc = toolbarsMap.get(hl);
 				if (i + scrollbar.val == selectedIndex) {
 					g.chcolor(255, 255, 0, 128);
 					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));
 					g.chcolor();
 				}
+				if (tbc.enabled)
+					g.chcolor(0, 255, 0, 192);
+				else
+					g.chcolor(255, 255, 255, 192);
 				g.atext(hl, new Coord(5, i * 20 + 10), 0, 0.5);
 				g.chcolor();
 			}
@@ -726,6 +729,7 @@ public class SWidgetOptions extends Hidewnd {
 		}
 		
 		public void removeCurrent() {
+			ALS.alDebugPrint(size());
 			if (size() <= 0) return;
 			ALS.alDebugPrint("rem");
 			assocedToolbar.slotList.remove(selectedIndex);

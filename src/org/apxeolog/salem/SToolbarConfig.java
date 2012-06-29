@@ -1,5 +1,8 @@
 package org.apxeolog.salem;
 
+import haven.Coord;
+import haven.Widget;
+
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -78,6 +81,8 @@ public class SToolbarConfig {
 				for (int i = 0; i < toolbars.getLength(); i++) {
 					Element currentToolbar = (Element) toolbars.item(i);
 					SToolbarConfig tcfg = new SToolbarConfig(currentToolbar.getAttribute("name"));
+					if (currentToolbar.hasAttribute("enabled"))
+						tcfg.enabled = Boolean.valueOf(currentToolbar.getAttribute("enabled"));
 					NodeList slots = currentToolbar.getElementsByTagName("slot");
 					for (int j = 0; j < slots.getLength(); j++) {
 						Element slot = (Element) slots.item(j);
@@ -101,6 +106,7 @@ public class SToolbarConfig {
 				for (SToolbarConfig cfg : definedToolbars.values()) {
 					Element currentToolbar = tbConfXML.createElement("toolbar");
 					currentToolbar.setAttribute("name", cfg.tbName);
+					currentToolbar.setAttribute("enabled", String.valueOf(cfg.enabled));
 					
 					for (int j = 0; j < cfg.slotList.size(); j++) {
 						int mode = cfg.slotList.get(j).sMode;
@@ -119,6 +125,20 @@ public class SToolbarConfig {
 				tbConfXML.appendChild(root);
 			}
 			HXml.saveXML(tbConfXML, tbConf);
+		}
+	}
+	
+	public static void updateToolbars(Widget root) {
+		ArrayList<SToolbar> clear = new ArrayList<SToolbar>();
+		for (Widget w = root.lchild; w != null; w = w.prev) {
+			if (w instanceof SToolbar) {
+				clear.add((SToolbar) w);
+			}
+		}
+		for (SToolbar tb : clear) tb.unlink();
+		
+		for (SToolbarConfig cfg : definedToolbars.values()) {
+			SToolbar newtb = new SToolbar(new Coord(10, 10), root, cfg);
 		}
 	}
 }
