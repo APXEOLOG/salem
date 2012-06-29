@@ -17,6 +17,7 @@ import haven.DTarget;
 import haven.DropTarget;
 import haven.GOut;
 import haven.Glob.Pagina;
+import haven.GameUI;
 import haven.Loading;
 import haven.MenuGrid;
 import haven.Resource;
@@ -27,11 +28,12 @@ import haven.UI;
 import haven.Widget;
 
 public class SToolbar extends SWindow implements DTarget, DropTarget {
-	public static String barName;
+	public String barName;
 	public int actKey;
 	public Coord barSize = new Coord(1, 1);
 	private boolean isVert = false;
 	private Slot[] slotList;
+	private SToolbarConfigSlot[] slotConfig;
 	private int slotCount;
 	private Pagina dragPag, pressPag;
 	public final static Tex backGround = Resource.loadtex("gfx/hud/invsq");
@@ -52,9 +54,28 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	
 	public SToolbar(Coord c, Widget w, SToolbarConfig cfg) {
 		this(c, w, cfg.tbName, cfg.slotList.size());
+		getparent(GameUI.class).bdsToolbars.add(this);
+		slotConfig = new SToolbarConfigSlot[slotCount];
 		for (int slot = 0; slot < slotCount; slot++) {
-			//slotList[slot]
+			slotConfig[slot] = cfg.slotList.get(slot);
 		}
+	}
+	
+	public boolean hotkey(KeyEvent ev) {
+		for (int slot = 0; slot < slotCount; slot++) {
+			if (slotConfig[slot].sKey == ev.getKeyCode() && slotConfig[slot].sMode == ev.getModifiersEx()) {
+				//pressing at slot
+				Pagina p = null;
+				if (slotList[slot] != null)
+					p = slotList[slot].getSlotPagina();
+				@SuppressWarnings("deprecation")
+				MenuGrid mg = ui.root.findchild(MenuGrid.class);
+				if (mg != null)
+					mg.use(p);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -107,6 +128,9 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 					initGL.frect(backDraw.add(1, 1), bGSize);
 					initGL.chcolor();
 				}
+			}
+			if (slotConfig[i] != null) {
+				initGL.atext(slotConfig[i].getString(), backDraw.add(bGSize), 1, 1);
 			}
 		}
 		if (dragPag != null) {
@@ -266,14 +290,14 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		return super.keydown(ev);
 	}
 	
-	private static void setBarSlot(int slot, String value) {
+	private void setBarSlot(int slot, String value) {
 		synchronized (tbConfig) {
 			tbConfig.setProperty(barName + "_slot_" + slot, value);
 		}
 		saveBar();
 	}
 	
-	private static void loadBar() {
+	private void loadBar() {
 		tbConfig.clear();
 		String configFileName = "tbar_"
 				+ Config.currentCharName.replaceAll("[^a-zA-Z()]", "_")
@@ -305,8 +329,9 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}//sync
 	}
 	
-	private static void saveBar() {
+	private void saveBar() {
 		synchronized (tbConfig) {
+			ALS.alDebugPrint("saving for", barName);
 			String configFileName = "tbar_"
 					+ Config.currentCharName.replaceAll("[^a-zA-Z()]", "_")
 					+ ".conf";
@@ -324,24 +349,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		private Resource resSlot;
 		private String action;
 		private Pagina slotPagina;
-		private SToolbarConfigSlot slotConfig;
-		
-		public void setHotkey(SToolbarConfigSlot scfg) {
-			slotConfig = scfg;
-		}
-		
-		public boolean hotkey(KeyEvent ev) {
-			if (slotConfig != null) {
-				return (slotConfig.sKey == ev.getKeyCode() && slotConfig.sMode == ev.getModifiersEx());
-			} else return false;
-		}
-		
-		public String getString() {
-			if (slotConfig != null)
-				return slotConfig.getString();
-			else return null;
-		}
-		
+
 		public Slot(Resource r) {
 			resSlot = r;
 			action = r.name;

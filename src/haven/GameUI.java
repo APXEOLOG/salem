@@ -30,6 +30,7 @@ import static haven.Inventory.invsq;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
@@ -42,6 +43,7 @@ import org.apxeolog.salem.SGobble;
 import org.apxeolog.salem.SInterfaces.IGobble;
 import org.apxeolog.salem.SInterfaces.ITempers;
 import org.apxeolog.salem.STempers;
+import org.apxeolog.salem.SToolbar;
 import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.SWidgetOptions;
 import org.apxeolog.salem.SWindow;
@@ -84,6 +86,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public SWidgetOptions bdsOptions;
 	public ITempers bdsTempers;
 	public IGobble bdsGobble;
+	public ArrayList<SToolbar> bdsToolbars = new ArrayList<SToolbar>();
 	
 	public void updateWindowStyle() {
 		ui.root.resize(ui.root.sz);
@@ -152,7 +155,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		new Bufflist(new Coord(95, 50), this);
 		//tm = new Tempers(Coord.z, this);
 		chat = new ChatUI(Coord.z, 0, this);
-
+		
 		bdsOptions = new SWidgetOptions(sz.div(2).sub(150, 150), this);
 		bdsOptions.hide();
 		
@@ -796,6 +799,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	}
 
 	public boolean globtype(char key, KeyEvent ev) {
+		// Check toolbar hotkeys
+		for (SToolbar tb : bdsToolbars) {
+			if (tb.hotkey(ev)) return true;
+		}
+		
 		if(ev.getKeyCode() == 79 && ev.isControlDown()) {
 			//CTRL+O
 			toggleOptions();

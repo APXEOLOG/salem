@@ -1,6 +1,7 @@
 package org.apxeolog.salem;
 
 import haven.Coord;
+import haven.GameUI;
 import haven.Widget;
 
 import java.awt.event.InputEvent;
@@ -129,16 +130,17 @@ public class SToolbarConfig {
 	}
 	
 	public static void updateToolbars(Widget root) {
-		ArrayList<SToolbar> clear = new ArrayList<SToolbar>();
-		for (Widget w = root.lchild; w != null; w = w.prev) {
-			if (w instanceof SToolbar) {
-				clear.add((SToolbar) w);
+		GameUI gUI = root.findchild(GameUI.class);
+		if (gUI != null) {
+			if (gUI.bdsToolbars != null) {
+				for (SToolbar tb : gUI.bdsToolbars) tb.unlink();
+				gUI.bdsToolbars.clear();
 			}
-		}
-		for (SToolbar tb : clear) tb.unlink();
-		
-		for (SToolbarConfig cfg : definedToolbars.values()) {
-			SToolbar newtb = new SToolbar(new Coord(10, 10), root, cfg);
+			
+			for (SToolbarConfig cfg : definedToolbars.values()) {
+				if (cfg.enabled)
+					new SToolbar(new Coord(10, 10), gUI, cfg);
+			}
 		}
 	}
 }
