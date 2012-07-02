@@ -127,4 +127,8 @@ public class Equipory extends Widget implements DTarget {
     public boolean iteminteract(Coord cc, Coord ul) {
 	return(false);
     }
+
+	public Set<GItem> getGItems() {
+		return wmap.keySet();
+	}
 }

@@ -18,7 +18,7 @@ import haven.Text;
 import haven.Widget;
 
 public class SChatWindow extends SWindow {
-	public static final int CHAT_BUFFER_SIZE = 300;
+	public static final int CHAT_BUFFER_SIZE = 150;
 	
 	public static final int MODE_AREA = 0;
 	public static final int MODE_VILLAGE = 1;

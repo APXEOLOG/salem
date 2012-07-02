@@ -150,7 +150,7 @@ public class SToolbarConfig {
 			
 			if (HConfig.cl_use_new_toolbars) {
 				for (SToolbarConfig cfg : definedToolbars.values()) {
-					if (cfg.enabled)
+					if (cfg.enabled && cfg.slotList.size() > 0)
 						new SToolbar(new Coord(10, 10), gUI, cfg);
 				}
 			}
