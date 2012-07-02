@@ -129,7 +129,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 					initGL.chcolor();
 				}
 			}
-			if (slotConfig[i] != null) {
+			if (i >= 0 && i < slotConfig.length && slotConfig[i] != null) {
 				initGL.atext(slotConfig[i].getString(), backDraw.add(bGSize), 1, 1);
 			}
 		}

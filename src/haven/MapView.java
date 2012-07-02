@@ -261,7 +261,7 @@ public class MapView extends PView implements DTarget {
 			}
 		});
 	}
-	
+
 	public void setupCamera() {
 		if (HConfig.cl_use_free_cam) {
 			if (!(camera instanceof FreeCam))
@@ -431,39 +431,39 @@ public class MapView extends PView implements DTarget {
 		if (placing != null)
 			addgob(rl, placing);
 	}
-	
+
 	private final Rendered mapgrid = new Rendered() {
 		public void draw(GOut g) {
 		}
 
 		boolean once = false;
+
 		public boolean setup(RenderList rl) {
-//			Coord o = new Coord();
-//			for (o.y = -view; o.y <= view; o.y++) {
-//				for (o.x = -view; o.x <= view; o.x++) {
-//					Coord pc = cc.add(o).mul(MCache.cutsz).mul(tilesz);
-//					MapMesh cut = glob.map.getcut(cc.add(o));
-//					ALS.alDebugPrint(player().getc(), cut.ul);
-//					
-//					
-////					rl.add(cut, Location.xlate(new Coord3f(pc.x, -pc.y, 0)));
-////					Collection<Gob> fol;
-////					try {
-////						fol = glob.map.getfo(cc.add(o));
-////					} catch (Loading e) {
-////						fol = Collections.emptyList();
-////					}
-////					for (Gob fo : fol)
-////						addgob(rl, fo);
-//				}
-//			}
-			
-			//rl.add(new Rendered.GridCell(), Location.xlate(c));
-			
+			// Coord o = new Coord();
+			// for (o.y = -view; o.y <= view; o.y++) {
+			// for (o.x = -view; o.x <= view; o.x++) {
+			// Coord pc = cc.add(o).mul(MCache.cutsz).mul(tilesz);
+			// MapMesh cut = glob.map.getcut(cc.add(o));
+			// ALS.alDebugPrint(player().getc(), cut.ul);
+			//
+			//
+			// // rl.add(cut, Location.xlate(new Coord3f(pc.x, -pc.y, 0)));
+			// // Collection<Gob> fol;
+			// // try {
+			// // fol = glob.map.getfo(cc.add(o));
+			// // } catch (Loading e) {
+			// // fol = Collections.emptyList();
+			// // }
+			// // for (Gob fo : fol)
+			// // addgob(rl, fo);
+			// }
+			// }
+
+			// rl.add(new Rendered.GridCell(), Location.xlate(c));
+
 			return false;
 		}
 	};
-
 
 	public Gob player() {
 		return (glob.oc.getgob(plgob));
@@ -613,6 +613,12 @@ public class MapView extends PView implements DTarget {
 		rl.fin();
 		rl.render(g);
 		return (rl.get(g, c));
+	}
+
+	public void delay(Delayed d) {
+		synchronized (delayed) {
+			delayed.add(d);
+		}
 	}
 
 	protected void undelay(GOut g) {
@@ -884,7 +890,8 @@ public class MapView extends PView implements DTarget {
 				if (grab.mmousedown(mc, clickb))
 					return;
 			}
-			if (HConfig.cl_tilify) mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
+			if (HConfig.cl_tilify)
+				mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
 			if (gob == null)
 				wdgmsg("click", pc, mc, clickb, ui.modflags());
 			else
@@ -912,9 +919,10 @@ public class MapView extends PView implements DTarget {
 		} else if (placing != null) {
 			if (placing.lastmc != null) {
 				Coord buf = placing.rc;
-				if (HConfig.cl_tilify) buf = buf.div(tilesz).mul(tilesz).add(tilesz.div(2));
-				wdgmsg("place", buf, (int) (placing.a * 180 / Math.PI),
-						button, ui.modflags());
+				if (HConfig.cl_tilify)
+					buf = buf.div(tilesz).mul(tilesz).add(tilesz.div(2));
+				wdgmsg("place", buf, (int) (placing.a * 180 / Math.PI), button,
+						ui.modflags());
 			}
 		} else {
 			synchronized (delayed) {
@@ -983,7 +991,8 @@ public class MapView extends PView implements DTarget {
 		synchronized (delayed) {
 			delayed.add(new Hittest(cc) {
 				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
-					if (HConfig.cl_tilify) mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
+					if (HConfig.cl_tilify)
+						mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
 					wdgmsg("drop", pc, mc, ui.modflags());
 				}
 			});
@@ -995,7 +1004,8 @@ public class MapView extends PView implements DTarget {
 		synchronized (delayed) {
 			delayed.add(new Hittest(cc) {
 				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
-					if (HConfig.cl_tilify) mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
+					if (HConfig.cl_tilify)
+						mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
 					if (gob == null)
 						wdgmsg("itemact", pc, mc, ui.modflags());
 					else

@@ -367,7 +367,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 			if (sort.equals("status"))
 				bcmp = statuscmp;
 		}
-		new Label(new Coord(0, 250), this, "My hearth secret:");
+		new Label(new Coord(0, 250), this, "My homestead secret:");
 		charpass = new TextEntry(new Coord(0, 265), new Coord(190, 20), this,
 				"") {
 			public void activate(String text) {
@@ -389,7 +389,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 				sendpwd(randpwd());
 			}
 		};
-		new Label(new Coord(0, 310), this, "Make kin by hearth secret:");
+		new Label(new Coord(0, 310), this, "Make kin by homestead secret:");
 		opass = new TextEntry(new Coord(0, 325), new Coord(190, 20), this, "") {
 			public void activate(String text) {
 				BuddyWnd.this.wdgmsg("bypwd", text);

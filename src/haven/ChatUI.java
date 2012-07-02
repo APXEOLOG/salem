@@ -276,14 +276,8 @@ public class ChatUI extends Widget {
 
 		public void uimsg(String msg, Object... args) {
 			if (msg == "msg") {
-				Integer from = null;
-				String line = null;
-				if (args[0] instanceof String) {
-					line = (String) args[0];
-				} else {
-					from = (Integer) args[0];
-					line = (String) args[1];
-				}
+				Integer from = (Integer)args[0];
+				String line = (String)args[1];
 				
 				// BDSChat Wrap
 				Color textColor = name.equals("Village") ? Color.GREEN : Color.WHITE;
@@ -319,17 +313,9 @@ public class ChatUI extends Widget {
 
 		public void uimsg(String msg, Object... args) {
 			if (msg == "msg") {
-				Integer from = null;//(Integer) args[0];
-				Integer gobid = null;//(Integer) args[0];
-				String line = null;//(String) args[1];
-				if (args.length == 3) {
-					from = (Integer) args[0];
-					gobid = (Integer) args[1];
-					line = (String) args[2];
-				} else {
-					gobid = (Integer) args[0];
-					line = (String) args[1];
-				}
+				Integer from = (Integer)args[0];
+				int gobid = (Integer)args[1];
+				String line = (String)args[2];
 				
 				Color col = Color.WHITE;
 				synchronized (ui.sess.glob.party.memb) {

@@ -52,8 +52,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public final String chrid;
 	public final long plid;
 	public MenuGrid menu;
-	//public Tempers tm;
-	//public Gobble gobble;
+	// public Tempers tm;
+	// public Gobble gobble;
 	public MapView map;
 	public LocalMiniMap mmap;
 	public Fightview fv;
@@ -76,7 +76,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	private boolean afk = false;
 	@SuppressWarnings("unchecked")
 	public Indir<Resource>[] belt = new Indir[144];
-	public Indir<Resource> lblk, dblk, catk;
+	public Indir<Resource> lblk, dblk;
 	public Belt beltwdg;
 	public String polowner;
 
@@ -86,11 +86,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public ITempers bdsTempers;
 	public IGobble bdsGobble;
 	public ArrayList<SToolbar> bdsToolbars = new ArrayList<SToolbar>();
-	
+
 	public void updateWindowStyle() {
 		ui.root.resize(ui.root.sz);
 	}
-	
+
 	public void updateTempersToConfig() {
 		if (bdsTempers != null) {
 			boolean vs = bdsTempers.visible;
@@ -100,7 +100,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			} else {
 				bdsTempers = new Tempers(Coord.z, this);
 			}
-			if (!vs) bdsTempers.hide();
+			if (!vs)
+				bdsTempers.hide();
 		}
 		if (bdsGobble != null) {
 			ui.destroy(bdsGobble);
@@ -116,7 +117,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				bdsGobble.c = bdsTempers.c;
 		}
 	}
-	
+
 	public abstract class Belt {
 		public abstract int draw(GOut g, int by);
 
@@ -127,6 +128,28 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		public abstract boolean item(Coord c);
 
 		public abstract boolean thing(Coord c, Object thing);
+
+		public void keyact(final int slot) {
+			if (map != null) {
+				Coord mvc = map.rootxlate(ui.mc);
+				if (mvc.isect(Coord.z, map.sz)) {
+					map.delay(map.new Hittest(mvc) {
+						protected void hit(Coord pc, Coord mc, Gob gob,
+								Rendered tgt) {
+							if (gob == null)
+								wdgmsg("belt", slot, 1, ui.modflags(), mc);
+							else
+								wdgmsg("belt", slot, 1, ui.modflags(), mc,
+										(int) gob.id, gob.rc);
+						}
+
+						protected void nohit(Coord pc) {
+							wdgmsg("belt", slot, 1, ui.modflags());
+						}
+					});
+				}
+			}
+		}
 	}
 
 	static {
@@ -152,23 +175,25 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			}
 		};
 		new Bufflist(new Coord(95, 50), this);
-		//tm = new Tempers(Coord.z, this);
+		// tm = new Tempers(Coord.z, this);
 		chat = new ChatUI(Coord.z, 0, this);
-		
+
 		bdsOptions = new SWidgetOptions(sz.div(2).sub(150, 150), this);
 		bdsOptions.hide();
-		
+
 		if (HConfig.cl_use_new_tempers) {
 			bdsTempers = new STempers(Coord.z, this);
 		} else {
 			bdsTempers = new Tempers(Coord.z, this);
 		}
-		
-		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),	this);
+
+		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
+				this);
 		bdsChat.setResizable(true);
 		bdsChat.setClosable(false);
-		if (!HConfig.cl_use_new_chat) bdsChat.hide();
-		
+		if (!HConfig.cl_use_new_chat)
+			bdsChat.hide();
+
 		syslog = new ChatUI.Log(chat, "System");
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {
 			StringBuilder buf = new StringBuilder();
@@ -239,7 +264,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			vhand = new ItemDrag(new Coord(15, 15), this, fi);
 		}
 	}
-	
+
 	public void openBackpack() {
 		if (equwnd != null) {
 			Equipory eq = equwnd.findchild(Equipory.class);
@@ -265,7 +290,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			}
 
 			// Minimap
-			SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18), new Coord(250, 250), this, "Minimap"){
+			SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18),
+					new Coord(250, 250), this, "Minimap") {
 				public void wdgmsg(Widget sender, String msg, Object... args) {
 					if (msg.equals("mmap_reset")) {
 						LocalMiniMap mmap = findchild(LocalMiniMap.class);
@@ -275,12 +301,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 						}
 					} else if (msg.equals("mmap_grid")) {
 						HConfig.cl_minimap_show_grid = !HConfig.cl_minimap_show_grid;
-					} else super.wdgmsg(sender, msg, args);
+					} else
+						super.wdgmsg(sender, msg, args);
 				};
-				
+
 				public void resize(Coord sz) {
 					super.resize(sz);
-					
+
 					LocalMiniMap mmap = findchild(LocalMiniMap.class);
 					if (mmap != null) {
 						mmap.resize(windowBox.getContentSize());
@@ -289,10 +316,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			};
 			mmapWindow.setResizable(true);
 			mmapWindow.setClosable(false);
-			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-r"), "mmap_reset");
-			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-g"), "mmap_grid");
-			
-			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow, map);
+			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-r"),
+					"mmap_reset");
+			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-g"),
+					"mmap_grid");
+
+			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow,
+					map);
 
 			mapmenu = new Widget(new Coord(100, 5), new Coord(250, 18), this);
 			new MenuButton(new Coord(0, 0), mapmenu, "cla", -1,
@@ -347,16 +377,19 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 					new Coord(sz.x - Fightview.width, 0), this, cargs);
 			return (fv);
 		} else if (place == "inv") {
-			invwnd = new Hidewnd(new Coord(100, 100), Coord.z, this, "Inventory") {
+			invwnd = new Hidewnd(new Coord(100, 100), Coord.z, this,
+					"Inventory") {
 				@Override
 				public void wdgmsg(Widget wdg, String msg, Object... args) {
 					if (msg.equals("inv_openbp")) {
 						openBackpack();
-					} else super.wdgmsg(wdg, msg, args);
+					} else
+						super.wdgmsg(wdg, msg, args);
 				}
 			};
-			invwnd.createPictButton(Resource.loadimg("apx/gfx/hud/pict-b"), "inv_openbp");
-			
+			invwnd.createPictButton(Resource.loadimg("apx/gfx/hud/pict-b"),
+					"inv_openbp");
+
 			Widget inv = gettype(type).create(Coord.z, invwnd, cargs);
 			invwnd.pack();
 			invwnd.hide();
@@ -563,9 +596,6 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		} else if (msg == "lblk") {
 			int id = (Integer) args[0];
 			lblk = (id < 0) ? null : (ui.sess.getres(id));
-		} else if (msg == "catk") {
-			int id = (Integer) args[0];
-			catk = (id < 0) ? null : (ui.sess.getres(id));
 		} else if (msg == "showhelp") {
 			Indir<Resource> res = ui.sess.getres((Integer) args[0]);
 			if (help == null)
@@ -677,13 +707,16 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public void setShadows(boolean shad) {
 		togglesdw = shad;
 	}
-	
+
 	public void toggleOptions() {
-		if(bdsOptions == null) return;
-		if (bdsOptions.visible) bdsOptions.hide();
-		else bdsOptions.show();
+		if (bdsOptions == null)
+			return;
+		if (bdsOptions.visible)
+			bdsOptions.hide();
+		else
+			bdsOptions.show();
 	}
-	
+
 	private void makemenu() {
 		mainmenu = new Widget(new Coord(135, sz.y - 26), new Coord(386, 26),
 				this);
@@ -749,12 +782,6 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			public void draw(GOut g) {
 				super.draw(g);
 				try {
-					if (catk != null)
-						g.image(catk.get().layer(Resource.imgc).tex(),
-								new Coord(33, 0));
-				} catch (Loading e) {
-				}
-				try {
 					if (lblk != null) {
 						Tex t = lblk.get().layer(Resource.imgc).tex();
 						g.image(t, new Coord(99, 0));
@@ -767,12 +794,6 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 					}
 				} catch (Loading e) {
 				}
-			}
-		};
-		new MenuButton(new Coord(0, 0), menumenu, "atk", 1,
-				"Attack mode (Ctrl+A)") {
-			public void click() {
-				GameUI.this.wdgmsg("atkm");
 			}
 		};
 		new MenuButton(new Coord(66, 0), menumenu, "blk", 19,
@@ -801,16 +822,17 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public boolean globtype(char key, KeyEvent ev) {
 		// Check toolbar hotkeys
 		for (SToolbar tb : bdsToolbars) {
-			if (tb.hotkey(ev)) return true;
+			if (tb.hotkey(ev))
+				return true;
 		}
-		
-		if(ev.getKeyCode() == 79 && ev.isControlDown()) {
-			//CTRL+O
+
+		if (ev.getKeyCode() == 79 && ev.isControlDown()) {
+			// CTRL+O
 			toggleOptions();
 			return true;
 		}
-		if(ev.getKeyCode() == 81 && ev.isControlDown()) {
-			//CTRL+Q
+		if (ev.getKeyCode() == 81 && ev.isControlDown()) {
+			// CTRL+Q
 			openBackpack();
 			return true;
 		}
@@ -878,11 +900,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		if (map != null)
 			map.resize(sz);
 
-//		if (mmap != null)
-//			mmap.parent.c = new Coord(sz.x - 250, 18);
-//
-//		if (mapmenu != null)
-//			mapmenu.c = mmap.c.add(0, -18);
+		// if (mmap != null)
+		// mmap.parent.c = new Coord(sz.x - 250, 18);
+		//
+		// if (mapmenu != null)
+		// mapmenu.c = mmap.c.add(0, -18);
 		if (fv != null)
 			fv.c = new Coord(sz.x - Fightview.width, 0);
 		mainmenu.c = new Coord(135, sz.y - 26);
@@ -964,7 +986,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 						curbelt = i;
 						return (true);
 					} else {
-						wdgmsg("belt", i + (curbelt * 12), 1, ui.modflags());
+						keyact(i + (curbelt * 12));
 						return (true);
 					}
 				}
@@ -1049,10 +1071,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				return (false);
 			int i = Utils.floormod(c - KeyEvent.VK_0 - 1, 10);
 			boolean M = (ev.getModifiersEx() & (KeyEvent.META_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) != 0;
-			if (M)
+			if (M) {
 				curbelt = i;
-			else
-				wdgmsg("belt", i + (curbelt * 12), 1, ui.modflags());
+			} else {
+				keyact(i + (curbelt * 12));
+			}
 			return (true);
 		}
 

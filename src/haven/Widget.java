@@ -264,6 +264,10 @@ public class Widget {
 	public Coord xlate(Coord c, boolean in) {
 		return (c);
 	}
+	
+	public Coord rootxlate(Coord c) {
+		return(c.sub(rootpos()));
+	}
 
 	public Coord rootpos() {
 		if (parent == null)

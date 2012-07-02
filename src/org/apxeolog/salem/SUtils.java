@@ -97,8 +97,29 @@ public class SUtils {
 //			super.draw(g, ul, gob);
 			
 			g.chcolor(Color.BLACK);
+			g.fellipse(ul, minimapIconSize.div(2));
+			g.chcolor();
+			g.image(getTex(), ul.sub(minimapIconSize.div(2)), minimapIconSize);
+		}
+	}
+	
+	public static class DotHighlightInfo extends HighlightInfo {
+		public DotHighlightInfo(String str, String tooltip) {
+			uniq = str;
+			String tex = "apx/gfx/mmap/icon-bear";
+			resIcon = Resource.loadtex(tex);
+			optName = tooltip;
+			loadCFG();
+		}
+		
+		@Override
+		public void draw(GOut g, Coord ul, Gob gob) {
+//			// TODO Auto-generated method stub
+//			super.draw(g, ul, gob);
+			
+			g.chcolor(Color.BLACK);
 			g.fellipse(ul, new Coord(5, 5));
-			g.chcolor(new Color(128, 70, 27));
+			g.chcolor(new Color(150, 75, 0));
 			g.fellipse(ul, new Coord(4 ,4));
 		}
 	}
@@ -139,7 +160,7 @@ public class SUtils {
 		// Add animals
 		mmapHighlightInfoCache.put("bear", new AnimalHighlightInfo("bear", "Bear"));
 		mmapHighlightInfoCache.put("beaver", new AnimalHighlightInfo("beaver", "Beaver"));
-		mmapHighlightInfoCache.put("cricket", new AnimalHighlightInfo("cricket", "Cricket"));
+		mmapHighlightInfoCache.put("cricket", new DotHighlightInfo("cricket", "Cricket"));
 		mmapHighlightInfoCache.put("deer", new AnimalHighlightInfo("deer", "Deer"));
 		// Precache known goods
 		mmapHighlightInfoCache.put("arrowhead", new HighlightInfo("arrowhead"));
