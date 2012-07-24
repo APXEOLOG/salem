@@ -31,7 +31,7 @@ import java.net.URL;
 import javax.jnlp.*;
 
 public class JnlpBrowser extends WebBrowser {
-    BasicService basic;
+	private final BasicService basic;
     
     private JnlpBrowser(BasicService basic) {
 	this.basic = basic;

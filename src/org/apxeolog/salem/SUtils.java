@@ -104,11 +104,22 @@ public class SUtils {
 	}
 	
 	public static class DotHighlightInfo extends HighlightInfo {
+		protected Color hlColor = new Color(150, 75, 0);
+		
 		public DotHighlightInfo(String str, String tooltip) {
 			uniq = str;
 			String tex = "apx/gfx/mmap/icon-bear";
 			resIcon = Resource.loadtex(tex);
 			optName = tooltip;
+			loadCFG();
+		}
+		
+		public DotHighlightInfo(String str, String tooltip, Color clr) {
+			uniq = str;
+			String tex = "apx/gfx/mmap/icon-bear";
+			resIcon = Resource.loadtex(tex);
+			optName = tooltip;
+			hlColor = clr;
 			loadCFG();
 		}
 		
@@ -119,7 +130,7 @@ public class SUtils {
 			
 			g.chcolor(Color.BLACK);
 			g.fellipse(ul, new Coord(5, 5));
-			g.chcolor(new Color(150, 75, 0));
+			g.chcolor(hlColor);
 			g.fellipse(ul, new Coord(4 ,4));
 		}
 	}
@@ -162,6 +173,9 @@ public class SUtils {
 		mmapHighlightInfoCache.put("beaver", new AnimalHighlightInfo("beaver", "Beaver"));
 		mmapHighlightInfoCache.put("cricket", new DotHighlightInfo("cricket", "Cricket"));
 		mmapHighlightInfoCache.put("deer", new AnimalHighlightInfo("deer", "Deer"));
+		
+		mmapHighlightInfoCache.put("rabbit", new DotHighlightInfo("rabbit", "Rabbit", Color.DARK_GRAY));
+		mmapHighlightInfoCache.put("rattler", new DotHighlightInfo("rattler", "Snake", Color.CYAN));
 		// Precache known goods
 		mmapHighlightInfoCache.put("arrowhead", new HighlightInfo("arrowhead"));
 		mmapHighlightInfoCache.put("devilwort", new HighlightInfo("devilwort"));

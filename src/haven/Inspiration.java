@@ -26,29 +26,28 @@
 
 package haven;
 
-import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
-public class Inspiration extends GItem.Tip {
-    public final String[] attrs;
-    public final int[] exp;
-    public final int[] o;
-    
-    public Inspiration(GItem item, String[] attrs, int[] exp) {
-	item.super();
-	this.o = CharWnd.sortattrs(attrs);
-	this.attrs = attrs;
-	this.exp = exp;
-    }
-    
-    public BufferedImage longtip() {
-	StringBuilder buf = new StringBuilder();
-	for(int i = 0; i < attrs.length; i++) {
-	    if(i > 0)
-		buf.append('\n');
-	    buf.append(String.format("%s: %d", CharWnd.attrnm.get(attrs[o[i]]), exp[o[i]]));
+public class Inspiration extends ItemInfo.Tip {
+	public final String[] attrs;
+	public final int[] exp;
+	public final int[] o;
+
+	public Inspiration(Owner owner, String[] attrs, int[] exp) {
+		super(owner);
+		this.o = CharWnd.sortattrs(attrs);
+		this.attrs = attrs;
+		this.exp = exp;
 	}
-	return(Text.std.renderwrap(buf.toString(), 0).img);
-    }
+
+	public BufferedImage longtip() {
+		StringBuilder buf = new StringBuilder();
+		for (int i = 0; i < attrs.length; i++) {
+			if (i > 0)
+				buf.append('\n');
+			buf.append(String.format("%s: %d", CharWnd.attrnm.get(attrs[o[i]]),
+					exp[o[i]]));
+		}
+		return (Text.std.renderwrap(buf.toString(), 0).img);
+	}
 }

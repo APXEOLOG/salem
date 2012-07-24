@@ -56,11 +56,11 @@ public class CharWnd extends SWindow {
 		} catch (NullPointerException ex) {
 		}
 	}
-	
+
 	static class CharWndWindowHeader extends SWindowHeader {
 		protected int meterPercent = -1;
 		protected int futurePercent = 0;
-		
+
 		protected int currentLp = 0;
 		protected int attLvl = 0;
 		protected int willLp = 0;
@@ -70,69 +70,73 @@ public class CharWnd extends SWindow {
 		protected Color meterColor = Color.BLACK;
 		protected Color futureColor = Color.BLACK;
 		protected Object tooltipCache = null;
-		
+
 		public CharWndWindowHeader(Coord c, Coord sz, Widget parent,
 				String caption, boolean min, boolean clo) {
 			super(c, sz, parent, caption, min, clo);
 		}
-		
+
 		private void buy() {
 			parent.wdgmsg("sattr", shortName);
 		}
-		
+
 		public boolean mousedown(Coord c, int btn) {
-			if(btn == 1 && ui.modctrl) {
+			if (btn == 1 && ui.modctrl) {
 				buy();
 				return true;
 			}
-			
+
 			return super.mousedown(c, btn);
 		}
-		
+
 		public void freeTipCache() {
 			tooltipCache = null;
 		}
-		
+
 		public void setShortName(String n) {
 			shortName = n;
 		}
-		
+
 		public void setTipValues(int cl, int al, int wl, String name) {
 			currentLp = cl;
 			attLvl = al;
 			willLp = wl;
 			this.name = name;
-			((SWindow)parent).resize();
+			((SWindow) parent).resize();
 		}
-		
+
 		public Object tooltip(Coord c, boolean again) {
-			if(c.x < 57 || c.x > textSize().x) return null;
-			if(meterPercent < 0) return null;
-			
+			if (c.x < 57 || c.x > textSize().x)
+				return null;
+			if (meterPercent < 0)
+				return null;
+
 			if (tooltipCache == null) {
-				String tiptext = String.format("Watching %s (lvl %d)\nCurrent: %d\nWill got: %d\nNeed: %d\nCompleted: %d%%", 
-						name, attLvl, currentLp, willLp, attLvl*100, meterPercent);
+				String tiptext = String
+						.format("Watching %s (lvl %d)\nCurrent: %d\nWill got: %d\nNeed: %d\nCompleted: %d%%",
+								name, attLvl, currentLp, willLp, attLvl * 100,
+								meterPercent);
 				tooltipCache = RichText.render(tiptext, 0).tex();
 			}
 			return tooltipCache;
 		}
-		
+
 		public void setMeterColor(Color clr) {
 			meterColor = clr;
 		}
-		
+
 		public void setFutureColor(Color col) {
 			futureColor = col;
 		}
-		
+
 		public void setMeterValue(int percent) {
 			meterPercent = percent;
 		}
-		
+
 		public void setFutureValue(int perc) {
 			futurePercent = perc;
 		}
-		
+
 		@Override
 		public void draw(GOut initialGL) {
 			initialGL.chcolor(0, 0, 0, 255);
@@ -140,32 +144,39 @@ public class CharWnd extends SWindow {
 			super.draw(initialGL);
 			if (headerBox.borderWidth != 0) {
 				initialGL.chcolor(255, 255, 255, 255);
-				initialGL.rect(headerBox.getBorderPosition(), textSize().add(1, 1));
+				initialGL.rect(headerBox.getBorderPosition(),
+						textSize().add(1, 1));
 			}
 			if (meterPercent > 0) {
 				initialGL.chcolor(meterColor);
 				double width = textSize().x / 100.;
 				width *= meterPercent;
-				//у меня от этих типов данных ДЕЛЕНИЕ
-				Coord meterSize = new Coord(Math.max((int)width, 3), textSize().y);
-				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(3, 3));
+				// у меня от этих типов данных ДЕЛЕНИЕ
+				Coord meterSize = new Coord(Math.max((int) width, 3),
+						textSize().y);
+				initialGL.frect(headerBox.getBorderPosition().add(1, 1),
+						meterSize.sub(3, 3));
 				initialGL.chcolor();
 			}
-			if(futurePercent > 0) {
-				if(futurePercent > 100) futurePercent = 100;
+			if (futurePercent > 0) {
+				if (futurePercent > 100)
+					futurePercent = 100;
 				initialGL.chcolor(futureColor);
-				double width = textSize().x/100.;
+				double width = textSize().x / 100.;
 				width *= futurePercent;
-				Coord meterSize = new Coord(Math.max((int)width, 3), textSize().y/2);
-				initialGL.frect(headerBox.getBorderPosition().add(1, 1), meterSize.sub(3, 3));
+				Coord meterSize = new Coord(Math.max((int) width, 3),
+						textSize().y / 2);
+				initialGL.frect(headerBox.getBorderPosition().add(1, 1),
+						meterSize.sub(3, 3));
 				initialGL.chcolor();
 			}
 			if (headerText != null) {
-				initialGL.image(headerText.img, headerBox.getContentPosition().add(4, -1));
+				initialGL.image(headerText.img, headerBox.getContentPosition()
+						.add(4, -1));
 			}
 		}
-	}//charwnd header
-	
+	}// charwnd header
+
 	static {
 		Widget.addtype("chr", new WidgetFactory() {
 			public Widget create(Coord c, Widget parent, Object[] args) {
@@ -344,27 +355,23 @@ public class CharWnd extends SWindow {
 					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));
 					g.chcolor();
 				}
-				int astate = sk.afforded();
-				if (astate == 3)
-					g.chcolor(255, 128, 128, 255);
-				else if (astate == 2)
-					g.chcolor(255, 192, 128, 255);
-				else if (astate == 1)
-					g.chcolor(255, 255, 128, 255);
-				try {
-					g.image(sk.res.get().layer(Resource.imgc).tex(), new Coord(
-							0, i * 20), new Coord(20, 20));
-					g.atext(sk.res.get().layer(Resource.action).name,
-							new Coord(25, i * 20 + 10), 0, 0.5);
-				} catch (Loading e) {
-					WItem.missing.loadwait();
-					g.image(WItem.missing.layer(Resource.imgc).tex(),
-							new Coord(0, i * 20), new Coord(20, 20));
-					g.atext("...", new Coord(25, i * 20 + 10), 0, 0.5);
-				}
-				g.chcolor();
+				drawsk(g, sk, new Coord(0, i * 20));
 			}
 			super.draw(g);
+		}
+
+		protected void drawsk(GOut g, Skill sk, Coord c) {
+			try {
+				g.image(sk.res.get().layer(Resource.imgc).tex(), c, new Coord(
+						20, 20));
+				g.atext(sk.res.get().layer(Resource.action).name,
+						c.add(25, 10), 0, 0.5);
+			} catch (Loading e) {
+				WItem.missing.loadwait();
+				g.image(WItem.missing.layer(Resource.imgc).tex(), c, new Coord(
+						20, 20));
+				g.atext("...", c.add(25, 10), 0, 0.5);
+			}
 		}
 
 		public void pop(Collection<Skill> nsk) {
@@ -373,6 +380,7 @@ public class CharWnd extends SWindow {
 			sb.max = skills.length - h;
 			sel = -1;
 			this.skills = skills;
+			loading = true;
 		}
 
 		public boolean mousewheel(Coord c, int amount) {
@@ -418,7 +426,7 @@ public class CharWnd extends SWindow {
 		public boolean finished() {
 			return av;
 		}
-		
+
 		private Attr(String attr, Coord c, Widget parent) {
 			super(c, new Coord(237, 15), parent);
 			this.nm = attr;
@@ -431,9 +439,9 @@ public class CharWnd extends SWindow {
 			this.longname = attrnm.get(attr);
 			this.rnm = Text.render(longname);
 		}
-		
+
 		public void drawAsWatching(boolean b) {
-			if(b)
+			if (b)
 				rnm = Text.render(longname, Color.red);
 			else
 				rnm = Text.render(longname, Color.white);
@@ -460,7 +468,7 @@ public class CharWnd extends SWindow {
 					/ (attr.comp * 100), expsz.y - 2));
 			if (ui.lasttip instanceof WItem.ItemTip) {
 				GItem item = ((WItem.ItemTip) ui.lasttip).item();
-				Inspiration insp = GItem.find(Inspiration.class, item.info());
+				Inspiration insp = ItemInfo.find(Inspiration.class, item.info());
 				if (insp != null) {
 					for (int i = 0; i < insp.attrs.length; i++) {
 						if (insp.attrs[i].equals(nm)) {
@@ -507,8 +515,8 @@ public class CharWnd extends SWindow {
 
 		public boolean mousedown(Coord c, int btn) {
 			if ((btn == 1) && c.isect(expc, expsz)) {
-				if(ui.modctrl) {
-					if(!watchingAttr.equals(nm))
+				if (ui.modctrl) {
+					if (!watchingAttr.equals(nm))
 						watchingAttr = nm;
 					else
 						watchingAttr = "";
@@ -542,9 +550,10 @@ public class CharWnd extends SWindow {
 	public CharWnd(Coord c, Widget parent) {
 		super(c, new Coord(620, 340), parent, "Character");
 		windowHeader.unlink();
-		windowHeader = new CharWndWindowHeader(Coord.z, Coord.z, this, "Character", true, true);
+		windowHeader = new CharWndWindowHeader(Coord.z, Coord.z, this,
+				"Character", true, true);
 		resize();
-		
+
 		new Label(new Coord(0, 0), this, "Proficiencies:");
 		int y = 30;
 		for (String nm : attrorder) {
@@ -562,6 +571,18 @@ public class CharWnd extends SWindow {
 		};
 		new Label(new Coord(250, 170), this, "Available:");
 		this.nsk = new SkillList(new Coord(250, 185), new Coord(170, 120), this) {
+			protected void drawsk(GOut g, Skill sk, Coord c) {
+				int astate = sk.afforded();
+				if (astate == 3)
+					g.chcolor(255, 128, 128, 255);
+				else if (astate == 2)
+					g.chcolor(255, 192, 128, 255);
+				else if (astate == 1)
+					g.chcolor(255, 255, 128, 255);
+				super.drawsk(g, sk, c);
+				g.chcolor();
+			}
+
 			protected void changed(Skill sk) {
 				if (sk != null)
 					csk.unsel();
@@ -577,7 +598,7 @@ public class CharWnd extends SWindow {
 		};
 		this.ski = new SkillInfo(new Coord(430, 30), new Coord(190, 275), this);
 	}
-	
+
 	@Override
 	public void draw(GOut initialGL) {
 		boolean haveWatching = false;
@@ -587,27 +608,36 @@ public class CharWnd extends SWindow {
 				atr.drawAsWatching(true);
 				int maxlp = atr.attr.comp * 100;
 				int currentlp = atr.hexp;
-				double op = maxlp/100.;
-				double meterperc = currentlp/op;
-				((CharWndWindowHeader) windowHeader).setMeterValue((int)meterperc);
-				if(meterperc != 100)
-					((CharWndWindowHeader) windowHeader).setMeterColor(new Color(0, 0, 255, 225));
+				double op = maxlp / 100.;
+				double meterperc = currentlp / op;
+				((CharWndWindowHeader) windowHeader)
+						.setMeterValue((int) meterperc);
+				if (meterperc != 100)
+					((CharWndWindowHeader) windowHeader)
+							.setMeterColor(new Color(0, 0, 255, 225));
 				else
-					((CharWndWindowHeader) windowHeader).setMeterColor(new Color(0, 255, 0, 225));
+					((CharWndWindowHeader) windowHeader)
+							.setMeterColor(new Color(0, 255, 0, 225));
 				if (ui.lasttip instanceof WItem.ItemTip) {
 					GItem item = ((WItem.ItemTip) ui.lasttip).item();
-					Inspiration insp = GItem.find(Inspiration.class, item.info());
+					Inspiration insp = ItemInfo.find(Inspiration.class,
+							item.info());
 					if (insp != null) {
 						for (int i = 0; i < insp.attrs.length; i++) {
 							if (insp.attrs[i].equals(atr.nm)) {
 								int itemExp = insp.exp[i];
 								itemExp += atr.sexp;
-								double futureperc = (itemExp*1.)/op;
-								((CharWndWindowHeader) windowHeader).setFutureValue((int)futureperc);
-								if((int)futureperc > 100)
-									((CharWndWindowHeader) windowHeader).setFutureColor(new Color(255, 255, 0));
+								double futureperc = (itemExp * 1.) / op;
+								((CharWndWindowHeader) windowHeader)
+										.setFutureValue((int) futureperc);
+								if ((int) futureperc > 100)
+									((CharWndWindowHeader) windowHeader)
+											.setFutureColor(new Color(255, 255,
+													0));
 								else
-									((CharWndWindowHeader) windowHeader).setFutureColor(new Color(200, 200, 0));
+									((CharWndWindowHeader) windowHeader)
+											.setFutureColor(new Color(200, 200,
+													0));
 								break;
 							}
 						}
@@ -615,20 +645,42 @@ public class CharWnd extends SWindow {
 				} else {
 					((CharWndWindowHeader) windowHeader).setFutureValue(0);
 				}
-				((CharWndWindowHeader) windowHeader).setTipValues(currentlp, atr.attr.comp, atr.sexp, attrnm.get(atr.nm));
-				windowHeader.setText("Character ("+attrnm.get(atr.nm)+": "+Integer.toString((int)meterperc)+"%)");
+				((CharWndWindowHeader) windowHeader).setTipValues(currentlp,
+						atr.attr.comp, atr.sexp, attrnm.get(atr.nm));
+				windowHeader.setText("Character (" + attrnm.get(atr.nm) + ": "
+						+ Integer.toString((int) meterperc) + "%)");
 				haveWatching = true;
 			} else {
 				atr.drawAsWatching(false);
 			}
 		}
-		if(!haveWatching) {
+		if (!haveWatching) {
 			windowHeader.setText("Character");
 			((CharWndWindowHeader) windowHeader).setMeterValue(-1);
 		}
 		super.draw(initialGL);
 	}
-	
+
+	private void decsklist(Collection<Skill> buf, Object[] args, int a) {
+		while (a < args.length) {
+			String nm = (String) args[a++];
+			Indir<Resource> res = ui.sess.getres((Integer) args[a++]);
+			int n;
+			for (n = 0; !((String) args[a + (n * 2)]).equals(""); n++)
+				;
+			String[] costa = new String[n];
+			int[] costv = new int[n];
+			for (int i = 0; i < n; i++) {
+				costa[i] = (String) args[a + (i * 2)];
+				costv[i] = (Integer) args[a + (i * 2) + 1];
+			}
+			a += (n * 2) + 1;
+			buf.add(new Skill(nm, res, costa, costv));
+		}
+	}
+
+	private Collection<Skill> acccsk, accnsk;
+
 	public void uimsg(String msg, Object... args) {
 		if (msg == "exp") {
 			((CharWndWindowHeader) windowHeader).freeTipCache();
@@ -644,37 +696,37 @@ public class CharWnd extends SWindow {
 				a.av = av;
 			}
 		} else if (msg == "csk") {
-			Collection<Skill> sk = new LinkedList<Skill>();
-			for (int i = 0; i < args.length; i += 2) {
-				String nm = (String) args[i];
-				Indir<Resource> res = ui.sess.getres((Integer) args[i + 1]);
-				sk.add(new Skill(nm, res));
+			/*
+			 * One could argue that rmessages should have some built-in
+			 * fragmentation scheme.
+			 */
+			boolean acc = ((Integer) args[0]) != 0;
+			Collection<Skill> buf;
+			if (acccsk != null) {
+				buf = acccsk;
+				acccsk = null;
+			} else {
+				buf = new LinkedList<Skill>();
 			}
-			csk.pop(sk);
+			decsklist(buf, args, 1);
+			if (acc)
+				acccsk = buf;
+			else
+				csk.pop(buf);
 		} else if (msg == "nsk") {
-			Collection<Skill> sk = new LinkedList<Skill>();
-			int i = 0;
-			while (i < args.length) {
-				String nm = (String) args[i++];
-				Indir<Resource> res = ui.sess.getres((Integer) args[i++]);
-				List<String> costa = new LinkedList<String>();
-				List<Integer> costv = new LinkedList<Integer>();
-				while (true) {
-					String anm = (String) args[i++];
-					if (anm.equals(""))
-						break;
-					Integer val = (Integer) args[i++];
-					costa.add(anm);
-					costv.add(val);
-				}
-				String[] costa2 = costa.toArray(new String[0]);
-				int[] costv2 = new int[costa2.length];
-				int o = 0;
-				for (Integer v : costv)
-					costv2[o++] = v;
-				sk.add(new Skill(nm, res, costa2, costv2));
+			boolean acc = ((Integer) args[0]) != 0;
+			Collection<Skill> buf;
+			if (accnsk != null) {
+				buf = accnsk;
+				accnsk = null;
+			} else {
+				buf = new LinkedList<Skill>();
 			}
-			nsk.pop(sk);
+			decsklist(buf, args, 1);
+			if (acc)
+				accnsk = buf;
+			else
+				nsk.pop(buf);
 		}
 	}
 }

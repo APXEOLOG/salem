@@ -168,10 +168,18 @@ public class Resource implements Comparable<Resource>, Prioritized,
 						res = null;
 						cache.remove(name);
 					} else if (res.ver > ver) {
-						throw (new RuntimeException(
+						/*
+						 * Throw LoadException rather than RuntimeException
+						 * here, to make sure obsolete resources doing nested
+						 * loading get properly handled. This could be the wrong
+						 * way of going about it, however; I'm not sure.
+						 */
+						throw (new LoadException(
 								String.format(
 										"Weird version number on %s (%d > %d), loaded from %s",
-										res.name, res.ver, ver, res.source)));
+										res.name, res.ver, ver, res.source),
+								res));
+
 					}
 				} else if (ver == -1) {
 					if (res.error != null) {
@@ -529,8 +537,9 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		name = name.replace("/", ".");
 		// new File(name.substring(0, name.lastIndexOf("/"))).mkdirs();
 		File fdir = new File("imgdump");
-		if (!fdir.exists()) fdir.mkdir();
-		
+		if (!fdir.exists())
+			fdir.mkdir();
+
 		File ftw = new File(fdir, name);
 		try {
 			if (!ftw.exists())
@@ -563,7 +572,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			try {
 				img = ImageIO.read(new ByteArrayInputStream(buf, 11,
 						buf.length - 11));
-				//dumpPNG(Resource.this.name + ".png", img);
+				// dumpPNG(Resource.this.name + ".png", img);
 			} catch (IOException e) {
 				throw (new LoadException(e, Resource.this));
 			}

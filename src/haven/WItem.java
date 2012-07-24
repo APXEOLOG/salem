@@ -26,8 +26,7 @@
 
 package haven;
 
-import static haven.GItem.find;
-import haven.GItem.Info;
+import static haven.ItemInfo.find;
 
 import java.awt.Color;
 import java.awt.font.TextAttribute;
@@ -69,28 +68,28 @@ public class WItem extends Widget implements DTarget {
 		g.image(tex, Coord.z);
 	}
 
-	public static BufferedImage rendershort(List<Info> info) {
-		GItem.Name nm = find(GItem.Name.class, info);
+	public static BufferedImage rendershort(List<ItemInfo> info) {
+		ItemInfo.Name nm = find(ItemInfo.Name.class, info);
 		if (nm == null)
 			return (null);
 		BufferedImage img = nm.str.img;
 		Alchemy ch = find(Alchemy.class, info);
 		if (ch != null) {
-			img = GItem.catimgsh(5, img, ch.smallmeter());
-			img = GItem.catimgs(5, img, ttfnd.render(String.format(
+			img = ItemInfo.catimgsh(5, img, ch.smallmeter());
+			img = ItemInfo.catimgs(5, img, ttfnd.render(String.format(
 					"Purity: $col[255,255,0]{%2.1f}  Multiplier: $col[255,255,0]{%2.1f}",
 					ch.getPurity(), ch.getMultiplier())).img);
 		}
 		return (img);
 	}
 
-	public static BufferedImage shorttip(List<Info> info) {
+	public static BufferedImage shorttip(List<ItemInfo> info) {
 		BufferedImage img = rendershort(info);
-		GItem.Contents cont = find(GItem.Contents.class, info);
+		ItemInfo.Contents cont = find(ItemInfo.Contents.class, info);
 		if (cont != null) {
 			BufferedImage rc = rendershort(cont.sub);
 			if ((img != null) && (rc != null))
-				img = GItem.catimgs(0, img, rc);
+				img = ItemInfo.catimgs(0, img, rc);
 			else if ((img == null) && (rc != null))
 				img = rc;
 		}
@@ -100,7 +99,7 @@ public class WItem extends Widget implements DTarget {
 	}
 	
 	protected int getPurity() {
-		List<Info> info = item.info();
+		List<ItemInfo> info = item.info();
 		Alchemy ch = find(Alchemy.class, info);
 		if (ch != null) {
 			return (int)(ch.getPurity());
@@ -109,7 +108,7 @@ public class WItem extends Widget implements DTarget {
 	}
 	
 	protected int getDominantElement() {
-		List<Info> info = item.info();
+		List<ItemInfo> info = item.info();
 		Alchemy ch = find(Alchemy.class, info);
 		if (ch != null) {
 			return (int)(ch.getDominantElement());
@@ -117,22 +116,22 @@ public class WItem extends Widget implements DTarget {
 		return 0;
 	}
 
-	public static BufferedImage longtip(GItem item, List<Info> info) {
-		BufferedImage img = GItem.longtip(info);
+	public static BufferedImage longtip(GItem item, List<ItemInfo> info) {
+		BufferedImage img = ItemInfo.longtip(info);
 		Alchemy ch = find(Alchemy.class, info);
 		if (ch != null) {
-			img = GItem.catimgs(5, img, ttfnd.render(String.format(
+			img = ItemInfo.catimgs(5, img, ttfnd.render(String.format(
 					"Purity: $col[255,255,0]{%2.1f}  Multiplier: $col[255,255,0]{%2.1f}",
 					ch.getPurity(), ch.getMultiplier())).img);
 		}
 		Resource.Pagina pg = item.res.get().layer(Resource.pagina);
 		if (pg != null)
-			img = GItem.catimgs(0, img,
+			img = ItemInfo.catimgs(0, img,
 					RichText.render("\n" + pg.text, 200).img);
 		return (img);
 	}
 
-	public BufferedImage longtip(List<Info> info) {
+	public BufferedImage longtip(List<ItemInfo> info) {
 		return (longtip(item, info));
 	}
 
@@ -159,27 +158,27 @@ public class WItem extends Widget implements DTarget {
 	}
 
 	public class ShortTip extends ItemTip {
-		public ShortTip(List<Info> info) {
+		public ShortTip(List<ItemInfo> info) {
 			super(shorttip(info));
 		}
 	}
 
 	public class LongTip extends ItemTip {
-		public LongTip(List<Info> info) {
+		public LongTip(List<ItemInfo> info) {
 			super(longtip(info));
 		}
 	}
 
 	private long hoverstart;
 	private ItemTip shorttip = null, longtip = null;
-	private List<Info> ttinfo = null;
+	private List<ItemInfo> ttinfo = null;
 
 	public Object tooltip(Coord c, boolean again) {
 		long now = System.currentTimeMillis();
 		if (!again)
 			hoverstart = now;
 		try {
-			List<Info> info = item.info();
+			List<ItemInfo> info = item.info();
 			if (info != ttinfo) {
 				shorttip = longtip = null;
 				ttinfo = info;
@@ -198,12 +197,12 @@ public class WItem extends Widget implements DTarget {
 		}
 	}
 
-	private List<Info> olinfo = null;
+	private List<ItemInfo> olinfo = null;
 	private Color olcol = null;
 
 	private Color olcol() {
 		try {
-			List<Info> info = item.info();
+			List<ItemInfo> info = item.info();
 			if (info != olinfo) {
 				olcol = null;
 				GItem.ColorInfo cinf = find(GItem.ColorInfo.class, info);
@@ -217,12 +216,12 @@ public class WItem extends Widget implements DTarget {
 		return (olcol);
 	}
 
-	private List<Info> numinfo = null;
+	private List<ItemInfo> numinfo = null;
 	private Tex itemnum = null;
 
 	private Tex itemnum() {
 		try {
-			List<Info> info = item.info();
+			List<ItemInfo> info = item.info();
 			if (info != numinfo) {
 				itemnum = null;
 				GItem.NumberInfo ninf = find(GItem.NumberInfo.class, info);

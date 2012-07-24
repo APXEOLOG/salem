@@ -50,7 +50,7 @@
 			<fileset dir="bin" />
 			<manifest>
 				<attribute name="Main-Class" value="haven.MainFrame" />
-				<attribute name="Class-Path" value="jogl.jar gluegen-rt.jar salem-res.jar" />
+				<attribute name="Class-Path" value="jogl.jar gluegen-rt.jar salem-res.jar builtin-res.jar" />
 			</manifest>
 		</jar>
 		<chmod file="release/bdsalem.jar" perm="a+x" />

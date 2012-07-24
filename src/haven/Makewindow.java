@@ -31,133 +31,139 @@ import java.awt.Font;
 import java.awt.Color;
 
 public class Makewindow extends Widget {
-    Widget obtn, cbtn;
-    List<Spec> inputs = Collections.emptyList();
-    List<Spec> outputs = Collections.emptyList();
-    static Coord boff = new Coord(7, 9);
-    final int xoff = 40, yoff = 55;
-    public static final Text.Foundry nmf = new Text.Foundry(new Font("Serif", Font.PLAIN, 20));
+	Widget obtn, cbtn;
+	List<Spec> inputs = Collections.emptyList();
+	List<Spec> outputs = Collections.emptyList();
+	static Coord boff = new Coord(7, 9);
+	final int xoff = 40, yoff = 55;
+	public static final Text.Foundry nmf = new Text.Foundry(new Font("Serif",
+			Font.PLAIN, 20));
 
-    static {
-	Widget.addtype("make", new WidgetFactory() {
-		public Widget create(Coord c, Widget parent, Object[] args) {
-		    return(new Makewindow(c, parent, (String)args[0]));
+	static {
+		Widget.addtype("make", new WidgetFactory() {
+			public Widget create(Coord c, Widget parent, Object[] args) {
+				return (new Makewindow(c, parent, (String) args[0]));
+			}
+		});
+	}
+
+	public static class Spec {
+		public Indir<Resource> res;
+		public Tex num;
+
+		public Spec(Indir<Resource> res, int num) {
+			this.res = res;
+			if (num >= 0)
+				this.num = new TexI(Utils.outline2(
+						Text.render(Integer.toString(num), Color.WHITE).img,
+						Utils.contrast(Color.WHITE)));
+			else
+				this.num = null;
 		}
-	    });
-    }
-    
-    public static class Spec {
-	public Indir<Resource> res;
-	public Tex num;
-	
-	public Spec(Indir<Resource> res, int num) {
-	    this.res = res;
-	    if(num >= 0)
-		this.num = new TexI(Utils.outline2(Text.render(Integer.toString(num), Color.WHITE).img, Utils.contrast(Color.WHITE)));
-	    else
-		this.num = null;
 	}
-    }
-	
-    public Makewindow(Coord c, Widget parent, String rcpnm) {
-	super(c, Coord.z, parent);
-	Label nm = new Label(new Coord(0, 0), this, rcpnm, nmf);
-	nm.c = new Coord(sz.x - nm.sz.x, 0);
-	new Label(new Coord(0, 8), this, "Input:");
-	new Label(new Coord(0, 63), this, "Result:");
-	obtn = new Button(new Coord(290, 71), 60, this, "Craft");
-	cbtn = new Button(new Coord(360, 71), 60, this, "Craft All");
-	pack();
-    }
-	
-    public void uimsg(String msg, Object... args) {
-	if(msg == "inpop") {
-	    List<Spec> inputs = new LinkedList<Spec>();
-	    for(int i = 0; i < args.length; i += 2)
-		inputs.add(new Spec(ui.sess.getres((Integer)args[i]), (Integer)args[i + 1]));
-	    this.inputs = inputs;
-	} else if(msg == "opop") {
-	    List<Spec> outputs = new LinkedList<Spec>();
-	    for(int i = 0; i < args.length; i += 2)
-		outputs.add(new Spec(ui.sess.getres((Integer)args[i]), (Integer)args[i + 1]));
-	    this.outputs = outputs;
-	}
-    }
-	
-    public void draw(GOut g) {
-	Coord c = new Coord(xoff, 0);
-	for(Spec s : inputs) {
-	    Inventory.invsq(g, c);
-	    try {
-		Resource res = s.res.get();
-		g.image(res.layer(Resource.imgc).tex(), c.add(1, 1));
-	    } catch(Loading e) {
-	    }
-	    if(s.num != null)
-		g.aimage(s.num, c.add(33, 34), 1.0, 1.0);
-	    c = c.add(Inventory.sqsz.x, 0);
-	}
-	c = new Coord(xoff, yoff);
-	for(Spec s : outputs) {
-	    Inventory.invsq(g, c);
-	    try {
-		Resource res = s.res.get();
-		g.image(res.layer(Resource.imgc).tex(), c.add(1, 1));
-	    } catch(Loading e) {
-	    }
-	    if(s.num != null)
-		g.aimage(s.num, c.add(33, 34), 1.0, 1.0);
-	    c = c.add(Inventory.sqsz.x, 0);
-	}
-	super.draw(g);
-    }
-    
-    public Object tooltip(Coord mc, boolean again) {
-	Coord c = new Coord(xoff, 0);
-	for(Spec s : inputs) {
-	    if(mc.isect(c, Inventory.invsq.sz()))
-		return(s.res.get().layer(Resource.tooltip).t);
-	    c = c.add(31, 0);
-	}
-	c = new Coord(xoff, yoff);
-	for(Spec s : outputs) {
-	    if(mc.isect(c, Inventory.invsq.sz()))
-		return(s.res.get().layer(Resource.tooltip).t);
-	    c = c.add(31, 0);
-	}
-	return(null);
-    }
 
-    public void wdgmsg(Widget sender, String msg, Object... args) {
-	if(sender == obtn) {
-	    if(msg == "activate")
-		wdgmsg("make", 0);
-	    return;
+	public Makewindow(Coord c, Widget parent, String rcpnm) {
+		super(c, Coord.z, parent);
+		Label nm = new Label(new Coord(0, 0), this, rcpnm, nmf);
+		nm.c = new Coord(sz.x - nm.sz.x, 0);
+		new Label(new Coord(0, 8), this, "Input:");
+		new Label(new Coord(0, 63), this, "Result:");
+		obtn = new Button(new Coord(290, 71), 60, this, "Craft");
+		cbtn = new Button(new Coord(360, 71), 60, this, "Craft All");
+		pack();
 	}
-	if(sender == cbtn) {
-	    if(msg == "activate")
-		wdgmsg("make", 1);
-	    return;
+
+	public void uimsg(String msg, Object... args) {
+		if (msg == "inpop") {
+			List<Spec> inputs = new LinkedList<Spec>();
+			for (int i = 0; i < args.length; i += 2)
+				inputs.add(new Spec(ui.sess.getres((Integer) args[i]),
+						(Integer) args[i + 1]));
+			this.inputs = inputs;
+		} else if (msg == "opop") {
+			List<Spec> outputs = new LinkedList<Spec>();
+			for (int i = 0; i < args.length; i += 2)
+				outputs.add(new Spec(ui.sess.getres((Integer) args[i]),
+						(Integer) args[i + 1]));
+			this.outputs = outputs;
+		}
 	}
-	super.wdgmsg(sender, msg, args);
-    }
-    
-    public boolean globtype(char ch, java.awt.event.KeyEvent ev) {
-	if(ch == '\n') {
-	    wdgmsg("make", ui.modctrl?1:0);
-	    return(true);
+
+	public void draw(GOut g) {
+		Coord c = new Coord(xoff, 0);
+		for (Spec s : inputs) {
+			Inventory.invsq(g, c);
+			try {
+				Resource res = s.res.get();
+				g.image(res.layer(Resource.imgc).tex(), c.add(1, 1));
+			} catch (Loading e) {
+			}
+			if (s.num != null)
+				g.aimage(s.num, c.add(33, 34), 1.0, 1.0);
+			c = c.add(Inventory.sqsz.x, 0);
+		}
+		c = new Coord(xoff, yoff);
+		for (Spec s : outputs) {
+			Inventory.invsq(g, c);
+			try {
+				Resource res = s.res.get();
+				g.image(res.layer(Resource.imgc).tex(), c.add(1, 1));
+			} catch (Loading e) {
+			}
+			if (s.num != null)
+				g.aimage(s.num, c.add(33, 34), 1.0, 1.0);
+			c = c.add(Inventory.sqsz.x, 0);
+		}
+		super.draw(g);
 	}
-	return(super.globtype(ch, ev));
-    }
-    
-    public static class MakePrep extends GItem.Info implements GItem.ColorInfo {
-	private final static Color olcol = new Color(0, 255, 0, 64);
-	public MakePrep(GItem item) {
-	    item.super();
+
+	public Object tooltip(Coord mc, boolean again) {
+		Coord c = new Coord(xoff, 0);
+		for (Spec s : inputs) {
+			if (mc.isect(c, Inventory.invsq.sz()))
+				return (s.res.get().layer(Resource.tooltip).t);
+			c = c.add(31, 0);
+		}
+		c = new Coord(xoff, yoff);
+		for (Spec s : outputs) {
+			if (mc.isect(c, Inventory.invsq.sz()))
+				return (s.res.get().layer(Resource.tooltip).t);
+			c = c.add(31, 0);
+		}
+		return (null);
 	}
-	
-	public Color olcol() {
-	    return(olcol);
+
+	public void wdgmsg(Widget sender, String msg, Object... args) {
+		if (sender == obtn) {
+			if (msg == "activate")
+				wdgmsg("make", 0);
+			return;
+		}
+		if (sender == cbtn) {
+			if (msg == "activate")
+				wdgmsg("make", 1);
+			return;
+		}
+		super.wdgmsg(sender, msg, args);
 	}
-    }
+
+	public boolean globtype(char ch, java.awt.event.KeyEvent ev) {
+		if (ch == '\n') {
+			wdgmsg("make", ui.modctrl ? 1 : 0);
+			return (true);
+		}
+		return (super.globtype(ch, ev));
+	}
+
+	public static class MakePrep extends ItemInfo implements GItem.ColorInfo {
+		private final static Color olcol = new Color(0, 255, 0, 64);
+
+		public MakePrep(Owner owner) {
+			super(owner);
+		}
+
+		public Color olcol() {
+			return (olcol);
+		}
+	}
 }

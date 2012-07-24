@@ -17,6 +17,7 @@
     <java version="1.6+" max-heap-size="512M" />
     <j2se version="1.6+" max-heap-size="512M" />
     <jar href="bdsalem.jar" />
+	<jar href="http://plymouth.seatribe.se/java/builtin-res.jar" />
     <property name="haven.errorurl" value="http://plymouth.seatribe.se/java/error" />
     <property name="haven.defserv" value="plymouth.seatribe.se" />
     <property name="haven.resurl" value="http://plymouth.seatribe.se/res/" />

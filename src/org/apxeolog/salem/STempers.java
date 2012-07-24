@@ -5,6 +5,7 @@ import haven.FoodInfo;
 import haven.GItem;
 import haven.GOut;
 import haven.GameUI;
+import haven.ItemInfo;
 import haven.RichText;
 import haven.Text;
 import haven.Utils;
@@ -77,7 +78,7 @@ public class STempers extends ITempers {
 		FoodInfo food = null;
 		if (ui.lasttip instanceof WItem.ItemTip) {
 			GItem item = ((WItem.ItemTip) ui.lasttip).item();
-			food = GItem.find(FoodInfo.class, item.info());
+			food = ItemInfo.find(FoodInfo.class, item.info());
 		}
 		
 		Coord rectSize = new Coord(sz.x - 6, 15);

@@ -26,21 +26,21 @@
 
 package haven;
 
-import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
-public class FoodInfo extends GItem.Tip {
-    public final int[] tempers;
-    
-    public FoodInfo(GItem item, int[] tempers) {
-	item.super();
-	this.tempers = tempers;
-    }
-    
-    public BufferedImage longtip() {
-	return(Text.std.renderf("Heals: %s, %s, %s, %s", 
-				Utils.fpformat(tempers[0], 3, 1), Utils.fpformat(tempers[1], 3, 1),
-				Utils.fpformat(tempers[2], 3, 1), Utils.fpformat(tempers[3], 3, 1)).img);
-    }
+public class FoodInfo extends ItemInfo.Tip {
+	public final int[] tempers;
+
+	public FoodInfo(Owner owner, int[] tempers) {
+		super(owner);
+		this.tempers = tempers;
+	}
+
+	public BufferedImage longtip() {
+		return (Text.std.renderf("Heals: %s, %s, %s, %s",
+				Utils.fpformat(tempers[0], 3, 1),
+				Utils.fpformat(tempers[1], 3, 1),
+				Utils.fpformat(tempers[2], 3, 1),
+				Utils.fpformat(tempers[3], 3, 1)).img);
+	}
 }

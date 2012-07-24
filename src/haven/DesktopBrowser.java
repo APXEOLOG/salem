@@ -26,37 +26,31 @@
 
 package haven;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
+import java.awt.Desktop;
+import java.net.*;
 
-public class GobbleInfo extends ItemInfo.Tip {
-	private static final String[] colors;
-	static {
-		String[] c = new String[Alchemy.colors.length];
-		for (int i = 0; i < c.length; i++) {
-			Color col = Alchemy.colors[i];
-			c[i] = String.format("%d,%d,%d", col.getRed(), col.getGreen(),
-					col.getBlue());
-		}
-		colors = c;
-	};
-	public final int[][] evs;
-
-	public GobbleInfo(Owner owner, int[][] evs) {
-		super(owner);
-		this.evs = evs;
+public class DesktopBrowser extends WebBrowser {
+    private final Desktop desktop;
+    
+    private DesktopBrowser(Desktop desktop) {
+	this.desktop = desktop;
+    }
+    
+    public static DesktopBrowser create() {
+	try {
+	    Class.forName("java.awt.Desktop");
+	    if(!Desktop.isDesktopSupported())
+		return(null);
+	    return(new DesktopBrowser(Desktop.getDesktop()));
+	} catch(Exception e) {
+	    return(null);
 	}
-
-	public BufferedImage longtip() {
-		StringBuilder buf = new StringBuilder();
-		buf.append("Events:\n");
-		for (int i = 0; i < 4; i++) {
-			buf.append(String.format("  $col[%s]{%s, %s, %s, %s}\n", colors[i],
-					Utils.fpformat(evs[i][0], 3, 1),
-					Utils.fpformat(evs[i][1], 3, 1),
-					Utils.fpformat(evs[i][2], 3, 1),
-					Utils.fpformat(evs[i][3], 3, 1)));
-		}
-		return (RichText.render(buf.toString(), 0).img);
+    }
+    
+    public void show(URL url) {
+	try {
+	    desktop.browse(url.toURI());
+	} catch(Exception e) {
 	}
+    }
 }
