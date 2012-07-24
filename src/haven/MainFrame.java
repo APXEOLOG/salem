@@ -201,7 +201,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 	}
 
 	public MainFrame(Coord isz) {
-		super("BD SaleM 3.0");
+		super("BD SaleM 3.1");
 		Coord sz;
 		if (isz == null) {
 			sz = Utils.getprefc("wndsz", new Coord(800, 600));

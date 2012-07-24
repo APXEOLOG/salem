@@ -117,8 +117,7 @@ public class MapMesh implements Rendered {
 		}
 	}
 
-	private static void splitquad(MeshBuf buf, MeshBuf.Vertex v1,
-			MeshBuf.Vertex v2, MeshBuf.Vertex v3, MeshBuf.Vertex v4) {
+	private static void splitquad(MeshBuf buf, MeshBuf.Vertex v1, MeshBuf.Vertex v2, MeshBuf.Vertex v3, MeshBuf.Vertex v4) {
 		if (Math.abs(v1.pos.z - v3.pos.z) > Math.abs(v2.pos.z - v4.pos.z)) {
 			buf.new Face(v1, v2, v3);
 			buf.new Face(v1, v3, v4);

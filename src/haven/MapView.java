@@ -327,6 +327,8 @@ public class MapView extends PView implements DTarget {
 			mats[3] = new Material(new Color(128, 0, 255, 32));
 			mats[16] = new Material(new Color(0, 255, 0, 32));
 			mats[17] = new Material(new Color(255, 255, 0, 32));
+			
+			//mats[31] = new Material(new Color(128, 128, 128, 32));
 		}
 
 		public void draw(GOut g) {
