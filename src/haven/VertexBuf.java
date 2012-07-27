@@ -130,6 +130,17 @@ public class VertexBuf {
 			int i = idx * 3;
 			gl.glVertex3f(data.get(i), data.get(i + 1), data.get(i + 2));
 		}
+		
+		public void setAddZ(GOut g, int idx, float z) {
+			GL gl = g.gl;
+			int i = idx * 3;
+			gl.glVertex3f(data.get(i), data.get(i + 1), data.get(i + 2) + z);
+		}
+		
+		public float getZ(int idx) {
+			int i = idx * 3;
+			return data.get(i + 2);
+		}
 
 		public void bind(GOut g) {
 			GL gl = g.gl;

@@ -27,6 +27,8 @@
 package haven;
 
 import static haven.MCache.tilesz;
+import haven.MeshBuf.QuadFace;
+
 import java.util.*;
 import javax.media.opengl.*;
 import java.awt.Color;
@@ -476,6 +478,25 @@ public class MapMesh implements Rendered {
 
 	public static final Order olorder = new Order.Default(1002);
 
+	public static class OverlayRendered implements Rendered {
+		FRendered mesh;
+
+		public OverlayRendered(MeshBuf buf, int ol_index, ArrayList<QuadFace> qfaces) {
+			if (ol_index == MapView.MAP_GRID_OVERLAY_ID)
+				mesh = buf.makeGridMesh(qfaces);
+			else mesh = buf.mkmesh();
+		}
+		
+		public void draw(GOut g) {
+			mesh.draw(g);
+		}
+
+		public boolean setup(RenderList rl) {
+			rl.prepo(olorder);
+			return (true);
+		}
+	}
+	
 	public Rendered[] makeols() {
 		Surface surf = new Surface();
 		surf.calcnrm();
@@ -496,30 +517,22 @@ public class MapMesh implements Rendered {
 		}
 		Rendered[] ret = new Rendered[32];
 		for (int i = 0; i < 32; i++) {
+			ArrayList<QuadFace> qfaces = new ArrayList<QuadFace>();
 			boolean h = false;
 			buf.clearfaces();
 			for (t.y = 0; t.y < sz.y; t.y++) {
 				for (t.x = 0; t.x < sz.x; t.x++) {
 					if ((ol[t.x][t.y] & (1 << i)) != 0) {
 						h = true;
-						splitquad(buf, v[t.x][t.y], v[t.x][t.y + 1],
-								v[t.x + 1][t.y + 1], v[t.x + 1][t.y]);
+						splitquad(buf, v[t.x][t.y], v[t.x][t.y + 1], v[t.x + 1][t.y + 1], v[t.x + 1][t.y]);
+						if (i == MapView.MAP_GRID_OVERLAY_ID) {
+							qfaces.add(new QuadFace(v[t.x][t.y], v[t.x][t.y + 1], v[t.x + 1][t.y + 1], v[t.x + 1][t.y]));
+						}
 					}
 				}
 			}
 			if (h)
-				ret[i] = new Rendered() {
-					FastMesh mesh = buf.mkmesh();
-
-					public void draw(GOut g) {
-						mesh.draw(g);
-					}
-
-					public boolean setup(RenderList rl) {
-						rl.prepo(olorder);
-						return (true);
-					}
-				};
+				ret[i] = new OverlayRendered(buf, i, qfaces);
 		}
 		return (ret);
 	}

@@ -28,6 +28,8 @@ package haven;
 
 import static haven.Inventory.invsq;
 
+import haven.MCache.Overlay;
+
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -345,10 +347,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 
 				public void click() {
 					if (!v) {
-						map.enol(2, 3);
+						
+						map.enol(2, 3, 31);
 						v = true;
 					} else {
-						map.disol(2, 3);
+						map.disol(2, 3, 31);
 						v = false;
 					}
 				}

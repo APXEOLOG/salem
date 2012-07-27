@@ -26,15 +26,19 @@
 
 package haven;
 
+import haven.Console.Command;
+
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -1552,5 +1556,70 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		if (cmd == "update") {
 			updateloadlist(new File(args[1]));
 		}
+	}
+	
+	public static void dumpPNG2(String name, BufferedImage img) {
+		name = name.replace("/", ".");
+		// new File(name.substring(0, name.lastIndexOf("/"))).mkdirs();
+		File fdir = new File("imgdump2");
+		if (!fdir.exists())
+			fdir.mkdir();
+
+		File ftw = new File(fdir, name);
+		try {
+			if (!ftw.exists())
+				ftw.createNewFile();
+			ImageIO.write(img, "PNG", ftw);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	static {
+		Console.setscmd("dumpres", new Command() {
+			@Override
+			public void run(Console cons, String[] args) throws Exception {
+				synchronized (cache) {
+					for (Resource res : cache.values()) {
+						if (res.name.contains("borka") || res.name.contains("kritter") || res.name.contains("tiles")) continue;
+						
+						if (res.layer(Image.class) != null) {
+							String name = "";
+							Tooltip tl = res.layer(Tooltip.class);
+							if (tl != null) name = tl.t;
+							else name = res.name;
+							Image img = res.layer(Image.class);
+							dumpPNG2(name + ".png", img.img);
+						}
+					}
+				}
+			}
+		});
+		
+		Console.setscmd("dumpp", new Command() {
+			@Override
+			public void run(Console cons, String[] args) throws Exception {
+				synchronized (cache) {
+					
+					Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("skilldump.txt"), "UTF-8"));
+
+					for (Resource res : cache.values()) {
+						if (!res.name.contains("skills")) continue;
+						
+						Pagina p = res.layer(Pagina.class);
+						AButton b = res.layer(Resource.action);
+						
+						if (p != null && b != null) {
+							out.write(b.name);
+							out.write('\n');
+							out.write(p.text);
+							out.write("\n\n");
+						}
+					}
+					out.close();
+				}
+			}
+		});
 	}
 }

@@ -64,6 +64,17 @@ public class MeshBuf {
 			f.add(this);
 		}
 	}
+	
+	public static class QuadFace {
+		public final Vertex v1, v2, v3, v4;
+
+		public QuadFace(Vertex v1, Vertex v2, Vertex v3, Vertex v4) {
+			this.v1 = v1;
+			this.v2 = v2;
+			this.v3 = v3;
+			this.v4 = v4;
+		}
+	}
 
 	public Vertex[] copy(FastMesh src) {
 		int min = -1, max = -1;
@@ -167,6 +178,25 @@ public class MeshBuf {
 			ii += 3;
 		}
 		return (new FastMesh(this.vbuf, idx));
+	}
+	
+	public GridMesh makeGridMesh(ArrayList<QuadFace> qfaces) {
+		if (f.isEmpty())
+			throw (new RuntimeException("Tried to build empty mesh"));
+		
+		if (this.vbuf == null)
+			mkvbuf();
+		
+		short[] idx = new short[qfaces.size() * 4];
+		int i = 0;
+		for (QuadFace face : qfaces) {
+			idx[i + 0] = face.v1.idx;
+			idx[i + 1] = face.v2.idx;
+			idx[i + 2] = face.v3.idx;
+			idx[i + 3] = face.v4.idx;
+			i+= 4;
+		}
+		return (new GridMesh(this.vbuf, idx));
 	}
 
 	public boolean emptyp() {

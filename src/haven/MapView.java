@@ -29,10 +29,17 @@ package haven;
 import static haven.MCache.cmaps;
 import static haven.MCache.tilesz;
 import haven.MCache.Grid;
+import haven.MCache.Overlay;
 import haven.Resource.Tile;
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.*;
+
+import javax.imageio.ImageIO;
 import javax.media.opengl.*;
 
 import org.apxeolog.salem.ALS;
@@ -316,7 +323,22 @@ public class MapView extends PView implements DTarget {
 			return (false);
 		}
 	};
-
+	
+	public static Material gridCellTexture;
+	public static int MAP_GRID_OVERLAY_ID = 31;
+	public Overlay gridOverlay;
+	static {
+		// Create grid tex
+		BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = img.createGraphics();
+		g2d.setColor(new Color(0, 0, 0, 0));
+		g2d.fillRect(0, 0, 32, 32);
+		g2d.setColor(Color.GRAY);
+		g2d.drawRect(0, 0, 32, 32);
+		TexI tex = new TexI(img);
+		gridCellTexture = new Material(tex);
+	}
+	
 	private final Rendered mapol = new Rendered() {
 		private final GLState[] mats;
 		{
@@ -328,13 +350,24 @@ public class MapView extends PView implements DTarget {
 			mats[16] = new Material(new Color(0, 255, 0, 32));
 			mats[17] = new Material(new Color(255, 255, 0, 32));
 			
-			//mats[31] = new Material(new Color(128, 128, 128, 32));
+			mats[MAP_GRID_OVERLAY_ID] = new Material(new Color(128, 128, 128, 192));//new Material(gridCellTexture);
 		}
 
 		public void draw(GOut g) {
 		}
 
 		public boolean setup(RenderList rl) {
+			if (visol[MAP_GRID_OVERLAY_ID] > 0) {
+				if (gridOverlay == null) {
+					Coord pc = new Coord(getcc()).div(MCache.tilesz);
+					gridOverlay = glob.map.new Overlay(pc.sub(MCache.cutsz), pc.add(MCache.cutsz), 1 << MAP_GRID_OVERLAY_ID);
+				}
+			} else {
+				if (gridOverlay != null) {
+					gridOverlay.destroy();
+					gridOverlay = null;
+				}
+			}
 			Coord cc = MapView.this.cc.div(tilesz).div(MCache.cutsz);
 			Coord o = new Coord();
 			for (o.y = -view; o.y <= view; o.y++) {

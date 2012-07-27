@@ -43,11 +43,11 @@ public class WItem extends Widget implements DTarget {
 	private Resource cmask = null;
 
 	public static class ItemQualityComparator implements Comparator<WItem> {
-		int desc = -1;
+		int desc = -100;
 
 		@Override
 		public int compare(WItem itema, WItem itemb) {
-			return desc * (itema.getPurity() - itemb.getPurity());
+			return (int) (desc * (itema.getPurity() - itemb.getPurity()));
 		}
 
 		public ItemQualityComparator() {
@@ -98,7 +98,7 @@ public class WItem extends Widget implements DTarget {
 		return (img);
 	}
 	
-	protected int getPurity() {
+	protected double getPurity() {
 		List<ItemInfo> info = item.info();
 		Alchemy ch = find(Alchemy.class, info);
 		if (ch != null) {
@@ -259,7 +259,7 @@ public class WItem extends Widget implements DTarget {
 						5, (int) (a * sz.y)));
 				g.chcolor();
 			}
-			int purity = Math.round(getPurity());
+			int purity = (int) Math.round(getPurity());
 			if (purity >= 0) {
 				if (purityOutlinedText == null) {
 					purityOutlinedText = Text.renderOutlined(Integer.toString(purity), Alchemy.colors[getDominantElement()].brighter().brighter(), Color.BLACK, 1);
