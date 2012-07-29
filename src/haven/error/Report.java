@@ -27,29 +27,64 @@
 package haven.error;
 
 import java.util.*;
+import java.util.Map.Entry;
+
+import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.HConst;
 
 public class Report implements java.io.Serializable {
-    private boolean reported = false;
-    public final Throwable t;
-    public final long time;
-    public final Map<String, Object> props = new HashMap<String, Object>();
-    
-    public Report(Throwable t) {
-	this.t = t;
-	time = System.currentTimeMillis();
-	Runtime rt = Runtime.getRuntime();
-	props.put("mem.free", rt.freeMemory());
-	props.put("mem.total", rt.totalMemory());
-	props.put("mem.max", rt.maxMemory());
-    }
-    
-    synchronized void join() throws InterruptedException {
-	while(!reported)
-	    wait();
-    }
-    
-    synchronized void done() {
-	reported = true;
-	notifyAll();
-    }
+	private boolean reported = false;
+	public final Throwable t;
+	public final long time;
+	public final Map<String, Object> props = new HashMap<String, Object>();
+
+	public Report(Throwable t) {
+		this.t = t;
+		time = System.currentTimeMillis();
+		Runtime rt = Runtime.getRuntime();
+		props.put("mem.free", rt.freeMemory());
+		props.put("mem.total", rt.totalMemory());
+		props.put("mem.max", rt.maxMemory());
+	}
+
+	synchronized void join() throws InterruptedException {
+		while (!reported)
+			wait();
+	}
+
+	synchronized void done() {
+		reported = true;
+		notifyAll();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("REVISION=");
+		builder.append(HConst.REVISION_NUMBER);
+		builder.append("&BUILDDATE=");
+		builder.append(HConst.BUILD_DATE);
+		//builder.append("\n");
+		builder.append("&TIME=");
+		builder.append(time);
+		//builder.append("\n");
+		builder.append("&PROPS=");
+		//builder.append("\n");
+		for (Entry<String, Object> prop : props.entrySet()) {
+			builder.append(prop.getKey());
+			builder.append("=");
+			builder.append(prop.getValue());
+			builder.append(";");
+		}
+		builder.append("&EXCEPTION=");
+		//builder.append("\n");
+		builder.append(t.toString());
+		//builder.append("\n");
+		builder.append("&STACK TRACE=");
+		//builder.append("\n");
+		java.io.StringWriter w = new java.io.StringWriter();
+		t.printStackTrace(new java.io.PrintWriter(w));
+		builder.append(w.toString());
+		return builder.toString();
+	}
 }

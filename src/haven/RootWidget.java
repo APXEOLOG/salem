@@ -48,7 +48,16 @@ public class RootWidget extends ConsoleHost {
 			if (ev.getKeyCode() == 89 && ev.isControlDown()) {
 				HConfig.cl_render_on = !HConfig.cl_render_on;
 			} else if(ev.getKeyCode() == 90 && ev.isControlDown()) {
-				HConfig.cl_tilify = !HConfig.cl_tilify;
+				GameUI gui = ui.root.findchild(GameUI.class);
+				if (gui != null) {
+					gui.toggleTilify();
+				}
+				HConfig.saveConfig();
+			} else if(ev.getKeyCode() == 71 && ev.isControlDown()) { // Ctrl + G 
+				GameUI gui = ui.root.findchild(GameUI.class);
+				if (gui != null) {
+					gui.toggleGrid();
+				}
 				HConfig.saveConfig();
 			} else if(ev.getKeyCode() == 76 && ev.isAltDown()) {
 				if (ui.sess != null) ui.sess.close();

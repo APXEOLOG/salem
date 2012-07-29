@@ -6,8 +6,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.sun.org.apache.bcel.internal.classfile.PMGClass;
-
 import haven.BuddyWnd.Buddy;
 import haven.ChatUI;
 import haven.ChatUI.EntryChannel;

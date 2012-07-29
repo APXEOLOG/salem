@@ -26,20 +26,12 @@
 
 package haven;
 
-import static haven.MCache.cmaps;
 import static haven.MCache.tilesz;
-import haven.MCache.Grid;
 import haven.MCache.Overlay;
-import haven.Resource.Tile;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.*;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.*;
-
-import javax.imageio.ImageIO;
 import javax.media.opengl.*;
 
 import org.apxeolog.salem.ALS;
@@ -292,6 +284,10 @@ public class MapView extends PView implements DTarget {
 		for (int ol : overlays)
 			visol[ol]++;
 	}
+	
+	public boolean haveol(int overlay) {
+		return visol[overlay] > 0;
+	}
 
 	public void disol(int... overlays) {
 		for (int ol : overlays)
@@ -324,19 +320,50 @@ public class MapView extends PView implements DTarget {
 		}
 	};
 	
+	public static final int GRID_MODE_NONE = 0;
+	public static final int GRID_MODE_SIMPLE = 1;
+	public static final int GRID_MODE_HEIGHTMAP = 2;
+	
 	public static Material gridCellTexture;
 	public static int MAP_GRID_OVERLAY_ID = 31;
-	public Overlay gridOverlay;
+	public static int MAP_SIMPLE_GRID_OVERLAY_ID = 29;
+	public static int MAP_POINTER_OVERLAY_ID = 30;
+	public Overlay[] customOverlays = new Overlay[32];
+	public static HashMap<Integer, Class<?>> customOverlayInfo;
+	
 	static {
-		// Create grid tex
-		BufferedImage img = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2d = img.createGraphics();
-		g2d.setColor(new Color(0, 0, 0, 0));
-		g2d.fillRect(0, 0, 32, 32);
-		g2d.setColor(Color.GRAY);
-		g2d.drawRect(0, 0, 32, 32);
-		TexI tex = new TexI(img);
-		gridCellTexture = new Material(tex);
+		customOverlayInfo = new HashMap<Integer, Class<?>>();
+		customOverlayInfo.put(MAP_GRID_OVERLAY_ID, GridMesh.class);
+		customOverlayInfo.put(MAP_POINTER_OVERLAY_ID, PointerMesh.class);
+		customOverlayInfo.put(MAP_SIMPLE_GRID_OVERLAY_ID, SimpleGridMesh.class);
+	}
+	
+	public void setupGrid() {
+		Coord ul = new Coord(getcc()).div(MCache.tilesz).div(MCache.cmaps).sub(1, 1).mul(MCache.cmaps);
+		if (customOverlays[MAP_GRID_OVERLAY_ID] == null) {
+			customOverlays[MAP_GRID_OVERLAY_ID] = glob.map.new Overlay(ul, ul.add(MCache.cmaps.mul(3)), 1 << MAP_GRID_OVERLAY_ID);
+		} else {
+			customOverlays[MAP_GRID_OVERLAY_ID].update(ul, ul.add(MCache.cmaps.mul(3)));
+		}
+		if (customOverlays[MAP_SIMPLE_GRID_OVERLAY_ID] == null) {
+			customOverlays[MAP_SIMPLE_GRID_OVERLAY_ID] = glob.map.new Overlay(ul, ul.add(MCache.cmaps.mul(3)), 1 << MAP_SIMPLE_GRID_OVERLAY_ID);
+		} else {
+			customOverlays[MAP_SIMPLE_GRID_OVERLAY_ID].update(ul, ul.add(MCache.cmaps.mul(3)));
+		}
+	}
+	
+	public void updatePointer(Coord cc) {
+		try {
+			Coord ul = new Coord(getcc()).div(tilesz);
+			ALS.alDebugPrint(cc, ul);
+			if (customOverlays[MAP_POINTER_OVERLAY_ID] == null) {
+				customOverlays[MAP_POINTER_OVERLAY_ID] = glob.map.new Overlay(ul, ul, 1 << MAP_POINTER_OVERLAY_ID);
+			} else {
+				customOverlays[MAP_POINTER_OVERLAY_ID].update(ul, ul);
+			}
+		} catch (Loading ex) {
+			
+		}
 	}
 	
 	private final Rendered mapol = new Rendered() {
@@ -350,24 +377,17 @@ public class MapView extends PView implements DTarget {
 			mats[16] = new Material(new Color(0, 255, 0, 32));
 			mats[17] = new Material(new Color(255, 255, 0, 32));
 			
-			mats[MAP_GRID_OVERLAY_ID] = new Material(new Color(128, 128, 128, 192));//new Material(gridCellTexture);
+			mats[MAP_GRID_OVERLAY_ID] = new Material(new Color(128, 128, 128, 192));
+			mats[MAP_POINTER_OVERLAY_ID] = new Material(new Color(255, 255, 255, 255));
+			mats[MAP_SIMPLE_GRID_OVERLAY_ID] = new Material(new Color(128, 128, 128, 192));
 		}
 
 		public void draw(GOut g) {
+			
 		}
 
 		public boolean setup(RenderList rl) {
-			if (visol[MAP_GRID_OVERLAY_ID] > 0) {
-				if (gridOverlay == null) {
-					Coord pc = new Coord(getcc()).div(MCache.tilesz);
-					gridOverlay = glob.map.new Overlay(pc.sub(MCache.cutsz), pc.add(MCache.cutsz), 1 << MAP_GRID_OVERLAY_ID);
-				}
-			} else {
-				if (gridOverlay != null) {
-					gridOverlay.destroy();
-					gridOverlay = null;
-				}
-			}
+			setupGrid();
 			Coord cc = MapView.this.cc.div(tilesz).div(MCache.cutsz);
 			Coord o = new Coord();
 			for (o.y = -view; o.y <= view; o.y++) {
@@ -381,8 +401,8 @@ public class MapView extends PView implements DTarget {
 							olcut = glob.map.getolcut(i, cc.add(o));
 							if (olcut != null)
 								rl.add(olcut, GLState.compose(Location
-										.xlate(new Coord3f(pc.x, -pc.y, 0)),
-										mats[i]));
+										.xlate(new Coord3f(pc.x, -pc.y, 0))/*,
+										mats[i]*/));
 						}
 					}
 				}
@@ -461,44 +481,10 @@ public class MapView extends PView implements DTarget {
 		}
 		rl.add(map, null);
 		rl.add(mapol, null);
-		rl.add(mapgrid, null);
 		rl.add(gobs, null);
 		if (placing != null)
 			addgob(rl, placing);
 	}
-
-	private final Rendered mapgrid = new Rendered() {
-		public void draw(GOut g) {
-		}
-
-		boolean once = false;
-
-		public boolean setup(RenderList rl) {
-			// Coord o = new Coord();
-			// for (o.y = -view; o.y <= view; o.y++) {
-			// for (o.x = -view; o.x <= view; o.x++) {
-			// Coord pc = cc.add(o).mul(MCache.cutsz).mul(tilesz);
-			// MapMesh cut = glob.map.getcut(cc.add(o));
-			// ALS.alDebugPrint(player().getc(), cut.ul);
-			//
-			//
-			// // rl.add(cut, Location.xlate(new Coord3f(pc.x, -pc.y, 0)));
-			// // Collection<Gob> fol;
-			// // try {
-			// // fol = glob.map.getfo(cc.add(o));
-			// // } catch (Loading e) {
-			// // fol = Collections.emptyList();
-			// // }
-			// // for (Gob fo : fol)
-			// // addgob(rl, fo);
-			// }
-			// }
-
-			// rl.add(new Rendered.GridCell(), Location.xlate(c));
-
-			return false;
-		}
-	};
 
 	public Gob player() {
 		return (glob.oc.getgob(plgob));
@@ -968,6 +954,13 @@ public class MapView extends PView implements DTarget {
 	}
 
 	public void mousemove(Coord c) {
+		synchronized (delayed) {
+			delayed.add(new Hittest(c) {
+				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
+					updatePointer(mc);
+				}
+			});
+		}
 		if (camdrag) {
 			((Camera) camera).drag(c);
 		} else if (grab != null) {

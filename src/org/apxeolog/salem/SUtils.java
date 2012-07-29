@@ -12,6 +12,7 @@ import haven.Resource;
 import haven.Tex;
 
 import java.awt.Color;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,10 +20,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SUtils {
+	public static void writeText(File f, String text) {
+		try {
+			if (!f.exists()) f.createNewFile();
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "UTF-8"));
+			writer.write(text);
+			writer.close();
+		} catch (UnsupportedEncodingException e) {
+		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
+		}
+	}
 	
 	public static class HighlightInfo {
 		protected Tex resIcon = null;
@@ -257,19 +271,19 @@ public class SUtils {
 		// Draw curios
 		for (Pair<SUtils.HighlightInfo, Gob> pair : gobSyncCache) {
 			try {
-				Coord ul = mmap.realToLocal(new Coord(pair.getValue().getrc()));
+				Coord ul = mmap.realToLocal(new Coord(pair.getSecond().getrc()));
 				if (!ul.isect(minimapIconSize, mmap.sz.sub(minimapIconSize))) continue;
 				
-				pair.getKey().draw(g, ul, pair.getValue());
+				pair.getFirst().draw(g, ul, pair.getSecond());
 			} catch (Exception ex) {
 				// WOOPS
 			}
 		}
 		if (lastMinimapClickCoord != null) {
 			for (int i = gobSyncCache.size() - 1; i >= 0; i--) {
-				if (gobSyncCache.get(i).getKey() instanceof PlayerHighlightInfo || gobSyncCache.get(i).getKey() instanceof AnimalHighlightInfo) continue;
+				if (gobSyncCache.get(i).getFirst() instanceof PlayerHighlightInfo || gobSyncCache.get(i).getFirst() instanceof AnimalHighlightInfo) continue;
 				
-				Gob gob = gobSyncCache.get(i).getValue();
+				Gob gob = gobSyncCache.get(i).getSecond();
 				Coord ul = mmap.realToLocal(new Coord(gob.getc())).sub(minimapIconSize.div(2));
 				if (lastMinimapClickCoord.isect(ul, minimapIconSize)) {
 					lastMinimapClickCoord = null;

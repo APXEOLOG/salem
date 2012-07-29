@@ -453,21 +453,18 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 	public static void main(final String[] args) {
 		/* Set up the error handler as early as humanly possible. */
 		ThreadGroup g = new ThreadGroup("Haven main group");
-		String ed;
-		if (!(ed = Utils.getprop("haven.errorurl",
-				"http://plymouth.seatribe.se/java/error")).equals("")) {
-			try {
-				final haven.error.ErrorHandler hg = new haven.error.ErrorHandler(
-						new java.net.URL(ed));
-				hg.sethandler(new haven.error.ErrorGui(null) {
-					public void errorsent() {
-						hg.interrupt();
-					}
-				});
-				g = hg;
-			} catch (java.net.MalformedURLException e) {
-			}
+		try {
+			final haven.error.ErrorHandler hg = new haven.error.ErrorHandler(
+					new java.net.URL(HConfig.mp_error_url));
+			hg.sethandler(new haven.error.ErrorGui(null) {
+				public void errorsent() {
+					hg.interrupt();
+				}
+			});
+			g = hg;
+		} catch (java.net.MalformedURLException e) {
 		}
+
 		Thread main = new HackThread(g, new Runnable() {
 			public void run() {
 				main2(args);

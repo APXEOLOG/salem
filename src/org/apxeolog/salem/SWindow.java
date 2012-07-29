@@ -20,7 +20,7 @@ public class SWindow extends Widget {
 	public static final int HEADER_ALIGN_LEFT = 0;
 	public static final int HEADER_ALIGN_RIGHT = 2;
 	
-	protected static Text.Foundry captionFoundry = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
+	public static Text.Foundry captionFoundry = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
 	
 	protected static class SPictButtonClose extends SPictButton {
 		protected Tex btnImage = new TexI(Resource.loadimg("apx/gfx/hud/close-button"));

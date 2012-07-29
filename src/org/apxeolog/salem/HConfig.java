@@ -1,5 +1,7 @@
 package org.apxeolog.salem;
 
+import haven.MapView;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,6 +33,8 @@ public class HConfig {
 	public static Boolean	cl_use_new_chat = true;
 	public static Boolean	cl_use_free_cam = false;
 	public static Boolean	cl_use_new_toolbars = true;
+	public static String 	mp_error_url = "http://unionclient.ru/salem/error/";
+	public static Integer	cl_grid_mode = MapView.GRID_MODE_NONE;
 	
 	private static Properties configFile = new Properties();
 	private static HashMap<String, String> additionTokens= new HashMap<String, String>();
@@ -87,6 +91,7 @@ public class HConfig {
 	
 	public static void saveConfig() {
 		try {
+			configFile.clear();
 			Field[] configFields = HConfig.class.getFields();
 			for (Field field : configFields) {
 				if (Modifier.isStatic(field.getModifiers()) && Modifier.isPublic(field.getModifiers())) {

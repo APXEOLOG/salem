@@ -34,6 +34,8 @@ import java.awt.image.BufferedImage;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apxeolog.salem.ALS;
+
 public class WItem extends Widget implements DTarget {
 	public static final Resource missing = Resource.load("gfx/invobjs/missing");
 	public final static RichText.Foundry ttfnd = new RichText.Foundry(
@@ -102,7 +104,7 @@ public class WItem extends Widget implements DTarget {
 		List<ItemInfo> info = item.info();
 		Alchemy ch = find(Alchemy.class, info);
 		if (ch != null) {
-			return (int)(ch.getPurity());
+			return ch.getPurity() * 100;
 		}
 		return -1;
 	}
@@ -260,6 +262,7 @@ public class WItem extends Widget implements DTarget {
 				g.chcolor();
 			}
 			int purity = (int) Math.round(getPurity());
+			//ALS.alDebugPrint(getPurity(), Math.round(getPurity()), purity);
 			if (purity >= 0) {
 				if (purityOutlinedText == null) {
 					purityOutlinedText = Text.renderOutlined(Integer.toString(purity), Alchemy.colors[getDominantElement()].brighter().brighter(), Color.BLACK, 1);

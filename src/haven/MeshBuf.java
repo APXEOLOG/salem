@@ -180,7 +180,7 @@ public class MeshBuf {
 		return (new FastMesh(this.vbuf, idx));
 	}
 	
-	public GridMesh makeGridMesh(ArrayList<QuadFace> qfaces) {
+	public FRendered makeCustomMesh(ArrayList<QuadFace> qfaces, Class<?> mesh) {
 		if (f.isEmpty())
 			throw (new RuntimeException("Tried to build empty mesh"));
 		
@@ -196,7 +196,14 @@ public class MeshBuf {
 			idx[i + 3] = face.v4.idx;
 			i+= 4;
 		}
-		return (new GridMesh(this.vbuf, idx));
+		
+		if (mesh.equals(GridMesh.class)) {
+			return new GridMesh(vbuf, idx);
+		} else if (mesh.equals(PointerMesh.class)) {
+			return new PointerMesh(vbuf, idx);
+		} else if (mesh.equals(SimpleGridMesh.class)) {
+			return new SimpleGridMesh(vbuf, idx);
+		} else return new QuadMesh(this.vbuf, idx);
 	}
 
 	public boolean emptyp() {

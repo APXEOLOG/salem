@@ -482,8 +482,8 @@ public class MapMesh implements Rendered {
 		FRendered mesh;
 
 		public OverlayRendered(MeshBuf buf, int ol_index, ArrayList<QuadFace> qfaces) {
-			if (ol_index == MapView.MAP_GRID_OVERLAY_ID)
-				mesh = buf.makeGridMesh(qfaces);
+			if (MapView.customOverlayInfo.containsKey(ol_index))
+				mesh = buf.makeCustomMesh(qfaces, MapView.customOverlayInfo.get(ol_index));
 			else mesh = buf.mkmesh();
 		}
 		
@@ -525,9 +525,8 @@ public class MapMesh implements Rendered {
 					if ((ol[t.x][t.y] & (1 << i)) != 0) {
 						h = true;
 						splitquad(buf, v[t.x][t.y], v[t.x][t.y + 1], v[t.x + 1][t.y + 1], v[t.x + 1][t.y]);
-						if (i == MapView.MAP_GRID_OVERLAY_ID) {
+						if (MapView.customOverlayInfo.containsKey(i))
 							qfaces.add(new QuadFace(v[t.x][t.y], v[t.x][t.y + 1], v[t.x + 1][t.y + 1], v[t.x + 1][t.y]));
-						}
 					}
 				}
 			}

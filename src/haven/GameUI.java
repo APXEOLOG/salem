@@ -92,7 +92,43 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public void updateWindowStyle() {
 		ui.root.resize(ui.root.sz);
 	}
+	
+	public void toggleGrid() {
+		int newMode = HConfig.cl_grid_mode;	newMode++; 
+		if (newMode > MapView.GRID_MODE_HEIGHTMAP) newMode = MapView.GRID_MODE_NONE;
+		switch (newMode) {
+		case MapView.GRID_MODE_NONE:
+			if (map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.disol(MapView.MAP_GRID_OVERLAY_ID);
+			if (map.haveol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID)) map.disol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID);
+			HConfig.cl_grid_mode = MapView.GRID_MODE_NONE;
+			break;
+		case MapView.GRID_MODE_SIMPLE:
+			if (!map.haveol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID)) map.enol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID);
+			if (map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.disol(MapView.MAP_GRID_OVERLAY_ID);
+			HConfig.cl_grid_mode = MapView.GRID_MODE_SIMPLE;
+			break;
+		case MapView.GRID_MODE_HEIGHTMAP:
+			if (map.haveol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID)) map.disol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID);
+			if (!map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.enol(MapView.MAP_GRID_OVERLAY_ID);
+			HConfig.cl_grid_mode = MapView.GRID_MODE_HEIGHTMAP;
+			break;
+		default:
+			if (map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.disol(MapView.MAP_GRID_OVERLAY_ID);
+			if (map.haveol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID)) map.disol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID);
+			HConfig.cl_grid_mode = MapView.GRID_MODE_NONE;
+			break;
+		}
+	}
 
+	public void toggleTilify() {
+		HConfig.cl_tilify = !HConfig.cl_tilify;
+		if (map.haveol(MapView.MAP_POINTER_OVERLAY_ID) && !HConfig.cl_tilify) {
+			map.disol(MapView.MAP_POINTER_OVERLAY_ID);
+		} else if (!map.haveol(MapView.MAP_POINTER_OVERLAY_ID) && HConfig.cl_tilify) {
+			map.enol(MapView.MAP_POINTER_OVERLAY_ID);
+		}
+	}
+	
 	public void updateTempersToConfig() {
 		if (bdsTempers != null) {
 			boolean vs = bdsTempers.visible;

@@ -63,11 +63,11 @@ public class SMapper {
 							try {
 									Coord div = Coord.z;
 									synchronized (lastPlayerRealCoords) {
-										div = entry.getKey().sub(lastPlayerRealCoords.div(tilesz).div(cmaps)).abs();
+										div = entry.getFirst().sub(lastPlayerRealCoords.div(tilesz).div(cmaps)).abs();
 									}
 									if (div.x > 1 || div.y > 1) break;
 									synchronized (mapCache) {
-										gridToDump = mapCache.getgrid(entry.getKey());
+										gridToDump = mapCache.getgrid(entry.getFirst());
 									}
 									img = gridToDump.getGridImage();
 								
@@ -85,8 +85,8 @@ public class SMapper {
 						if (HConfig.cl_dump_minimaps) {
 							try {
 								String imgName = String.format("tile_%d_%d.png", 
-											entry.getKey().sub(entry.getValue()).x,
-											entry.getKey().sub(entry.getValue()).y);
+											entry.getFirst().sub(entry.getSecond()).x,
+											entry.getFirst().sub(entry.getSecond()).y);
 								File outputFile = new File(currentSessionDirectory, imgName);
 								ImageIO.write(img, "PNG", outputFile);
 							} catch (IOException ex) {
@@ -94,7 +94,7 @@ public class SMapper {
 							}
 						}
 						synchronized (cache) {
-							cache.put(entry.getKey(), new MapTile(new TexI(img), entry.getKey(), Coord.z));
+							cache.put(entry.getFirst(), new MapTile(new TexI(img), entry.getFirst(), Coord.z));
 						}
 					}
 					try {

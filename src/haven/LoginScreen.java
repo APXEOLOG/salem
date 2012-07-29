@@ -26,12 +26,15 @@
 
 package haven;
 
+import java.awt.TextArea;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.apxeolog.salem.Pair;
+import org.apxeolog.salem.SChatWindowB;
 import org.apxeolog.salem.SUtils;
+import org.apxeolog.salem.widgets.STextArea;
 
 public class LoginScreen extends Widget {
 	Login cur;
@@ -73,14 +76,14 @@ public class LoginScreen extends Widget {
 		while (iterator.hasNext()) {
 			if(j == 20) j = 0;
 			Pair<String, String> info = iterator.next();
-			Button btn = new Button(Coord.z.add(0 + 140 * (i/20), j * 30), 100, this, info.getKey()) {
+			Button btn = new Button(Coord.z.add(0 + 140 * (i/20), j * 30), 100, this, info.getFirst()) {
 				@SuppressWarnings("unchecked")
 				@Override
 				public void click() {
 					LoginScreen ls = getparent(LoginScreen.class);
 					Pair<String, String> info = (Pair<String, String>) additionalInfo;
 					ls.wdgmsg(ls, "forget");
-					ls.wdgmsg(ls, "login", new Object[] { new ParadoxCreds(info.getKey(), info.getValue()), true });
+					ls.wdgmsg(ls, "login", new Object[] { new ParadoxCreds(info.getFirst(), info.getSecond()), true });
 				}
 			};
 			btn.additionalInfo = info;
@@ -90,7 +93,7 @@ public class LoginScreen extends Widget {
 				@SuppressWarnings("unchecked")
 				public void click() {
 					Pair<String, String> info = (Pair<String, String>) additionalInfo;
-					SUtils._sa_delete_account(info.getKey());
+					SUtils._sa_delete_account(info.getFirst());
 					LoginScreen ls = getparent(LoginScreen.class);
 					ls.spawnLoginButtons();
 				}
@@ -108,6 +111,10 @@ public class LoginScreen extends Widget {
 		parent.setfocus(this);
 		new Img(Coord.z, bg, this);
 		spawnLoginButtons();
+		
+		/*SChatWindowB cw = new SChatWindowB(Coord.z, new Coord(100, 100), this, "New chat");
+		cw.addString("Hey [c=233,12,32]Joe![/c] I [b]wanna[/b] give you this [s]focking cool link[/s] https://www.google.ru/search?sugexp=chrome,mod=5&sourceid=chrome&ie=UTF-8&q=java+BB+code+parser man:[b] http://ru20.voyna-plemyon.ru/game.php?village=12178&screen=overview .[/b] How r u? [u]PEWPEWPE[/u]WPEW!");
+		cw.addString("tat was too big message bro!");*/
 	}
 
 	private static abstract class Login extends Widget {

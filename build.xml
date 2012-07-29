@@ -9,8 +9,8 @@
 		<tstamp>
 			<format property="builddate" pattern="dd-MM-yyyy HH:mm:ss" />
 		</tstamp>
-		<replace file="src/org/apxeolog/salem/HConst.java" token="__REVISION_NUMBER_TOKEN__" value="${gitrev}"/>
-		<replace file="src/org/apxeolog/salem/HConst.java" token="__BUILD_DATE_TOKEN__" value="${builddate}"/>
+		<replace file="src/org/apxeolog/salem/HConst.java" token="__GITREV__" value="${gitrev}"/>
+		<replace file="src/org/apxeolog/salem/HConst.java" token="__BUILDDATE__" value="${builddate}"/>
 	</target>
 	
 	<target name="compile">
@@ -54,6 +54,7 @@
 			</manifest>
 		</jar>
 		<chmod file="release/bdsalem.jar" perm="a+x" />
+		<copy todir="src/org/apxeolog/salem/" file="etc/HConst.java" overwrite="true"/>
 	</target>
 
 	<target name="sign"> 

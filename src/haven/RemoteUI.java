@@ -26,8 +26,6 @@
 
 package haven;
 
-import org.apxeolog.salem.ALS;
-
 public class RemoteUI implements UI.Receiver {
 	Session sess;
 	UI ui;
