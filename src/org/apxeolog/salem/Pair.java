@@ -1,10 +1,14 @@
 package org.apxeolog.salem;
 
+import java.io.Serializable;
+
 /**
  * @author Ravi Mohan
  * 
  */
-public class Pair<X, Y> {
+public class Pair<X, Y> implements Serializable {
+	private static final long serialVersionUID = 3283414397302173101L;
+
 	private final X a;
 
 	private final Y b;

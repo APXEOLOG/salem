@@ -56,7 +56,7 @@ public class RootWidget extends ConsoleHost {
 			} else if(ev.getKeyCode() == 71 && ev.isControlDown()) { // Ctrl + G 
 				GameUI gui = ui.root.findchild(GameUI.class);
 				if (gui != null) {
-					gui.toggleGrid(1);
+					gui.toggleGrid();
 				}
 				HConfig.saveConfig();
 			} else if(ev.getKeyCode() == 76 && ev.isAltDown()) {
@@ -65,9 +65,10 @@ public class RootWidget extends ConsoleHost {
 					HConfig.cl_render_on = true;
 					HConfig.saveConfig();
 				}
-			} else if (Config.profile && (key == '`')) {
-				new Profwnd(new Coord(100, 100), this, gprof, "Glob prof");
-			} else if (Config.profile && (key == '~')) {
+			} /*else if (key == '`') {
+				//Config.dbtext = true;
+				//new Profwnd(new Coord(100, 100), this, gprof, "Glob prof");
+			} */else if (Config.profile && (key == '~')) {
 				GameUI gi = findchild(GameUI.class);
 				if ((gi != null) && (gi.map != null))
 					new Profwnd(new Coord(100, 100), this, gi.map.prof,

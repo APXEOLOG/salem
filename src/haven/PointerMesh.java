@@ -36,16 +36,6 @@ public class PointerMesh extends QuadMesh {
 	public PointerMesh(VertexBuf vert, short[] ind) {
 		super(vert, ind);
 	}
-
-	public Color getCol(float z1, float z2) {
-		if (HConfig.cl_grid_mode == MapView.GRID_MODE_SIMPLE) {
-			return Color.GRAY;
-		} else {
-			float val = z1 - z2;
-			if (val == 0.0f) return Color.GREEN;
-			else return Color.RED;
-		}
-	}
 	
 	public void sdraw(GOut g) {
 		GL gl = g.gl;

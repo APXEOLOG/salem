@@ -94,35 +94,24 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		ui.root.resize(ui.root.sz);
 	}
 	
-	public void toggleGrid(int ad) {
-		if (map == null) return;
-		int newMode = HConfig.cl_grid_mode;	newMode+=ad; 
-		if (newMode > MapView.GRID_MODE_HEIGHTMAP) newMode = MapView.GRID_MODE_NONE;
-		switch (newMode) {
-		case MapView.GRID_MODE_NONE:
-			if (map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.disol(MapView.MAP_GRID_OVERLAY_ID);
-			if (map.haveol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID)) map.disol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID);
-			HConfig.cl_grid_mode = MapView.GRID_MODE_NONE;
-			break;
-		case MapView.GRID_MODE_SIMPLE:
-			if (!map.haveol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID)) map.enol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID);
-			if (map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.disol(MapView.MAP_GRID_OVERLAY_ID);
-			HConfig.cl_grid_mode = MapView.GRID_MODE_SIMPLE;
-			break;
-		case MapView.GRID_MODE_HEIGHTMAP:
-			if (map.haveol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID)) map.disol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID);
-			if (!map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.enol(MapView.MAP_GRID_OVERLAY_ID);
+	public void toggleGrid() {
+		if (HConfig.cl_grid_mode == MapView.GRID_MODE_NONE) {
 			HConfig.cl_grid_mode = MapView.GRID_MODE_HEIGHTMAP;
-			break;
-		default:
-			if (map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.disol(MapView.MAP_GRID_OVERLAY_ID);
-			if (map.haveol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID)) map.disol(MapView.MAP_SIMPLE_GRID_OVERLAY_ID);
+		} else {
 			HConfig.cl_grid_mode = MapView.GRID_MODE_NONE;
-			break;
+		}
+		updateGrid();
+	}
+	
+	public void updateGrid() {
+		if (map == null) return;
+		if (HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
+			if (!map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.enol(MapView.MAP_GRID_OVERLAY_ID);
+		} else {
+			if (map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.disol(MapView.MAP_GRID_OVERLAY_ID);
 		}
 	}
 
-	
 	public void updateTilify() {
 		if (map == null) return;
 		if (map.haveol(MapView.MAP_POINTER_OVERLAY_ID) && !HConfig.cl_tilify) {

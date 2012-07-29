@@ -201,8 +201,6 @@ public class MeshBuf {
 			return new GridMesh(vbuf, idx);
 		} else if (mesh.equals(PointerMesh.class)) {
 			return new PointerMesh(vbuf, idx);
-		} else if (mesh.equals(SimpleGridMesh.class)) {
-			return new SimpleGridMesh(vbuf, idx);
 		} else return new QuadMesh(this.vbuf, idx);
 	}
 

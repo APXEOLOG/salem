@@ -282,7 +282,7 @@ public class MapView extends PView implements DTarget {
 		GameUI gui = getparent(GameUI.class);
 		if (gui != null) {
 			gui.updateTilify();
-			gui.toggleGrid(0);
+			gui.updateGrid();
 		}
 	}
 
@@ -327,13 +327,11 @@ public class MapView extends PView implements DTarget {
 	};
 	
 	public static final int GRID_MODE_NONE = 0;
-	public static final int GRID_MODE_SIMPLE = 1;
-	public static final int GRID_MODE_HEIGHTMAP = 2;
+	public static final int GRID_MODE_HEIGHTMAP = 1;
 	
-	public static Material gridCellTexture;
-	public static int MAP_GRID_OVERLAY_ID = 31;
-	public static int MAP_SIMPLE_GRID_OVERLAY_ID = 29;
-	public static int MAP_POINTER_OVERLAY_ID = 30;
+	public static int MAP_GRID_OVERLAY_ID = 30;
+	public static int MAP_POINTER_OVERLAY_ID = 31;
+	
 	public Overlay[] customOverlays = new Overlay[32];
 	public static HashMap<Integer, Class<?>> customOverlayInfo;
 	
@@ -341,7 +339,6 @@ public class MapView extends PView implements DTarget {
 		customOverlayInfo = new HashMap<Integer, Class<?>>();
 		customOverlayInfo.put(MAP_GRID_OVERLAY_ID, GridMesh.class);
 		customOverlayInfo.put(MAP_POINTER_OVERLAY_ID, PointerMesh.class);
-		customOverlayInfo.put(MAP_SIMPLE_GRID_OVERLAY_ID, SimpleGridMesh.class);
 	}
 	
 	public void setupGrid() {
@@ -351,21 +348,13 @@ public class MapView extends PView implements DTarget {
 		} else {
 			customOverlays[MAP_GRID_OVERLAY_ID].update(ul, ul.add(MCache.cmaps.mul(3)));
 		}
-		if (customOverlays[MAP_SIMPLE_GRID_OVERLAY_ID] == null) {
-			customOverlays[MAP_SIMPLE_GRID_OVERLAY_ID] = glob.map.new Overlay(ul, ul.add(MCache.cmaps.mul(3)), 1 << MAP_SIMPLE_GRID_OVERLAY_ID);
-		} else {
-			customOverlays[MAP_SIMPLE_GRID_OVERLAY_ID].update(ul, ul.add(MCache.cmaps.mul(3)));
-		}
 	}
+	
+	float cz = 0.0f;
 	
 	public void updatePointer(Coord cc) {
 		try {
-			Coord ul = cc.div(tilesz);
-			if (customOverlays[MAP_POINTER_OVERLAY_ID] == null) {
-				customOverlays[MAP_POINTER_OVERLAY_ID] = glob.map.new Overlay(ul, ul, 1 << MAP_POINTER_OVERLAY_ID);
-			} else {
-				customOverlays[MAP_POINTER_OVERLAY_ID].update(ul, ul);
-			}
+			cz = glob.map.getcz(cc);
 		} catch (Loading ex) {
 			
 		}
@@ -384,7 +373,6 @@ public class MapView extends PView implements DTarget {
 			
 			mats[MAP_GRID_OVERLAY_ID] = new Material(new Color(128, 128, 128, 192));
 			mats[MAP_POINTER_OVERLAY_ID] = new Material(new Color(255, 255, 255, 255));
-			mats[MAP_SIMPLE_GRID_OVERLAY_ID] = new Material(new Color(128, 128, 128, 192));
 		}
 
 		public void draw(GOut g) {
@@ -761,6 +749,9 @@ public class MapView extends PView implements DTarget {
 		}
 		poldraw(g);
 		partydraw(g);
+		if (ui.modctrl && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
+			FastText.aprint(g, ui.mc.sub(0, 5), 0.5, 0.5, String.valueOf(cz));
+		}
 	}
 
 	public void tick(double dt) {
@@ -862,7 +853,7 @@ public class MapView extends PView implements DTarget {
 	private boolean camdrag = false;
 
 	public abstract class Hittest implements Delayed {
-		private final Coord clickc;
+		protected final Coord clickc;
 
 		public Hittest(Coord c) {
 			clickc = c;
@@ -958,13 +949,20 @@ public class MapView extends PView implements DTarget {
 		return (true);
 	}
 
+	long lastHitDetect = 0;
+	
 	public void mousemove(Coord c) {
-		synchronized (delayed) {
-			delayed.add(new Hittest(c) {
-				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
-					updatePointer(mc);
+		if (ui.modctrl && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
+			if (System.currentTimeMillis() - lastHitDetect > 250) {
+				synchronized (delayed) {
+					delayed.add(new Hittest(c) {
+						public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
+							updatePointer(mc);
+							lastHitDetect = System.currentTimeMillis();
+						}
+					});
 				}
-			});
+			}
 		}
 		if (camdrag) {
 			((Camera) camera).drag(c);

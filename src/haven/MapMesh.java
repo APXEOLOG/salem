@@ -526,7 +526,7 @@ public class MapMesh implements Rendered {
 			for (t.y = 0; t.y < sz.y; t.y++) {
 				for (t.x = 0; t.x < sz.x; t.x++) {
 					boolean check = (ol[t.x][t.y] & (1 << i)) != 0;
-					if (check || i == MapView.MAP_GRID_OVERLAY_ID || i == MapView.MAP_SIMPLE_GRID_OVERLAY_ID) {
+					if (check || i == MapView.MAP_GRID_OVERLAY_ID) {
 						h = true;
 						splitquad(buf, v[t.x][t.y], v[t.x][t.y + 1], v[t.x + 1][t.y + 1], v[t.x + 1][t.y]);
 						if (MapView.customOverlayInfo.containsKey(i))

@@ -360,11 +360,8 @@ public class SUtils {
 			FileInputStream file = new FileInputStream("data.bin");
 			ObjectInputStream sstream = new ObjectInputStream(file);
 			accounts = (HashMap<String, Pair<String, String>>) sstream.readObject();
-		} catch (FileNotFoundException e) {
-			// Just no save file
-		} catch (IOException e) {
-			// Some file error
-		} catch (ClassNotFoundException e) {
+			sstream.close();
+		} catch (Exception e) {
 			
 		}
 	}
