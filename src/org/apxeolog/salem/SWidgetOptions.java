@@ -742,7 +742,8 @@ public class SWidgetOptions extends Hidewnd {
 		
 		public void addSlot(int mode, int key) {
 			SToolbarConfigSlot slot = new SToolbarConfigSlot(mode, key);
-			assocedToolbar.slotList.add(slot);
+			if (assocedToolbar != null)
+				assocedToolbar.slotList.add(slot);
 			scrollbar.max = size() - iCannotRememberWhyDoINeedThisVariable;
 		}
 		
