@@ -405,9 +405,9 @@ public class MapView extends PView implements DTarget {
 							Rendered olcut;
 							olcut = glob.map.getolcut(i, cc.add(o));
 							if (olcut != null)
-								rl.add(olcut, GLState.compose(Location
-										.xlate(new Coord3f(pc.x, -pc.y, 0))/*,
-										mats[i]*/));
+								if (customOverlayInfo.containsKey(i))
+									rl.add(olcut, GLState.compose(Location.xlate(new Coord3f(pc.x, -pc.y, 0))));
+								else rl.add(olcut, GLState.compose(Location.xlate(new Coord3f(pc.x, -pc.y, 0)),	mats[i]));
 						}
 					}
 				}
