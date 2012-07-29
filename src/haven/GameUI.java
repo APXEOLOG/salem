@@ -43,6 +43,7 @@ import org.apxeolog.salem.SChatWindow;
 import org.apxeolog.salem.SGobble;
 import org.apxeolog.salem.SInterfaces.IGobble;
 import org.apxeolog.salem.SInterfaces.ITempers;
+import org.apxeolog.salem.SNetworkResources;
 import org.apxeolog.salem.STempers;
 import org.apxeolog.salem.SToolbar;
 import org.apxeolog.salem.SUtils;
@@ -93,8 +94,9 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		ui.root.resize(ui.root.sz);
 	}
 	
-	public void toggleGrid() {
-		int newMode = HConfig.cl_grid_mode;	newMode++; 
+	public void toggleGrid(int ad) {
+		if (map == null) return;
+		int newMode = HConfig.cl_grid_mode;	newMode+=ad; 
 		if (newMode > MapView.GRID_MODE_HEIGHTMAP) newMode = MapView.GRID_MODE_NONE;
 		switch (newMode) {
 		case MapView.GRID_MODE_NONE:
@@ -120,13 +122,19 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 	}
 
-	public void toggleTilify() {
-		HConfig.cl_tilify = !HConfig.cl_tilify;
+	
+	public void updateTilify() {
+		if (map == null) return;
 		if (map.haveol(MapView.MAP_POINTER_OVERLAY_ID) && !HConfig.cl_tilify) {
 			map.disol(MapView.MAP_POINTER_OVERLAY_ID);
 		} else if (!map.haveol(MapView.MAP_POINTER_OVERLAY_ID) && HConfig.cl_tilify) {
 			map.enol(MapView.MAP_POINTER_OVERLAY_ID);
 		}
+	}
+	
+	public void toggleTilify() {
+		HConfig.cl_tilify = !HConfig.cl_tilify;
+		updateTilify();
 	}
 	
 	public void updateTempersToConfig() {
@@ -253,6 +261,8 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		});
 		makemenu();
 		resize(sz);
+		
+		SNetworkResources.onGameUILoad();
 	}
 
 	static class MenuButton extends IButton {

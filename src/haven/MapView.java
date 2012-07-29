@@ -278,6 +278,12 @@ public class MapView extends PView implements DTarget {
 		this.cc = cc;
 		this.plgob = plgob;
 		setcanfocus(true);
+		
+		GameUI gui = getparent(GameUI.class);
+		if (gui != null) {
+			gui.updateTilify();
+			gui.toggleGrid(0);
+		}
 	}
 
 	public void enol(int... overlays) {
@@ -354,8 +360,7 @@ public class MapView extends PView implements DTarget {
 	
 	public void updatePointer(Coord cc) {
 		try {
-			Coord ul = new Coord(getcc()).div(tilesz);
-			ALS.alDebugPrint(cc, ul);
+			Coord ul = cc.div(tilesz);
 			if (customOverlays[MAP_POINTER_OVERLAY_ID] == null) {
 				customOverlays[MAP_POINTER_OVERLAY_ID] = glob.map.new Overlay(ul, ul, 1 << MAP_POINTER_OVERLAY_ID);
 			} else {

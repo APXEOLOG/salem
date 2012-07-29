@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.UUID;
 
 /**
  *  == Haven and Hearth Extended ==
@@ -35,6 +36,7 @@ public class HConfig {
 	public static Boolean	cl_use_new_toolbars = true;
 	public static String 	mp_error_url = "http://unionclient.ru/salem/error/";
 	public static Integer	cl_grid_mode = MapView.GRID_MODE_NONE;
+	public static String	mp_guid = UUID.randomUUID().toString();
 	
 	private static Properties configFile = new Properties();
 	private static HashMap<String, String> additionTokens= new HashMap<String, String>();

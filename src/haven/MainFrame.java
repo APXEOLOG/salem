@@ -52,6 +52,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 
 import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.SNetworkResources;
 import org.apxeolog.salem.SWindow;
 
 public class MainFrame extends Frame implements Runnable, Console.Directory {
@@ -201,7 +202,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 	}
 
 	public MainFrame(Coord isz) {
-		super("BD SaleM 3.1");
+		super("BD SaleM 3.2");
 		Coord sz;
 		if (isz == null) {
 			sz = Utils.getprefc("wndsz", new Coord(800, 600));
