@@ -749,7 +749,7 @@ public class MapView extends PView implements DTarget {
 		}
 		poldraw(g);
 		partydraw(g);
-		if (ui.modctrl && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
+		if (ui.modshift && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
 			FastText.aprint(g, ui.mc.sub(0, 5), 0.5, 0.5, String.valueOf(cz));
 		}
 	}
@@ -952,7 +952,7 @@ public class MapView extends PView implements DTarget {
 	long lastHitDetect = 0;
 	
 	public void mousemove(Coord c) {
-		if (ui.modctrl && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
+		if (ui.modshift && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
 			if (System.currentTimeMillis() - lastHitDetect > 250) {
 				synchronized (delayed) {
 					delayed.add(new Hittest(c) {
