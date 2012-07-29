@@ -392,7 +392,7 @@ public class MapView extends PView implements DTarget {
 		}
 
 		public boolean setup(RenderList rl) {
-			setupGrid();
+			//setupGrid();
 			Coord cc = MapView.this.cc.div(tilesz).div(MCache.cutsz);
 			Coord o = new Coord();
 			for (o.y = -view; o.y <= view; o.y++) {

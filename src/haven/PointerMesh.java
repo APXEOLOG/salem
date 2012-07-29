@@ -54,7 +54,6 @@ public class PointerMesh extends QuadMesh {
 			if (vert.bufs[i] instanceof VertexBuf.VertexArray)
 				vbuf = (VertexBuf.VertexArray) vert.bufs[i];
 		}
-		gl.glDisable(GL.GL_TEXTURE_2D);
 		float zshare = 0.15f;
 		float[] colorBuf = Utils.c2fa(Color.RED);
 		gl.glLineWidth(3.0f);
@@ -79,6 +78,5 @@ public class PointerMesh extends QuadMesh {
 			vbuf.setAddZ(g, v1, zshare);
 		}
 		gl.glEnd();
-		gl.glEnable(GL.GL_TEXTURE_2D);
 	}
 }

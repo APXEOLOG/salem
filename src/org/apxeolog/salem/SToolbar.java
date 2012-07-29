@@ -199,7 +199,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			//moving items on toolbar
 			//removing old one
 			Pagina p = null;
-			if(slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
+			if(slotIndex(c) < slotList.length && slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
 			if (p != pressPag) {
 				dragPag = pressPag;
 			}
@@ -222,7 +222,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 				if(slotIndex(c) > -1 && slotIndex(c) < slotCount) {
 					if(slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
 				} 
-				//костыль явы
+				//пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 				if(pressPag == p) {
 					//activating slot
 					@SuppressWarnings("deprecation")
@@ -344,7 +344,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 	}
 	
-	//Но ведь вся эта поебота в принципе чисто для удобства
+	//пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	public static class Slot {
 		private Resource resSlot;
 		private String action;

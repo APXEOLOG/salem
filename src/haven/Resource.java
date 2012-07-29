@@ -76,6 +76,8 @@ import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 
+import org.apxeolog.salem.ALS;
+
 public class Resource implements Comparable<Resource>, Prioritized,
 		Serializable {
 	private static Map<String, Resource> cache = new TreeMap<String, Resource>();
@@ -337,8 +339,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 
 	public static class JarSource implements ResSource, Serializable {
 		public InputStream get(String name) {
-			InputStream s = Resource.class.getResourceAsStream("/res/" + name
-					+ ".res");
+			InputStream s = Resource.class.getResourceAsStream("/res/" + name + ".res");
 			if (s == null)
 				throw (new LoadException("Could not find resource locally: "
 						+ name, JarSource.this));
@@ -1448,9 +1449,12 @@ public class Resource implements Comparable<Resource>, Prioritized,
 	}
 
 	public void checkerr() {
-		if (error != null)
-			throw (new RuntimeException("Delayed error in resource " + name
-					+ " (v" + ver + "), from " + source, error));
+		if (error != null) {
+			ALS.alDebugPrint("Delayed error in resource " + name + " (v" + ver + "), from " + source, error);
+			/*throw (new RuntimeException("Delayed error in resource " + name
+					+ " (v" + ver + "), from " + source, error));*/
+			// Do not throw anything here... just let it be as it be
+		}
 	}
 
 	public int priority() {

@@ -394,10 +394,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				public void click() {
 					if (!v) {
 						
-						map.enol(2, 3, 31);
+						map.enol(2, 3);
 						v = true;
 					} else {
-						map.disol(2, 3, 31);
+						map.disol(2, 3);
 						v = false;
 					}
 				}
