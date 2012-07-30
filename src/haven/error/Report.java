@@ -29,9 +29,9 @@ package haven.error;
 import java.util.*;
 import java.util.Map.Entry;
 
-import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.HConst;
 
+@SuppressWarnings("serial")
 public class Report implements java.io.Serializable {
 	private boolean reported = false;
 	public final Throwable t;

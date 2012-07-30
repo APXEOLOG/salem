@@ -82,6 +82,7 @@ public class IRCProvider {
 		say("Version 0.3.1");
 	}
 
+	@SuppressWarnings("rawtypes")
 	public void printMembers() {
 		// Print out a list of people in our channel.
 		Enumeration members = mainChannel.getMembers();
@@ -112,7 +113,6 @@ public class IRCProvider {
 		String sayCommand = "say ";
 		String meCommand = "me ";
 		String kickCommand = "kick ";
-		String nickCommand = "nick ";
 		String quitCommand = "quit ";
 		String opCommand = "op";
 		String setSecret = "setsecret";

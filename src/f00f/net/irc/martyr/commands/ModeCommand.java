@@ -33,6 +33,7 @@ public class ModeCommand implements InCommand, OutCommand
 	{
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public Iterator getAttributeKeys()
 	{
 		return new LinkedList().iterator();

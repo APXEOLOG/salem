@@ -26,7 +26,6 @@
 
 package haven;
 
-import static haven.GOut.checkerr;
 import javax.media.opengl.*;
 
 public abstract class PView extends Widget {
@@ -47,20 +46,20 @@ public abstract class PView extends Widget {
 	    Coord sz = sz();
 	    gl.glViewport(ul.x, g.root().sz.y - ul.y - sz.y, sz.x, sz.y);
 
-	    gl.glAlphaFunc(gl.GL_GREATER, 0.5f);
-	    gl.glEnable(gl.GL_DEPTH_TEST);
-	    gl.glEnable(gl.GL_CULL_FACE);
-	    gl.glEnable(gl.GL_SCISSOR_TEST);
-	    gl.glDepthFunc(gl.GL_LEQUAL);
+	    gl.glAlphaFunc(GL.GL_GREATER, 0.5f);
+	    gl.glEnable(GL.GL_DEPTH_TEST);
+	    gl.glEnable(GL.GL_CULL_FACE);
+	    gl.glEnable(GL.GL_SCISSOR_TEST);
+	    gl.glDepthFunc(GL.GL_LEQUAL);
 	    gl.glClearDepth(1.0);
 	}
 	
 	public void unapply(GOut g) {
 	    GL gl = g.gl;
 
-	    gl.glDisable(gl.GL_DEPTH_TEST);
-	    gl.glDisable(gl.GL_CULL_FACE);
-	    gl.glDisable(gl.GL_SCISSOR_TEST);
+	    gl.glDisable(GL.GL_DEPTH_TEST);
+	    gl.glDisable(GL.GL_CULL_FACE);
+	    gl.glDisable(GL.GL_SCISSOR_TEST);
 
 	    gl.glViewport(g.root().ul.x, g.root().ul.y, g.root().sz.x, g.root().sz.y);
 	    gl.glScissor(g.root().ul.x, g.root().ul.y, g.root().sz.x, g.root().sz.y);
@@ -150,7 +149,7 @@ public abstract class PView extends Widget {
 	    if(curf != null)
 		curf.tick("cls");
 	    GL gl = g.gl;
-	    gl.glClear(gl.GL_DEPTH_BUFFER_BIT | gl.GL_COLOR_BUFFER_BIT);
+	    gl.glClear(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT);
 	    g.st.time = 0;
 	    rls.render(g);
 	    if(curf != null) {

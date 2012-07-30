@@ -26,8 +26,6 @@
 
 package haven;
 
-import javax.media.opengl.*;
-
 public class Location extends Transform {
 	private Location p = null;
 	private Matrix4f bk;

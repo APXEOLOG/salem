@@ -69,7 +69,8 @@ public class AutoRegister extends GenericAutoService
     private String name;
     private String pass;
     // Our list of nicks.
-    private Iterator nickIterator = null;
+    @SuppressWarnings("rawtypes")
+	private Iterator nickIterator = null;
     // attempt is only used for the debug output.
     private int attempt = 0;
 
@@ -114,14 +115,16 @@ public class AutoRegister extends GenericAutoService
      * @param baseNick The nickname passed into the constructor.
      * @return Iterator over other attempts of nicks to try
      */
-    protected Iterator getNickIterator( final String baseNick )
+    @SuppressWarnings("rawtypes")
+	protected Iterator getNickIterator( final String baseNick )
     {
         // This is simple and clean.. define the nick generation scheme as an
         // anonymous class.
         return new UnderscoreIterator(baseNick);
     }
 
-    private static class UnderscoreIterator implements Iterator
+    @SuppressWarnings("rawtypes")
+	private static class UnderscoreIterator implements Iterator
     {
         int count = 1;
         String nick;

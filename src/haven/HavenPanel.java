@@ -52,6 +52,7 @@ import javax.media.opengl.GLException;
 
 import org.apxeolog.salem.HConfig;
 
+@SuppressWarnings("serial")
 public class HavenPanel extends GLCanvas implements Runnable {
 	UI ui;
 	boolean inited = false, rdr = false;
@@ -99,7 +100,6 @@ public class HavenPanel extends GLCanvas implements Runnable {
 	}
 
 	private void initgl() {
-		final Thread caller = Thread.currentThread();
 		final haven.error.ErrorHandler h = haven.error.ErrorHandler.find();
 		addGLEventListener(new GLEventListener() {
 			public void display(GLAutoDrawable d) {
@@ -115,11 +115,11 @@ public class HavenPanel extends GLCanvas implements Runnable {
 						getChosenGLCapabilities());
 				ui.cons.add(glconf);
 				if (h != null) {
-					h.lsetprop("gl.vendor", gl.glGetString(gl.GL_VENDOR));
-					h.lsetprop("gl.version", gl.glGetString(gl.GL_VERSION));
-					h.lsetprop("gl.renderer", gl.glGetString(gl.GL_RENDERER));
+					h.lsetprop("gl.vendor", gl.glGetString(GL.GL_VENDOR));
+					h.lsetprop("gl.version", gl.glGetString(GL.GL_VERSION));
+					h.lsetprop("gl.renderer", gl.glGetString(GL.GL_RENDERER));
 					h.lsetprop("gl.exts", Arrays.asList(gl.glGetString(
-							gl.GL_EXTENSIONS).split(" ")));
+							GL.GL_EXTENSIONS).split(" ")));
 					h.lsetprop("gl.caps", d.getChosenGLCapabilities()
 							.toString());
 					h.lsetprop("gl.conf", glconf);

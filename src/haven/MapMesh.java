@@ -32,8 +32,6 @@ import haven.MeshBuf.QuadFace;
 import java.util.*;
 import javax.media.opengl.*;
 
-import org.apxeolog.salem.ALS;
-
 import java.awt.Color;
 
 public class MapMesh implements Rendered {
@@ -222,6 +220,7 @@ public class MapMesh implements Rendered {
 			MeshBuf.Vertex v4 = buf.new Vertex(vrt[3].pos, vrt[3].nrm);
 			Tex tex = this.tex;
 			if (tex != null) {
+				@SuppressWarnings("unused")
 				int r = tex.sz().x, b = tex.sz().y;
 				v1.tex = new Coord3f(tex.tcx(texx[0]), tex.tcy(texy[0]), 0.0f);
 				v2.tex = new Coord3f(tex.tcx(texx[1]), tex.tcy(texy[1]), 0.0f);
@@ -232,6 +231,7 @@ public class MapMesh implements Rendered {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	private static final Order mmorder = new Order<Layer>() {
 		public int mainz() {
 			return (1000);
@@ -418,6 +418,7 @@ public class MapMesh implements Rendered {
 	private static States.DepthOffset gmoff = new States.DepthOffset(-1, -1);
 
 	public static class GroundMod implements Rendered {
+		@SuppressWarnings("rawtypes")
 		private static final Order gmorder = new Order.Default(1001);
 		public final Material mat;
 		public final Coord cc;
@@ -479,6 +480,7 @@ public class MapMesh implements Rendered {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	public static final Order olorder = new Order.Default(1002);
 
 	public static class OverlayRendered implements Rendered {

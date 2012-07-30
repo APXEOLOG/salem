@@ -26,8 +26,6 @@
 
 package haven;
 
-import javax.media.opengl.*;
-
 public class DirCam extends Camera {
     static final Coord3f defdir = new Coord3f(0, 0, -1);
     Coord3f base = Coord3f.o, dir = defdir;

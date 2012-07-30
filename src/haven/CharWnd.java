@@ -40,6 +40,7 @@ import java.util.Map;
 import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SWindow;
 
+@SuppressWarnings("serial")
 public class CharWnd extends SWindow {
 	public static final Map<String, String> attrnm;
 	public static final List<String> attrorder;
@@ -151,7 +152,7 @@ public class CharWnd extends SWindow {
 				initialGL.chcolor(meterColor);
 				double width = textSize().x / 100.;
 				width *= meterPercent;
-				// у меня от этих типов данных ДЕЛЕНИЕ
+				// пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 				Coord meterSize = new Coord(Math.max((int) width, 3),
 						textSize().y);
 				initialGL.frect(headerBox.getBorderPosition().add(1, 1),

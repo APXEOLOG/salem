@@ -26,7 +26,6 @@
 
 package haven;
 
-import java.util.Comparator;
 import javax.media.opengl.*;
 
 public interface Rendered {
@@ -38,6 +37,7 @@ public interface Rendered {
 		public int compare(T a, T b, GLState.Buffer sa, GLState.Buffer sb);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public static final GLState.Slot<Order> order = new GLState.Slot<Order>(
 			GLState.Slot.Type.GEOM, Order.class, HavenPanel.global);
 
@@ -80,10 +80,14 @@ public interface Rendered {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	public final static Order deflt = new Order.Default(0);
+	@SuppressWarnings("rawtypes")
 	public final static Order first = new Order.Default(Integer.MIN_VALUE);
+	@SuppressWarnings("rawtypes")
 	public final static Order last = new Order.Default(Integer.MAX_VALUE);
 
+	@SuppressWarnings("rawtypes")
 	public final static Order eyesort = new Order.Default(10000) {
 		private final RComparator<Rendered> cmp = new RComparator<Rendered>() {
 			public int compare(Rendered a, Rendered b, GLState.Buffer sa,

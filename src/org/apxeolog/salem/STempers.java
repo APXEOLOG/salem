@@ -8,7 +8,6 @@ import haven.GameUI;
 import haven.ItemInfo;
 import haven.RichText;
 import haven.Text;
-import haven.Utils;
 import haven.WItem;
 import haven.Widget;
 
@@ -101,16 +100,13 @@ public class STempers extends ITempers {
 	}
 
 	public Object tooltip(Coord c, boolean again) {
-		if (true) {
-			if (tooltip == null) {
-				StringBuilder buf = new StringBuilder();
-				for (int i = 0; i < 4; i++)
-					buf.append(String.format("%s: %.1f / %.1f / %.1f\n", stat_name[i], hardVal[i] / 1000D, softVal[i] / 1000D, maxVal[i] / 1000D));
-				tooltip = RichText.render(buf.toString(), 0).tex();
-			}
-			return tooltip;
+		if (tooltip == null) {
+			StringBuilder buf = new StringBuilder();
+			for (int i = 0; i < 4; i++)
+				buf.append(String.format("%s: %.1f / %.1f / %.1f\n", stat_name[i], hardVal[i] / 1000D, softVal[i] / 1000D, maxVal[i] / 1000D));
+			tooltip = RichText.render(buf.toString(), 0).tex();
 		}
-		return null;
+		return tooltip;
 	}
 	
 	public void upds(int[] n) {

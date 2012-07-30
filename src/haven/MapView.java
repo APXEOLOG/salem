@@ -29,12 +29,9 @@ package haven;
 import static haven.MCache.tilesz;
 import haven.MCache.Overlay;
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 import java.util.*;
 import javax.media.opengl.*;
 
-import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.HConfig;
 
 public class MapView extends PView implements DTarget {
@@ -162,7 +159,6 @@ public class MapView extends PView implements DTarget {
 			if (dist > 250) {
 				curc = cc;
 			} else if (dist > fr) {
-				Coord3f oc = curc;
 				float pd = (float) Math.cos(elev) * dist(elev);
 				Coord3f cambase = new Coord3f(curc.x
 						+ ((float) Math.cos(tangl) * pd), curc.y

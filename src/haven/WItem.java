@@ -34,8 +34,6 @@ import java.awt.image.BufferedImage;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apxeolog.salem.ALS;
-
 public class WItem extends Widget implements DTarget {
 	public static final Resource missing = Resource.load("gfx/invobjs/missing");
 	public final static RichText.Foundry ttfnd = new RichText.Foundry(

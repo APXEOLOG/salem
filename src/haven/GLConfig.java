@@ -29,6 +29,7 @@ package haven;
 import java.util.*;
 import javax.media.opengl.*;
 
+@SuppressWarnings("serial")
 public class GLConfig implements java.io.Serializable, Console.Directory {
     public boolean usedl = true, fsaa = false;
     public int maxlights;

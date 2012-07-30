@@ -40,7 +40,6 @@ public class Polity extends SWindow {
 	public boolean offline;
 	private final List<Member> memb = new ArrayList<Member>();
 	private final Map<Integer, Member> idmap = new HashMap<Integer, Member>();
-	private MemberList ml;
 	private Widget mw;
 
 	static {
@@ -53,6 +52,7 @@ public class Polity extends SWindow {
 
 	public class Member {
 		public final int id;
+		@SuppressWarnings("unused")
 		private Text rname = null;
 
 		private Member(int id) {
@@ -151,7 +151,7 @@ public class Polity extends SWindow {
 		this.name = name;
 		nameLbl = new Label(new Coord(0, 5), this, name, nmf);
 		new Label(new Coord(0, 45), this, "Members:");
-		ml = new MemberList(new Coord(0, 60), new Coord(200, 140), this);
+		new MemberList(new Coord(0, 60), new Coord(200, 140), this);
 		pack();
 	}
 	

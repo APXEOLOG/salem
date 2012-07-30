@@ -29,7 +29,6 @@ package haven;
 import java.awt.Color;
 import java.awt.Font;
 
-import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.SChatWindow;
 
 import static java.lang.Math.PI;

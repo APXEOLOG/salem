@@ -26,13 +26,8 @@
 
 package haven;
 
-import java.awt.Color;
 import java.net.*;
 import java.util.*;
-
-import org.apxeolog.salem.SChat;
-import org.apxeolog.salem.SChatWindow;
-import org.apxeolog.salem.SWindow;
 
 public class Bootstrap implements UI.Receiver {
 	UI ui;

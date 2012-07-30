@@ -75,7 +75,8 @@ public abstract class AutoDccSetup extends GenericCommandAutoService
         }
     }
 
-    private List tokenizeParams(String msg)
+    @SuppressWarnings("rawtypes")
+	private List tokenizeParams(String msg)
     {
         List<String> l = new ArrayList<String>(5);
         StringBuffer word = new StringBuffer();
@@ -132,7 +133,8 @@ public abstract class AutoDccSetup extends GenericCommandAutoService
      * @throws UnauthorizedDccException if the DCC is not authorized
      * @throws IOException if the connection failed.
      */
-    protected void handleCtcp( CtcpMessage ctcpMsg )
+    @SuppressWarnings("rawtypes")
+	protected void handleCtcp( CtcpMessage ctcpMsg )
         throws DccException, IOException
     {
         if( ! ctcpMsg.getAction().toLowerCase().equals( "dcc" ) )

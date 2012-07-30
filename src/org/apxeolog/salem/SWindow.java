@@ -3,7 +3,6 @@ package org.apxeolog.salem;
 import haven.Coord;
 import haven.GOut;
 import haven.Resource;
-import haven.RichText;
 import haven.Tex;
 import haven.TexI;
 import haven.Text;

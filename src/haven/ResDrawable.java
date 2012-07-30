@@ -26,8 +26,6 @@
 
 package haven;
 
-import java.awt.Color;
-
 public class ResDrawable extends Drawable {
     final Indir<Resource> res;
     final Message sdt;

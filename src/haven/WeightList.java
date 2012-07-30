@@ -28,6 +28,7 @@ package haven;
 
 import java.util.*;
 
+@SuppressWarnings("serial")
 public class WeightList<T> implements java.io.Serializable {
     List<T> c;
     List<Integer> w;

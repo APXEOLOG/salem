@@ -190,7 +190,8 @@ public class Light implements Rendered {
 		tgt.dispose();
 	    }
 	    
-	    public void prerender(RenderList rl, GOut g) {
+	    @SuppressWarnings("unused")
+		public void prerender(RenderList rl, GOut g) {
 		parts.clear();
 		LightList ll = null;
 		Camera cam = null;
@@ -409,7 +410,8 @@ public class Light implements Rendered {
 	return(false);
     }
     
-    public static class Res extends Resource.Layer {
+    @SuppressWarnings("serial")
+	public static class Res extends Resource.Layer {
 	public final int id;
 	public final Color amb, dif, spc;
 	public boolean hatt, hexp;

@@ -134,7 +134,8 @@ public class Fightview extends Widget {
         super.draw(g);
     }
     
-    public static class Notfound extends RuntimeException {
+    @SuppressWarnings("serial")
+	public static class Notfound extends RuntimeException {
         public final long id;
         
         public Notfound(long id) {

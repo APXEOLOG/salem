@@ -165,7 +165,8 @@ public class ClientState
         channels.remove( channel.toLowerCase() );
     }
 
-    public boolean isOnChannel( String channel )
+    @SuppressWarnings("rawtypes")
+	public boolean isOnChannel( String channel )
     {
         for (Enumeration iter = getChannelNames(); iter.hasMoreElements();)
         {
@@ -177,12 +178,14 @@ public class ClientState
         return false;
     }
 
-    public Enumeration getChannelNames()
+    @SuppressWarnings("rawtypes")
+	public Enumeration getChannelNames()
     {
         return channels.keys();
     }
 
-    public Enumeration getChannels()
+    @SuppressWarnings("rawtypes")
+	public Enumeration getChannels()
     {
         return channels.elements();
     }

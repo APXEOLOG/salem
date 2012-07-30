@@ -81,7 +81,8 @@ public interface InCommand extends Command
      *
      * @return Iterator of attribute keys
      */
-    Iterator getAttributeKeys();
+    @SuppressWarnings("rawtypes")
+	Iterator getAttributeKeys();
 
     /**
      * Returns the attribute, or null if the attribute does not exist,

@@ -571,6 +571,7 @@ public class ChatUI extends Widget {
 	}
 
 	private class Notification {
+		@SuppressWarnings("unused")
 		public final Channel chan;
 		public final Text chnm;
 		public final Channel.Message msg;

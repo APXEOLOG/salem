@@ -243,7 +243,8 @@ public class RidgeTile extends GroundTile {
 	}
     }
     
-    public void layridge(MapMesh m, Random rnd, Coord lc, Coord gc, boolean[] b) {
+    @SuppressWarnings("unused")
+	public void layridge(MapMesh m, Random rnd, Coord lc, Coord gc, boolean[] b) {
 	int z00 = m.map.getz(gc),
 	    z10 = m.map.getz(gc.add(1, 0)),
 	    z01 = m.map.getz(gc.add(0, 1)),

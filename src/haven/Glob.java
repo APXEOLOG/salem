@@ -76,6 +76,7 @@ public class Glob {
 		}
 	}
 
+	@SuppressWarnings("serial")
 	public static class Pagina implements java.io.Serializable {
 		private final java.lang.ref.WeakReference<Resource> res;
 		public State st;
@@ -139,6 +140,7 @@ public class Glob {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private static double defix(int i) {
 		return (((double) i) / 1e9);
 	}

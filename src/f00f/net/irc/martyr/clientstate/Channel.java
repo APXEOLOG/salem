@@ -216,6 +216,7 @@ public class Channel
 		}
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public Iterator getModes()
 	{
 		return modes.iterator();
@@ -226,6 +227,7 @@ public class Channel
      *
      * @return List of members in the channel
 	 */
+	@SuppressWarnings("rawtypes")
 	public Enumeration getMembers()
 	{
 		return members.elements();
@@ -266,6 +268,7 @@ public class Channel
 		return findMember( makeMember( nick ) );
 	}
 	
+	@SuppressWarnings("rawtypes")
 	protected Member findMember( Member member )
 	{
 		Enumeration membersE = getMembers();

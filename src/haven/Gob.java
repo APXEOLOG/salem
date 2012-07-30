@@ -308,6 +308,7 @@ public class Gob implements Sprite.Owner, Rendered {
 	public class GobLocation extends Location {
 		private Coord3f c = null;
 		private double a = 0.0;
+		@SuppressWarnings("unused")
 		private Matrix4f update = null;
 
 		public GobLocation() {

@@ -33,7 +33,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SMapper;
 import org.apxeolog.salem.SUtils;

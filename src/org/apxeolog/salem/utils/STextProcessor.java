@@ -13,10 +13,7 @@ import java.awt.Graphics;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -467,7 +464,7 @@ public class STextProcessor {
 			}
 			lines.clear();
 			lines.add(0);
-			double wbuf = 0; int cutindex = -1;
+			double wbuf = 0; //int cutindex = -1;
 			for (int i = 0; i < nodeList.size(); i++) {
 				/*if (nodeList.get(i).getNodeWidth() >= (sz.x - 3)) {
 					cutindex = i; break;

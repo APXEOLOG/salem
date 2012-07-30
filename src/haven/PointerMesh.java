@@ -27,10 +27,7 @@
 package haven;
 
 import java.awt.Color;
-import java.nio.*;
 import javax.media.opengl.*;
-
-import org.apxeolog.salem.HConfig;
 
 public class PointerMesh extends QuadMesh {
 	public PointerMesh(VertexBuf vert, short[] ind) {

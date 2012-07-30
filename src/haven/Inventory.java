@@ -28,8 +28,6 @@ package haven;
 
 import java.util.*;
 
-import org.apxeolog.salem.ALS;
-
 public class Inventory extends Widget implements DTarget {
 	public static final Tex invsq = Resource.loadtex("gfx/hud/invsq");
 	public static final Tex refl = Resource.loadtex("gfx/hud/invref");

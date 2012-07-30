@@ -1,8 +1,5 @@
 package org.apxeolog.salem;
 
-import java.lang.reflect.Array;
-import java.util.Collection;
-
 public class ALS {
 	protected static int PRINT_LEVEL = 0;
 	

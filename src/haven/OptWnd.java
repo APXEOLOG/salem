@@ -39,6 +39,7 @@ public class OptWnd extends Window {
 	private Map<String, CamInfo> caminfomap = new HashMap<String, CamInfo>();
 	private Map<String, String> camname2type = new HashMap<String, String>();
 	private Map<String, String[]> camargs = new HashMap<String, String[]>();
+	@SuppressWarnings("unused")
 	private Comparator<String> camcomp = new Comparator<String>() {
 		public int compare(String a, String b) {
 			if (a.startsWith("The "))
@@ -48,10 +49,10 @@ public class OptWnd extends Window {
 			return (a.compareTo(b));
 		}
 	};
-
+	@SuppressWarnings("unused")
 	private static class CamInfo {
-		String name, desc;
-		Tabs.Tab args;
+		public String name, desc;
+		public Tabs.Tab args;
 
 		public CamInfo(String name, String desc, Tabs.Tab args) {
 			this.name = name;
@@ -228,6 +229,7 @@ public class OptWnd extends Window {
 	 * } }
 	 */
 
+	@SuppressWarnings("unused")
 	private void setcamargs(String camtype, String... args) {
 		camargs.put(camtype, args);
 		if (args.length > 0 && curcam.equals(camtype))
@@ -238,6 +240,7 @@ public class OptWnd extends Window {
 		return ((int) (100 - Double.parseDouble(Utils.getpref("sfxvol", "1.0")) * 100));
 	}
 
+	@SuppressWarnings("unused")
 	private void addinfo(String camtype, String title, String text,
 			Tabs.Tab args) {
 		caminfomap.put(camtype, new CamInfo(title, text, args));

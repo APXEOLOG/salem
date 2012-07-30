@@ -18,6 +18,7 @@ import org.apxeolog.salem.ALS;
  * also knows about the ":" parameters, which is the large string at
  * the end of most commands, and treats it specially.
  */
+@SuppressWarnings("rawtypes")
 public class ParameterIterator implements Iterator
 {
     private String paramStr;

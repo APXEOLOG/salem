@@ -638,7 +638,6 @@ public class Widget {
 		}
 	}
 
-	@Deprecated
 	public <T extends Widget> T findchild(Class<T> cl) {
 		for (Widget wdg = child; wdg != null; wdg = wdg.next) {
 			if (cl.isInstance(wdg))
@@ -672,6 +671,7 @@ public class Widget {
 
 	public <T extends Widget> Set<T> children(final Class<T> cl) {
 		return (new AbstractSet<T>() {
+			@SuppressWarnings("unused")
 			public int size() {
 				int i = 0;
 				for (T w : this)

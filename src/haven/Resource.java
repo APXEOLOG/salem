@@ -38,7 +38,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -76,8 +75,7 @@ import java.util.TreeMap;
 
 import javax.imageio.ImageIO;
 
-import org.apxeolog.salem.ALS;
-
+@SuppressWarnings("serial")
 public class Resource implements Comparable<Resource>, Prioritized,
 		Serializable {
 	private static Map<String, Resource> cache = new TreeMap<String, Resource>();
@@ -358,7 +356,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		{
 			ssl = new SslHelper();
 			try {
-				ssl.trust(ssl.loadX509(Resource.class
+				ssl.trust(SslHelper.loadX509(Resource.class
 						.getResourceAsStream("ressrv.crt")));
 			} catch (java.security.cert.CertificateException e) {
 				throw (new Error("Invalid built-in certificate", e));
@@ -1053,6 +1051,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 	}
 
 	public class CodeEntry extends Layer {
+		@SuppressWarnings("unused")
 		private String clnm;
 		private Map<String, Code> clmap = new TreeMap<String, Code>();
 		private Map<String, String> pe = new TreeMap<String, String>();
@@ -1265,6 +1264,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			throw (new Loading(this));
 		checkerr();
 		return (new AbstractCollection<L>() {
+			@SuppressWarnings("unused")
 			public int size() {
 				int s = 0;
 				for (L l : this)
@@ -1441,6 +1441,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 				throw (new RuntimeException());
 			}
 
+			@SuppressWarnings("unused")
 			public int compareTo(Indir<Resource> x) {
 				return (Resource.this.compareTo(this.getClass().cast(x).res));
 			}
@@ -1450,9 +1451,9 @@ public class Resource implements Comparable<Resource>, Prioritized,
 
 	public void checkerr() {
 		if (error != null) {
-			ALS.alDebugPrint("Delayed error in resource " + name + " (v" + ver + "), from " + source, error);
-			/*throw (new RuntimeException("Delayed error in resource " + name
-					+ " (v" + ver + "), from " + source, error));*/
+			//ALS.alDebugPrint("Delayed error in resource " + name + " (v" + ver + "), from " + source, error);
+			throw (new RuntimeException("Delayed error in resource " + name
+					+ " (v" + ver + "), from " + source, error));
 			// Do not throw anything here... just let it be as it be
 		}
 	}

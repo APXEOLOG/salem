@@ -28,7 +28,6 @@ package haven;
 
 import java.awt.event.KeyEvent;
 
-import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.HConfig;
 
 public class RootWidget extends ConsoleHost {

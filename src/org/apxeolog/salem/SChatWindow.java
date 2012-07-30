@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
-
 import haven.BuddyWnd.Buddy;
 import haven.ChatUI;
 import haven.ChatUI.EntryChannel;
@@ -199,6 +197,7 @@ public class SChatWindow extends SWindow {
 		showLine(SChat.textFoundry.render(String.format("[%s]: ", ((PrivChat)(wdgRef.get())).name()), MODE_COLORS[MODE_LINKED]));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (sender == lineEdit) {

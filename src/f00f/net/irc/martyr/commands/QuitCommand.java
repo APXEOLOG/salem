@@ -95,7 +95,8 @@ public class QuitCommand extends AbstractCommand
      * If someone else is leaving, then remove them from all the groups
      * they are in.
      */
-    public boolean updateClientState( ClientState state )
+    @SuppressWarnings("rawtypes")
+	public boolean updateClientState( ClientState state )
     {
         ALS.alDebugPrint( "Nick: " + state.getNick().toString() );
         if( isOurQuit(state) )

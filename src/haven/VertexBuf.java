@@ -208,9 +208,11 @@ public class VertexBuf {
 		}
 	}
 
+	@SuppressWarnings("serial")
 	public static class VertexRes extends Resource.Layer {
 		public transient final VertexBuf b;
 
+		@SuppressWarnings("unused")
 		public VertexRes(Resource res, byte[] buf) {
 			res.super();
 			ArrayList<AttribArray> bufs = new ArrayList<AttribArray>();

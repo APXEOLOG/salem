@@ -53,7 +53,8 @@ public class JnlpCache implements ResCache {
 	}
     }
     
-    public static URL getConfigPath() {
+    @SuppressWarnings("unused")
+	public static URL getConfigPath() {
 		try {
 			Class<? extends ServiceManager> cl = Class.forName(
 					"javax.jnlp.ServiceManager").asSubclass(

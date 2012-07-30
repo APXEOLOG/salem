@@ -30,6 +30,7 @@ import java.io.*;
 import java.util.*;
 import javax.media.opengl.*;
 
+@SuppressWarnings("serial")
 public abstract class GLShader implements java.io.Serializable {
     public final String source, header;
     private transient ShaderOb gls;
@@ -129,7 +130,7 @@ public abstract class GLShader implements java.io.Serializable {
 	public abstract void directive(String directive, String args);
     }
     
-    public static class VertexShader extends GLShader {
+	public static class VertexShader extends GLShader {
 	public final String entry;
 	public final String[] args;
 	public final int order;
@@ -254,7 +255,7 @@ public abstract class GLShader implements java.io.Serializable {
 	}
     }
 
-    public static class FragmentShader extends GLShader {
+	public static class FragmentShader extends GLShader {
 	public final String entry;
 	public final int order;
 

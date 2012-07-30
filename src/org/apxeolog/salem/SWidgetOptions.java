@@ -32,11 +32,8 @@ import haven.CheckBox;
 import haven.Coord;
 import haven.GOut;
 import haven.GameUI;
-import haven.GLFrameBuffer.RenderBuffer.RBO;
 import haven.GameUI.Hidewnd;
-import haven.IBox;
 import haven.Label;
-import haven.LineEdit;
 import haven.Loading;
 import haven.Resource;
 import haven.RichText;
@@ -53,8 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-
-import javax.security.auth.login.AccountException;
 
 import org.apxeolog.salem.SToolbarConfig.SToolbarConfigSlot;
 import org.apxeolog.salem.SUtils.HighlightInfo;

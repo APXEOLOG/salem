@@ -115,6 +115,7 @@ public class Audio {
 
 	private static class Player extends HackThread {
 		private Collection<CS> clips = new LinkedList<CS>();
+		@SuppressWarnings("unused")
 		private int srate, nch = 2;
 
 		Player() {

@@ -27,10 +27,7 @@
 package haven;
 
 import java.awt.Color;
-import java.nio.*;
 import javax.media.opengl.*;
-
-import org.apxeolog.salem.HConfig;
 
 public class GridMesh extends QuadMesh {
 	public GridMesh(VertexBuf vert, short[] ind) {

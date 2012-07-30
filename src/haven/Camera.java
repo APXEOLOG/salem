@@ -26,8 +26,6 @@
 
 package haven;
 
-import javax.media.opengl.*;
-
 public abstract class Camera extends Transform {
     private Matrix4f bk;
     

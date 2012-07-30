@@ -29,6 +29,7 @@ package haven;
 import java.util.*;
 import java.awt.Color;
 
+@SuppressWarnings("serial")
 public class Message implements java.io.Serializable {
     public static final int RMSG_NEWWDG = 0;
     public static final int RMSG_WDGMSG = 1;

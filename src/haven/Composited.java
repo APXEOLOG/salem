@@ -122,6 +122,7 @@ public class Composited implements Rendered {
 		this.pose = skel.new Pose(skel.bindpose);
 	}
 
+	@SuppressWarnings("rawtypes")
 	private static final Rendered.Order modorder = new Rendered.Order<Model.Layer>() {
 		public int mainz() {
 			return (1);

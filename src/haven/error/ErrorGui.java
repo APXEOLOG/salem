@@ -30,6 +30,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+@SuppressWarnings("serial")
 public abstract class ErrorGui extends JDialog implements ErrorStatus {
 	private JLabel status;
 	private JPanel details;

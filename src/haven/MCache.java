@@ -29,9 +29,7 @@ package haven;
 import java.util.*;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.*;
 import haven.Resource.Tileset;
-import haven.Resource.Tile;
 import java.util.zip.Inflater;
 
 public class MCache {
@@ -67,6 +65,7 @@ public class MCache {
 		return (img);
 	}
 	
+	@SuppressWarnings("serial")
 	public static class LoadingMap extends Loading {
 	}
 
@@ -537,7 +536,6 @@ public class MCache {
 						.iterator(); i.hasNext();) {
 					Map.Entry<Coord, Grid> e = i.next();
 					Coord gc = e.getKey();
-					Grid g = e.getValue();
 					if ((gc.x < ul.x) || (gc.y < ul.y) || (gc.x > lr.x)
 							|| (gc.y > lr.y))
 						i.remove();

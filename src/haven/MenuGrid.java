@@ -33,7 +33,6 @@ import haven.Resource.AButton;
 import haven.Glob.Pagina;
 import java.util.*;
 
-import org.apxeolog.salem.SToolbar;
 import org.apxeolog.salem.SToolbarConfig;
 
 public class MenuGrid extends Widget {
@@ -59,6 +58,7 @@ public class MenuGrid extends Widget {
 		});
 	}
 
+	@SuppressWarnings("serial")
 	public class PaginaException extends RuntimeException {
 		public Pagina pag;
 
@@ -68,6 +68,7 @@ public class MenuGrid extends Widget {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private boolean cons(Pagina p, Collection<Pagina> buf) {
 		Pagina[] cp = new Pagina[0];
 		Collection<Pagina> open, close = new HashSet<Pagina>();

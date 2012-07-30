@@ -26,8 +26,6 @@
 
 package haven;
 
-import java.awt.image.BufferedImage;
-import java.awt.Graphics;
 import java.util.*;
 import java.lang.reflect.Constructor;
 
@@ -93,7 +91,8 @@ public abstract class Sprite implements Rendered {
 	}
     }
 	
-    public static class ResourceException extends RuntimeException {
+    @SuppressWarnings("serial")
+	public static class ResourceException extends RuntimeException {
 	public Resource res;
 		
 	public ResourceException(String msg, Resource res) {

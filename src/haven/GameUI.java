@@ -28,8 +28,6 @@ package haven;
 
 import static haven.Inventory.invsq;
 
-import haven.MCache.Overlay;
-
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -178,6 +176,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 										(int) gob.id, gob.rc);
 						}
 
+						@SuppressWarnings("unused")
 						protected void nohit(Coord pc) {
 							wdgmsg("belt", slot, 1, ui.modflags());
 						}

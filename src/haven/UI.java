@@ -31,8 +31,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.InputEvent;
 
-import org.apxeolog.salem.ALS;
-
 public class UI {
 	public RootWidget root;
 	private Widget keygrab, mousegrab;

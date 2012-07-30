@@ -130,7 +130,7 @@ public class MeshBuf {
 		pos = Utils.mkfbuf(v.size() * 3);
 		nrm = Utils.mkfbuf(v.size() * 3);
 		tex = Utils.mkfbuf(v.size() * 2);
-		int pi = 0, ni = 0, ti = 0;
+		int pi = 0, ti = 0;
 		short i = 0;
 		for (Vertex v : this.v) {
 			pos.put(pi + 0, v.pos.x);
@@ -145,7 +145,6 @@ public class MeshBuf {
 				tex.put(ti + 1, v.tex.y);
 			}
 			pi += 3;
-			ni += 3;
 			ti += 2;
 			v.idx = i++;
 			if (i == 0)

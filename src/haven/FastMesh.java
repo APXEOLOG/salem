@@ -153,6 +153,7 @@ public class FastMesh implements FRendered {
 		}
 	}
 
+	@SuppressWarnings("serial")
 	public static class MeshRes extends Resource.Layer implements
 			Resource.IDLayer<Integer> {
 		public transient FastMesh m;

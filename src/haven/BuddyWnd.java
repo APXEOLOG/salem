@@ -30,16 +30,12 @@ import java.awt.Color;
 import java.util.*;
 import java.text.Collator;
 
-import org.apxeolog.salem.SChatWindow;
 import org.apxeolog.salem.SWindow;
 
 public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 	private List<Buddy> buddies = new ArrayList<Buddy>();
 	private Map<Integer, Buddy> idmap = new HashMap<Integer, Buddy>();
 	private BuddyList bl;
-	private Button sbalpha;
-	private Button sbgroup;
-	private Button sbstatus;
 	private TextEntry charpass, opass;
 	private Buddy editing = null;
 	private TextEntry nicksel;
@@ -341,17 +337,17 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		super(c, new Coord(200, 370), parent, "Kin");
 		bl = new BuddyList(new Coord(10, 5), new Coord(180, 140), this);
 		new Label(new Coord(5, 215), this, "Sort by:");
-		sbstatus = new Button(new Coord(10, 230), 50, this, "Status") {
+		new Button(new Coord(10, 230), 50, this, "Status") {
 			public void click() {
 				setcmp(statuscmp);
 			}
 		};
-		sbgroup = new Button(new Coord(75, 230), 50, this, "Group") {
+		new Button(new Coord(75, 230), 50, this, "Group") {
 			public void click() {
 				setcmp(groupcmp);
 			}
 		};
-		sbalpha = new Button(new Coord(140, 230), 50, this, "Name") {
+		new Button(new Coord(140, 230), 50, this, "Name") {
 			public void click() {
 				setcmp(alphacmp);
 			}

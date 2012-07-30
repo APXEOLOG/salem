@@ -230,29 +230,6 @@ public class VorbisStream {
     }
     
     /**
-     * This function implements a main function that can be used for
-     * either testing the functionality of this
-     * <code>VorbisStream</code> implementation or individual
-     * Ogg/Vorbis files. It takes one command-line argument to be
-     * interpreted as the path to an Ogg/Vorbis file to be decoded
-     * into PCM data. The PCM data is output to standard output.
-     *
-     * You can use the <code>sox</code> program to play Ogg/Vorbis
-     * files with this class as well:
-     * <pre>
-     * java dolda.xiphutil.VorbisStream test.ogg | sox -t .raw -r 44100 -sw -c 2 - -t ossdsp /dev/dsp
-     * </pre>
-     */
-    public static void main(String[] args) throws Exception {
-	VorbisStream vs = new VorbisStream(new FileInputStream(args[0]));
-	InputStream pcm = vs.pcmstream();
-	byte[] buf = new byte[4096];
-	int ret;
-	while((ret = pcm.read(buf)) >= 0)
-	    System.out.write(buf);
-    }
-    
-    /**
      * Closes the stream backing this object.
      *
      * @exception java.io.IOException if the backing input stream

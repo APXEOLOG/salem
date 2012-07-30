@@ -45,6 +45,7 @@ public class HConfig {
 		additionTokens.put(name, value.toString());
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public static <T, V> T getValue(String name, Class vclass) {
 		Object ret = additionTokens.get(name);
 		if (ret != null) return castToType(vclass, ret);

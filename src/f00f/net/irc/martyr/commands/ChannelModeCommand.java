@@ -40,6 +40,7 @@ public class ChannelModeCommand extends ModeCommand
     private String channelName;
 	private FullNick sender;
 	
+	@SuppressWarnings("rawtypes")
 	private List modes;
 
 	private static HashMap<Character,Mode> modeTypes;
@@ -68,6 +69,7 @@ public class ChannelModeCommand extends ModeCommand
      *
      * @param channelName Channel that the mode change is in reference to
      */
+	@SuppressWarnings("rawtypes")
 	public ChannelModeCommand( String channelName )
 	{	
 		sender = null;
@@ -115,6 +117,7 @@ public class ChannelModeCommand extends ModeCommand
 		return "MODE " + channelName + renderParams();
 	}
 
+	@SuppressWarnings("rawtypes")
 	public String renderParams()
 	{
 		Iterator modesI = modes.iterator();
@@ -164,6 +167,7 @@ public class ChannelModeCommand extends ModeCommand
     /**
 	 * Passes the modes on to the clientstate.Channel object.
 	 */
+	@SuppressWarnings("rawtypes")
 	public boolean updateClientState( ClientState state )
 	{
 		boolean changed = false;

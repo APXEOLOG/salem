@@ -69,6 +69,7 @@ public class Material extends GLState {
 	    this.shine = shine;
 	}
 	
+	@SuppressWarnings("unused")
 	private static float[] colmul(float[] c1, float[] c2) {
 	    return(new float[] {c1[0] * c2[0], c1[1] * c2[1], c1[2] * c2[2], c1[3] * c2[3]});
 	}
@@ -181,7 +182,8 @@ public class Material extends GLState {
 	    st.prep(buf);
     }
     
-    public static class Res extends Resource.Layer implements Resource.IDLayer<Integer> {
+    @SuppressWarnings("serial")
+	public static class Res extends Resource.Layer implements Resource.IDLayer<Integer> {
 	public final int id;
 	private transient List<GLState> states = new LinkedList<GLState>();
 	private transient List<Resolver> left = new LinkedList<Resolver>();

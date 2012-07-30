@@ -31,6 +31,7 @@ import javax.media.opengl.*;
 import haven.GLShader.VertexShader;
 import haven.GLShader.FragmentShader;
 
+@SuppressWarnings("serial")
 public class GLProgram implements java.io.Serializable {
     public final Collection<GLShader> shaders;
     private transient ProgOb glp;
@@ -115,7 +116,7 @@ public class GLProgram implements java.io.Serializable {
 	}
     }
     
-    public static class ProgramException extends RuntimeException {
+	public static class ProgramException extends RuntimeException {
 	public final GLProgram program;
 	public final String info;
 	

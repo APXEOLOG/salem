@@ -28,6 +28,7 @@ package haven;
 
 import java.util.*;
 
+@SuppressWarnings("serial")
 public class PrioQueue<E extends Prioritized> extends LinkedList<E> {
     public E peek() {
 	E rv = null;

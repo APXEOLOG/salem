@@ -68,7 +68,6 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 				Pagina p = null;
 				if (slotList[slot] != null)
 					p = slotList[slot].getSlotPagina();
-				@SuppressWarnings("deprecation")
 				MenuGrid mg = ui.root.findchild(MenuGrid.class);
 				if (mg != null)
 					mg.use(p);
@@ -199,7 +198,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			//moving items on toolbar
 			//removing old one
 			Pagina p = null;
-			if(slotIndex(c) < slotList.length && slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
+			if(slotIndex(c) > 0 && slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
 			if (p != pressPag) {
 				dragPag = pressPag;
 			}
@@ -225,7 +224,6 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 				//������� ���
 				if(pressPag == p) {
 					//activating slot
-					@SuppressWarnings("deprecation")
 					MenuGrid mg = ui.root.findchild(MenuGrid.class);
 					if(mg != null)
 						mg.use(p);

@@ -85,6 +85,7 @@ public abstract class GLState {
 		public final Class<T> scl;
 		private int depid = -1;
 		private final Slot<?>[] dep, rdep;
+		@SuppressWarnings("rawtypes")
 		private Slot[] grdep;
 
 		public static enum Type {
@@ -121,10 +122,12 @@ public abstract class GLState {
 			}
 		}
 
+		@SuppressWarnings("rawtypes")
 		public Slot(Type type, Class<T> scl, Slot... dep) {
 			this(type, scl, dep, null);
 		}
 
+		@SuppressWarnings("rawtypes")
 		private static void makedeps(Collection<Slot<?>> slots) {
 			Map<Slot<?>, Set<Slot<?>>> lrdep = new HashMap<Slot<?>, Set<Slot<?>>>();
 			for (Slot<?> s : slots)
@@ -170,6 +173,7 @@ public abstract class GLState {
 				Arrays.sort(s.grdep, cmp);
 		}
 
+		@SuppressWarnings("rawtypes")
 		public static void update() {
 			synchronized (Slot.class) {
 				if (!dirty)
@@ -272,6 +276,7 @@ public abstract class GLState {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	public static int bufdiff(Buffer f, Buffer t, boolean[] trans,
 			boolean[] repl) {
 		Slot.update();
@@ -488,6 +493,7 @@ public abstract class GLState {
 				time += System.nanoTime() - st;
 		}
 
+		@SuppressWarnings("serial")
 		public static class ApplyException extends RuntimeException {
 			public final transient GLState st;
 			public final String func;

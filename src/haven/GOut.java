@@ -67,6 +67,7 @@ public class GOut {
 		this.def2d = def2d;
 	}
 
+	@SuppressWarnings("serial")
 	public static class GLException extends RuntimeException {
 		public int code;
 		public String str;

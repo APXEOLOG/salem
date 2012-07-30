@@ -31,7 +31,6 @@ import haven.*;
 import haven.Resource.Tile;
 import haven.MapMesh.Surface;
 import javax.media.opengl.*;
-import java.awt.Color;
 
 public class WaterTile extends Tiler {
     public final int depth;

@@ -33,6 +33,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
+@SuppressWarnings("serial")
 public class HavenApplet extends Applet {
     public static Map<ThreadGroup, HavenApplet> applets = new HashMap<ThreadGroup, HavenApplet>();
     ThreadGroup p;
@@ -40,7 +41,7 @@ public class HavenApplet extends Applet {
     boolean running = false;
     static boolean initedonce = false;
     
-    private class ErrorPanel extends Canvas implements haven.error.ErrorStatus {
+	private class ErrorPanel extends Canvas implements haven.error.ErrorStatus {
 	String status = "";
 	boolean ar = false;
 	

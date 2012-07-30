@@ -40,6 +40,7 @@ public class RenderList {
 		public Rendered r;
 		public GLState.Buffer os = new GLState.Buffer(cfg),
 				cs = new GLState.Buffer(cfg);
+		@SuppressWarnings("rawtypes")
 		public Rendered.Order o;
 		public boolean d;
 		public Slot p;

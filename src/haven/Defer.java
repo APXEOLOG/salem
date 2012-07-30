@@ -38,6 +38,7 @@ public class Defer extends ThreadGroup {
 		public T call() throws InterruptedException;
 	}
 
+	@SuppressWarnings("serial")
 	public static class CancelledException extends RuntimeException {
 		public CancelledException() {
 			super("Execution cancelled");
@@ -48,12 +49,14 @@ public class Defer extends ThreadGroup {
 		}
 	}
 
+	@SuppressWarnings("serial")
 	public static class DeferredException extends RuntimeException {
 		public DeferredException(Throwable cause) {
 			super(cause);
 		}
 	}
 
+	@SuppressWarnings("serial")
 	public static class NotDoneException extends Loading {
 	}
 

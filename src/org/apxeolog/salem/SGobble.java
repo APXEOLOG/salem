@@ -112,16 +112,13 @@ public class SGobble extends IGobble {
 	}
 
 	public Object tooltip(Coord c, boolean again) {
-		if (true) {
-			if (tooltip == null) {
-				StringBuilder buf = new StringBuilder();
-				for (int i = 0; i < 4; i++)
-					buf.append(String.format("%s: %.1f / %.1f\n", STempers.stat_name[i], fepVals[i] / 1000D, currentVals[i] / 1000D));
-				tooltip = RichText.render(buf.toString(), 0).tex();
-			}
-			return tooltip;
+		if (tooltip == null) {
+			StringBuilder buf = new StringBuilder();
+			for (int i = 0; i < 4; i++)
+				buf.append(String.format("%s: %.1f / %.1f\n", STempers.stat_name[i], fepVals[i] / 1000D, currentVals[i] / 1000D));
+			tooltip = RichText.render(buf.toString(), 0).tex();
 		}
-		return null;
+		return tooltip;
 	}
 	
 	public void updt(int[] n) {

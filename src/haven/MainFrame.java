@@ -34,7 +34,6 @@ import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,9 +51,8 @@ import java.util.Stack;
 import java.util.TreeMap;
 
 import org.apxeolog.salem.HConfig;
-import org.apxeolog.salem.SNetworkResources;
-import org.apxeolog.salem.SWindow;
 
+@SuppressWarnings("serial")
 public class MainFrame extends Frame implements Runnable, Console.Directory {
 	HavenPanel p;
 	private final ThreadGroup g;
@@ -163,6 +161,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 			}
 		});
 		cmdmap.put("fs", new Console.Command() {
+			@SuppressWarnings("static-access")
 			public void run(Console cons, String[] args) {
 				if (args.length >= 2) {
 					Runnable r;
@@ -319,6 +318,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 			WebBrowser.self = DesktopBrowser.create();
 	}
 
+	@SuppressWarnings("unused")
 	private static int netxres = -1;
 
 	private static void netxsurgery() {

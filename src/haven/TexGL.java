@@ -26,8 +26,6 @@
 
 package haven;
 
-import java.awt.Color;
-import java.util.*;
 import javax.media.opengl.*;
 import static haven.GOut.checkerr;
 

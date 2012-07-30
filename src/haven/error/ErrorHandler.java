@@ -30,9 +30,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import org.apxeolog.salem.ALS;
-import org.apxeolog.salem.SUtils;
-
 public class ErrorHandler extends ThreadGroup {
 	private final URL errordest;
 	private static final String[] sysprops = { "java.version", "java.vendor",

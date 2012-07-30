@@ -64,7 +64,8 @@ public class NickCommand extends AbstractCommand
         return oldNick.getNick();
     }
 
-    public boolean updateClientState( ClientState state )
+    @SuppressWarnings("rawtypes")
+	public boolean updateClientState( ClientState state )
     {
         // Does this apply to us?
         if( oldNick.equals( state.getNick() ) )

@@ -29,7 +29,8 @@ package haven;
 public interface RenderLink {
     public Rendered make();
     
-    public class Res extends Resource.Layer {
+    @SuppressWarnings("serial")
+	public class Res extends Resource.Layer {
 	public final RenderLink l;
 	
 	public Res(Resource res, byte[] buf) {

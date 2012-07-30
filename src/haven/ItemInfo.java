@@ -31,171 +31,176 @@ import java.awt.image.BufferedImage;
 import java.awt.Graphics;
 
 public abstract class ItemInfo {
-    public final Owner owner;
-    
-    public interface Owner {
-	public Glob glob();
-	public List<ItemInfo> info();
-    }
-    
-    public interface ResOwner extends Owner {
-	public Resource resource();
-    }
-    
-    @Resource.PublishedCode(name = "tt")
-    public static interface InfoFactory {
-	public ItemInfo build(Owner owner, Object... args);
-    }
-    
-    public ItemInfo(Owner owner) {
-	this.owner = owner;
-    }
-    
-    public static abstract class Tip extends ItemInfo {
-	public abstract BufferedImage longtip();
-	
-	public Tip(Owner owner) {
-	    super(owner);
-	}
-    }
-    
-    public static class AdHoc extends Tip {
-	public final Text str;
-	
-	public AdHoc(Owner owner, String str) {
-	    super(owner);
-	    this.str = Text.render(str);
-	}
-	
-	public BufferedImage longtip() {
-	    return(str.img);
-	}
-    }
+	public final Owner owner;
 
-    public static class Name extends Tip {
-	public final Text str;
-	
-	public Name(Owner owner, Text str) {
-	    super(owner);
-	    this.str = str;
-	}
-	
-	public Name(Owner owner, String str) {
-	    this(owner, Text.render(str));
-	}
-	
-	public BufferedImage longtip() {
-	    return(str.img);
-	}
-    }
+	public interface Owner {
+		public Glob glob();
 
-    public static class Contents extends Tip {
-	public final List<ItemInfo> sub;
-	private static final Text.Line ch = Text.render("Contents:");
-	
-	public Contents(Owner owner, List<ItemInfo> sub) {
-	    super(owner);
-	    this.sub = sub;
+		public List<ItemInfo> info();
 	}
-	
-	public BufferedImage longtip() {
-	    BufferedImage stip = longtip(sub);
-	    BufferedImage img = TexI.mkbuf(new Coord(stip.getWidth() + 10, stip.getHeight() + 15));
-	    Graphics g = img.getGraphics();
-	    g.drawImage(ch.img, 0, 0, null);
-	    g.drawImage(stip, 10, 15, null);
-	    g.dispose();
-	    return(img);
-	}
-    }
 
-    public static BufferedImage catimgs(int margin, BufferedImage... imgs) {
-	int w = 0, h = -margin;
-	for(BufferedImage img : imgs) {
-	    if(img.getWidth() > w)
-		w = img.getWidth();
-	    h += img.getHeight() + margin;
+	public interface ResOwner extends Owner {
+		public Resource resource();
 	}
-	BufferedImage ret = TexI.mkbuf(new Coord(w, h));
-	Graphics g = ret.getGraphics();
-	int y = 0;
-	for(BufferedImage img : imgs) {
-	    g.drawImage(img, 0, y, null);
-	    y += img.getHeight() + margin;
-	}
-	g.dispose();
-	return(ret);
-    }
 
-    public static BufferedImage catimgsh(int margin, BufferedImage... imgs) {
-	int w = -margin, h = 0;
-	for(BufferedImage img : imgs) {
-	    if(img.getHeight() > h)
-		h = img.getHeight();
-	    w += img.getWidth() + margin;
+	@Resource.PublishedCode(name = "tt")
+	public static interface InfoFactory {
+		public ItemInfo build(Owner owner, Object... args);
 	}
-	BufferedImage ret = TexI.mkbuf(new Coord(w, h));
-	Graphics g = ret.getGraphics();
-	int x = 0;
-	for(BufferedImage img : imgs) {
-	    g.drawImage(img, x, (h - img.getHeight()) / 2, null);
-	    x += img.getWidth() + margin;
-	}
-	g.dispose();
-	return(ret);
-    }
 
-    public static BufferedImage longtip(List<ItemInfo> info) {
-	List<BufferedImage> buf = new ArrayList<BufferedImage>();
-	for(ItemInfo ii : info) {
-	    if(ii instanceof Tip) {
-		Tip tip = (Tip)ii;
-		buf.add(tip.longtip());
-	    }
+	public ItemInfo(Owner owner) {
+		this.owner = owner;
 	}
-	return(catimgs(0, buf.toArray(new BufferedImage[0])));
-    }
 
-    public static <T> T find(Class<T> cl, List<ItemInfo> il) {
-	for(ItemInfo inf : il) {
-	    if(cl.isInstance(inf))
-		return(cl.cast(inf));
-	}
-	return(null);
-    }
+	public static abstract class Tip extends ItemInfo {
+		public abstract BufferedImage longtip();
 
-    public static List<ItemInfo> buildinfo(Owner owner, Object[] rawinfo) {
-	List<ItemInfo> ret = new ArrayList<ItemInfo>();
-	for(Object o : rawinfo) {
-	    if(o instanceof Object[]) {
-		Object[] a = (Object[])o;
-		Resource ttres = owner.glob().sess.getres((Integer)a[0]).get();
-		InfoFactory f = ttres.layer(Resource.CodeEntry.class).get(InfoFactory.class);
-		ret.add(f.build(owner, a));
-	    } else if(o instanceof String) {
-		ret.add(new AdHoc(owner, (String)o));
-	    } else {
-		throw(new ClassCastException("Unexpected object type " + o.getClass() + " in item info array."));
-	    }
+		public Tip(Owner owner) {
+			super(owner);
+		}
 	}
-	return(ret);
-    }
-    
-    private static String dump(Object arg) {
-	if(arg instanceof Object[]) {
-	    StringBuilder buf = new StringBuilder();
-	    buf.append("[");
-	    boolean f = true;
-	    for(Object a : (Object[])arg) {
-		if(!f)
-		    buf.append(", ");
-		buf.append(dump(a));
-		f = false;
-	    }
-	    buf.append("]");
-	    return(buf.toString());
-	} else {
-	    return(arg.toString());
+
+	public static class AdHoc extends Tip {
+		public final Text str;
+
+		public AdHoc(Owner owner, String str) {
+			super(owner);
+			this.str = Text.render(str);
+		}
+
+		public BufferedImage longtip() {
+			return (str.img);
+		}
 	}
-    }
+
+	public static class Name extends Tip {
+		public final Text str;
+
+		public Name(Owner owner, Text str) {
+			super(owner);
+			this.str = str;
+		}
+
+		public Name(Owner owner, String str) {
+			this(owner, Text.render(str));
+		}
+
+		public BufferedImage longtip() {
+			return (str.img);
+		}
+	}
+
+	public static class Contents extends Tip {
+		public final List<ItemInfo> sub;
+		private static final Text.Line ch = Text.render("Contents:");
+
+		public Contents(Owner owner, List<ItemInfo> sub) {
+			super(owner);
+			this.sub = sub;
+		}
+
+		public BufferedImage longtip() {
+			BufferedImage stip = longtip(sub);
+			BufferedImage img = TexI.mkbuf(new Coord(stip.getWidth() + 10, stip
+					.getHeight() + 15));
+			Graphics g = img.getGraphics();
+			g.drawImage(ch.img, 0, 0, null);
+			g.drawImage(stip, 10, 15, null);
+			g.dispose();
+			return (img);
+		}
+	}
+
+	public static BufferedImage catimgs(int margin, BufferedImage... imgs) {
+		int w = 0, h = -margin;
+		for (BufferedImage img : imgs) {
+			if (img.getWidth() > w)
+				w = img.getWidth();
+			h += img.getHeight() + margin;
+		}
+		BufferedImage ret = TexI.mkbuf(new Coord(w, h));
+		Graphics g = ret.getGraphics();
+		int y = 0;
+		for (BufferedImage img : imgs) {
+			g.drawImage(img, 0, y, null);
+			y += img.getHeight() + margin;
+		}
+		g.dispose();
+		return (ret);
+	}
+
+	public static BufferedImage catimgsh(int margin, BufferedImage... imgs) {
+		int w = -margin, h = 0;
+		for (BufferedImage img : imgs) {
+			if (img.getHeight() > h)
+				h = img.getHeight();
+			w += img.getWidth() + margin;
+		}
+		BufferedImage ret = TexI.mkbuf(new Coord(w, h));
+		Graphics g = ret.getGraphics();
+		int x = 0;
+		for (BufferedImage img : imgs) {
+			g.drawImage(img, x, (h - img.getHeight()) / 2, null);
+			x += img.getWidth() + margin;
+		}
+		g.dispose();
+		return (ret);
+	}
+
+	public static BufferedImage longtip(List<ItemInfo> info) {
+		List<BufferedImage> buf = new ArrayList<BufferedImage>();
+		for (ItemInfo ii : info) {
+			if (ii instanceof Tip) {
+				Tip tip = (Tip) ii;
+				buf.add(tip.longtip());
+			}
+		}
+		return (catimgs(0, buf.toArray(new BufferedImage[0])));
+	}
+
+	public static <T> T find(Class<T> cl, List<ItemInfo> il) {
+		for (ItemInfo inf : il) {
+			if (cl.isInstance(inf))
+				return (cl.cast(inf));
+		}
+		return (null);
+	}
+
+	public static List<ItemInfo> buildinfo(Owner owner, Object[] rawinfo) {
+		List<ItemInfo> ret = new ArrayList<ItemInfo>();
+		for (Object o : rawinfo) {
+			if (o instanceof Object[]) {
+				Object[] a = (Object[]) o;
+				Resource ttres = owner.glob().sess.getres((Integer) a[0]).get();
+				InfoFactory f = ttres.layer(Resource.CodeEntry.class).get(
+						InfoFactory.class);
+				ret.add(f.build(owner, a));
+			} else if (o instanceof String) {
+				ret.add(new AdHoc(owner, (String) o));
+			} else {
+				throw (new ClassCastException("Unexpected object type "
+						+ o.getClass() + " in item info array."));
+			}
+		}
+		return (ret);
+	}
+
+	@SuppressWarnings("unused")
+	private static String dump(Object arg) {
+		if (arg instanceof Object[]) {
+			StringBuilder buf = new StringBuilder();
+			buf.append("[");
+			boolean f = true;
+			for (Object a : (Object[]) arg) {
+				if (!f)
+					buf.append(", ");
+				buf.append(dump(a));
+				f = false;
+			}
+			buf.append("]");
+			return (buf.toString());
+		} else {
+			return (arg.toString());
+		}
+	}
 }
