@@ -38,6 +38,8 @@ import java.util.regex.*;
 import java.io.IOException;
 import java.awt.datatransfer.*;
 
+import org.apxeolog.salem.HConfig;
+
 public class ChatUI extends Widget {
 	public static final RichText.Foundry fnd = new RichText.Foundry(new ChatParser(TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 9, TextAttribute.FOREGROUND, Color.BLACK));
 	public static final Text.Foundry qfnd = new Text.Foundry(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12), new java.awt.Color(192, 255, 192));
@@ -88,6 +90,7 @@ public class ChatUI extends Widget {
 			super(args);
 		}
 
+		@Override
 		protected RichText.Part text(PState s, String text, Map<? extends Attribute, ?> attrs) throws IOException {
 			RichText.Part ret = null;
 			int p = 0;
@@ -1140,13 +1143,51 @@ public class ChatUI extends Widget {
 
 	@Override
 	public boolean globtype(char key, KeyEvent ev) {
-		if(key == 10) {
-			if(!expanded && (sel instanceof EntryChannel)) {
+		if (HConfig.cl_use_new_chat) return false;
+
+		if (key == 10) {
+			if (!expanded && (sel instanceof EntryChannel)) {
 				ui.grabkeys(this);
-				qline = new QuickLine((EntryChannel)sel);
-				return(true);
+				qline = new QuickLine((EntryChannel) sel);
+				return (true);
 			}
 		}
-		return(super.globtype(key, ev));
+		return (super.globtype(key, ev));
+	}
+
+	public Widget getVillageChat() {
+		for (Widget w = lchild; w != null; w = w.prev) {
+			if (w instanceof MultiChat) {
+				if (((MultiChat)w).name.equals("Village")) return w;
+			}
+		}
+		return null;
+	}
+
+	public Widget getPartyChat() {
+		for (Widget w = lchild; w != null; w = w.prev) {
+			if (w instanceof PartyChat) {
+				if (((MultiChat)w).name.equals("Party")) return w;
+			}
+		}
+		return null;
+	}
+
+	public Widget getPrivChat(int bid) {
+		for (Widget w = lchild; w != null; w = w.prev) {
+			if (w instanceof PrivChat) {
+				if (((PrivChat)w).other == bid) return w;
+			}
+		}
+		return null;
+	}
+
+	public Widget getAreaChat() {
+		for (Widget w = lchild; w != null; w = w.prev) {
+			if (w instanceof MultiChat) {
+				if (((MultiChat)w).name.equals("Area Chat")) return w;
+			}
+		}
+		return null;
 	}
 }
