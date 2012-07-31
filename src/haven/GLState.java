@@ -1,7 +1,7 @@
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
- *                     Björn Johannessen <johannessen.bjorn@gmail.com>
+ *                     BjГ¶rn Johannessen <johannessen.bjorn@gmail.com>
  *
  *  Redistribution and/or modification of this file is subject to the
  *  terms of the GNU Lesser General Public License, version 3, as
@@ -32,45 +32,36 @@ import static haven.GOut.checkerr;
 
 public abstract class GLState {
 	public abstract void apply(GOut g);
-
 	public abstract void unapply(GOut g);
-
 	public abstract void prep(Buffer buf);
 
 	public void applyfrom(GOut g, GLState from) {
-		throw (new RuntimeException(
-				"Called applyfrom on non-conformant GLState (" + from + " -> "
-						+ this + ")"));
+		throw(new RuntimeException("Called applyfrom on non-conformant GLState (" + from + " -> " + this + ")"));
 	}
-
 	public void applyto(GOut g, GLState to) {
 	}
-
 	public void reapply(GOut g) {
 	}
 
 	public GLShader[] shaders() {
-		return (null);
+		return(null);
 	}
 
 	public boolean reqshaders() {
-		return (false);
+		return(false);
 	}
 
 	public int capply() {
-		return (10);
+		return(10);
 	}
-
 	public int cunapply() {
-		return (1);
+		return(1);
 	}
-
 	public int capplyfrom(GLState from) {
-		return (-1);
+		return(-1);
 	}
-
 	public int capplyto(GLState to) {
-		return (0);
+		return(0);
 	}
 
 	private static int slotnum = 0;
@@ -95,7 +86,7 @@ public abstract class GLState {
 		public Slot(Type type, Class<T> scl, Slot<?>[] dep, Slot<?>[] rdep) {
 			this.type = type;
 			this.scl = scl;
-			synchronized (Slot.class) {
+			synchronized(Slot.class) {
 				this.id = slotnum++;
 				dirty = true;
 				Slot<?>[] nlist = new Slot<?>[slotnum];
@@ -104,21 +95,21 @@ public abstract class GLState {
 				idlist = nlist;
 				all.add(this);
 			}
-			if (dep == null)
+			if(dep == null)
 				this.dep = new Slot<?>[0];
 			else
 				this.dep = dep;
-			if (rdep == null)
+			if(rdep == null)
 				this.rdep = new Slot<?>[0];
 			else
 				this.rdep = rdep;
-			for (Slot<?> ds : this.dep) {
-				if (ds == null)
-					throw (new NullPointerException());
+			for(Slot<?> ds : this.dep) {
+				if(ds == null)
+					throw(new NullPointerException());
 			}
-			for (Slot<?> ds : this.rdep) {
-				if (ds == null)
-					throw (new NullPointerException());
+			for(Slot<?> ds : this.rdep) {
+				if(ds == null)
+					throw(new NullPointerException());
 			}
 		}
 
@@ -130,64 +121,66 @@ public abstract class GLState {
 		@SuppressWarnings("rawtypes")
 		private static void makedeps(Collection<Slot<?>> slots) {
 			Map<Slot<?>, Set<Slot<?>>> lrdep = new HashMap<Slot<?>, Set<Slot<?>>>();
-			for (Slot<?> s : slots)
+			for(Slot<?> s : slots)
 				lrdep.put(s, new HashSet<Slot<?>>());
-			for (Slot<?> s : slots) {
+			for(Slot<?> s : slots) {
 				lrdep.get(s).addAll(Arrays.asList(s.rdep));
-				for (Slot<?> ds : s.dep)
+				for(Slot<?> ds : s.dep)
 					lrdep.get(ds).add(s);
 			}
 			Set<Slot<?>> left = new HashSet<Slot<?>>(slots);
 			final Map<Slot<?>, Integer> order = new HashMap<Slot<?>, Integer>();
 			int id = left.size() - 1;
 			Slot<?>[] cp = new Slot<?>[0];
-			while (!left.isEmpty()) {
+			while(!left.isEmpty()) {
 				boolean err = true;
-				fin: for (Iterator<Slot<?>> i = left.iterator(); i.hasNext();) {
-					Slot<?> s = i.next();
-					for (Slot<?> ds : lrdep.get(s)) {
-						if (left.contains(ds))
-							continue fin;
+				fin:
+					for(Iterator<Slot<?>> i = left.iterator(); i.hasNext();) {
+						Slot<?> s = i.next();
+						for(Slot<?> ds : lrdep.get(s)) {
+							if(left.contains(ds))
+								continue fin;
+						}
+						err = false;
+						order.put(s, s.depid = id--);
+						Set<Slot<?>> grdep = new HashSet<Slot<?>>();
+						for(Slot<?> ds : lrdep.get(s)) {
+							grdep.add(ds);
+							for(Slot<?> ds2 : ds.grdep)
+								grdep.add(ds2);
+						}
+						s.grdep = grdep.toArray(cp);
+						i.remove();
 					}
-					err = false;
-					order.put(s, s.depid = id--);
-					Set<Slot<?>> grdep = new HashSet<Slot<?>>();
-					for (Slot<?> ds : lrdep.get(s)) {
-						grdep.add(ds);
-						for (Slot<?> ds2 : ds.grdep)
-							grdep.add(ds2);
-					}
-					s.grdep = grdep.toArray(cp);
-					i.remove();
-				}
-				if (err)
-					throw (new RuntimeException(
-							"Cycle encountered while compiling state slot dependencies"));
+				if(err)
+					throw(new RuntimeException("Cycle encountered while compiling state slot dependencies"));
 			}
 			Comparator<Slot> cmp = new Comparator<Slot>() {
+				@Override
 				public int compare(Slot a, Slot b) {
-					return (order.get(a) - order.get(b));
+					return(order.get(a) - order.get(b));
 				}
 			};
-			for (Slot<?> s : slots)
+			for(Slot<?> s : slots)
 				Arrays.sort(s.grdep, cmp);
 		}
 
 		@SuppressWarnings("rawtypes")
 		public static void update() {
-			synchronized (Slot.class) {
-				if (!dirty)
+			synchronized(Slot.class) {
+				if(!dirty)
 					return;
 				makedeps(all);
 				deplist = new Slot<?>[all.size()];
-				for (Slot s : all)
+				for(Slot s : all)
 					deplist[s.depid] = s;
 				dirty = false;
 			}
 		}
 
+		@Override
 		public String toString() {
-			return ("Slot<" + scl.getName() + ">");
+			return("Slot<" + scl.getName() + ">");
 		}
 	}
 
@@ -202,27 +195,27 @@ public abstract class GLState {
 		public Buffer copy() {
 			Buffer ret = new Buffer(cfg);
 			System.arraycopy(states, 0, ret.states, 0, states.length);
-			return (ret);
+			return(ret);
 		}
 
 		public void copy(Buffer dest) {
 			dest.adjust();
 			System.arraycopy(states, 0, dest.states, 0, states.length);
-			for (int i = states.length; i < dest.states.length; i++)
+			for(int i = states.length; i < dest.states.length; i++)
 				dest.states[i] = null;
 		}
 
 		public void copy(Buffer dest, Slot.Type type) {
 			dest.adjust();
 			adjust();
-			for (int i = 0; i < states.length; i++) {
-				if (idlist[i].type == type)
+			for(int i = 0; i < states.length; i++) {
+				if(idlist[i].type == type)
 					dest.states[i] = states[i];
 			}
 		}
 
 		private void adjust() {
-			if (states.length < slotnum) {
+			if(states.length < slotnum) {
 				GLState[] n = new GLState[slotnum];
 				System.arraycopy(states, 0, n, 0, states.length);
 				this.states = n;
@@ -230,102 +223,101 @@ public abstract class GLState {
 		}
 
 		public <T extends GLState> void put(Slot<? super T> slot, T state) {
-			if (states.length <= slot.id)
+			if(states.length <= slot.id)
 				adjust();
 			states[slot.id] = state;
 		}
 
 		@SuppressWarnings("unchecked")
 		public <T extends GLState> T get(Slot<T> slot) {
-			if (states.length <= slot.id)
-				return (null);
-			return ((T) states[slot.id]);
+			if(states.length <= slot.id)
+				return(null);
+			return((T)states[slot.id]);
 		}
 
+		@Override
 		public boolean equals(Object o) {
-			if (!(o instanceof Buffer))
-				return (false);
-			Buffer b = (Buffer) o;
+			if(!(o instanceof Buffer))
+				return(false);
+			Buffer b = (Buffer)o;
 			adjust();
 			b.adjust();
-			for (int i = 0; i < states.length; i++) {
-				if (!states[i].equals(b.states[i]))
-					return (false);
+			for(int i = 0; i < states.length; i++) {
+				if(!states[i].equals(b.states[i]))
+					return(false);
 			}
-			return (true);
+			return(true);
 		}
 
+		@Override
 		public String toString() {
 			StringBuilder buf = new StringBuilder();
 			buf.append('[');
-			for (int i = 0; i < states.length; i++) {
-				if (i > 0)
+			for(int i = 0; i < states.length; i++) {
+				if(i > 0)
 					buf.append(", ");
-				if (states[i] == null)
+				if(states[i] == null)
 					buf.append("null");
 				else
 					buf.append(states[i].toString());
 			}
 			buf.append(']');
-			return (buf.toString());
+			return(buf.toString());
 		}
 
 		/* Should be used very, very sparingly. */
 		GLState[] states() {
-			return (states);
+			return(states);
 		}
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static int bufdiff(Buffer f, Buffer t, boolean[] trans,
-			boolean[] repl) {
+	public static int bufdiff(Buffer f, Buffer t, boolean[] trans, boolean[] repl) {
 		Slot.update();
 		int cost = 0;
-		f.adjust();
-		t.adjust();
-		if (trans != null) {
-			for (int i = 0; i < trans.length; i++) {
+		f.adjust(); t.adjust();
+		if(trans != null) {
+			for(int i = 0; i < trans.length; i++) {
 				trans[i] = false;
 				repl[i] = false;
 			}
 		}
-		for (int i = 0; i < f.states.length; i++) {
-			if (((f.states[i] == null) != (t.states[i] == null))
-					|| ((f.states[i] != null) && (t.states[i] != null) && !f.states[i]
-							.equals(t.states[i]))) {
-				if (!repl[i]) {
+		for(int i = 0; i < f.states.length; i++) {
+			if(((f.states[i] == null) != (t.states[i] == null)) ||
+					((f.states[i] != null) && (t.states[i] != null) && !f.states[i].equals(t.states[i]))) {
+				if(!repl[i]) {
 					int cat = -1, caf = -1;
-					if ((t.states[i] != null) && (f.states[i] != null)) {
+					if((t.states[i] != null) && (f.states[i] != null)) {
 						cat = f.states[i].capplyto(t.states[i]);
 						caf = t.states[i].capplyfrom(f.states[i]);
 					}
-					if ((cat >= 0) && (caf >= 0)) {
+					if((cat >= 0) && (caf >= 0)) {
 						cost += cat + caf;
-						if (trans != null)
+						if(trans != null)
 							trans[i] = true;
 					} else {
-						if (f.states[i] != null)
+						if(f.states[i] != null)
 							cost += f.states[i].cunapply();
-						if (t.states[i] != null)
+						if(t.states[i] != null)
 							cost += t.states[i].capply();
-						if (trans != null)
+						if(trans != null)
 							repl[i] = true;
 					}
 				}
-				for (Slot ds : idlist[i].grdep) {
+				for(Slot ds : idlist[i].grdep) {
 					int id = ds.id;
-					if (repl[id])
+					if(repl[id])
 						continue;
-					if (trans != null)
+					if(trans != null)
 						repl[id] = true;
-					if (t.states[id] != null)
+					if(t.states[id] != null)
 						cost += t.states[id].cunapply();
-					if (f.states[id] != null)
+					if(f.states[id] != null)
 						cost += f.states[id].capply();
 				}
 			}
 		}
-		return (cost);
+		return(cost);
 	}
 
 	public static class Applier {
@@ -340,12 +332,9 @@ public abstract class GLState {
 		public boolean usedprog;
 		public long time = 0;
 
-		/*
-		 * It seems ugly to treat these so specially, but right now I cannot see
-		 * any good alternative.
-		 */
-		public Matrix4f cam = Matrix4f.identity(), wxf = Matrix4f.identity(),
-				mv = Matrix4f.identity();
+		/* It seems ugly to treat these so specially, but right now I
+		 * cannot see any good alternative. */
+		public Matrix4f cam = Matrix4f.identity(), wxf = Matrix4f.identity(), mv = Matrix4f.identity();
 
 		public Applier(GL gl, GLConfig cfg) {
 			this.gl = gl;
@@ -360,15 +349,15 @@ public abstract class GLState {
 		}
 
 		public <T extends GLState> T get(Slot<T> slot) {
-			return (next.get(slot));
+			return(next.get(slot));
 		}
 
 		public <T extends GLState> T cur(Slot<T> slot) {
-			return (cur.get(slot));
+			return(cur.get(slot));
 		}
 
 		public <T extends GLState> T old(Slot<T> slot) {
-			return (old.get(slot));
+			return(old.get(slot));
 		}
 
 		public void prep(GLState st) {
@@ -384,16 +373,15 @@ public abstract class GLState {
 		}
 
 		public Buffer copy() {
-			return (next.copy());
+			return(next.copy());
 		}
 
 		public void apply(GOut g) {
 			long st = 0;
-			if (Config.profile)
-				st = System.nanoTime();
+			if(Config.profile) st = System.nanoTime();
 			Slot<?>[] deplist = GLState.deplist;
-			if (trans.length < slotnum) {
-				synchronized (Slot.class) {
+			if(trans.length < slotnum) {
+				synchronized(Slot.class) {
 					trans = new boolean[slotnum];
 					repl = new boolean[slotnum];
 					shaders = new GLShader[slotnum][];
@@ -401,95 +389,94 @@ public abstract class GLState {
 			}
 			bufdiff(cur, next, trans, repl);
 			boolean dirty = false;
-			for (int i = trans.length - 1; i >= 0; i--) {
-				if (repl[i] || trans[i]) {
+			for(int i = trans.length - 1; i >= 0; i--) {
+				if(repl[i] || trans[i]) {
 					GLState nst = next.states[i];
-					GLShader[] ns = (nst == null) ? null : nst.shaders();
-					if (ns != shaders[i]) {
-						proghash ^= System.identityHashCode(shaders[i])
-								^ System.identityHashCode(ns);
+					GLShader[] ns = (nst == null)?null:nst.shaders();
+					if(ns != shaders[i]) {
+						proghash ^= System.identityHashCode(shaders[i]) ^ System.identityHashCode(ns);
 						shaders[i] = ns;
 						dirty = true;
 					}
 				}
 			}
 			usedprog = prog != null;
-			if (dirty) {
+			if(dirty) {
 				GLProgram np;
 				boolean shreq = false;
-				for (int i = 0; i < trans.length; i++) {
-					if ((shaders[i] != null) && next.states[i].reqshaders()) {
+				for(int i = 0; i < trans.length; i++) {
+					if((shaders[i] != null) && next.states[i].reqshaders()) {
 						shreq = true;
 						break;
 					}
 				}
-				if (g.gc.shuse && shreq) {
+				if(g.gc.shuse && shreq) {
 					np = findprog(proghash, shaders);
 				} else {
 					np = null;
 				}
-				if (np != prog) {
-					if (np != null)
+				if(np != prog) {
+					if(np != null)
 						np.apply(g);
 					else
 						g.gl.glUseProgramObjectARB(0);
 					prog = np;
-					if (debug)
+					if(debug)
 						checkerr(g.gl);
 				} else {
 					dirty = false;
 				}
 			}
-			if ((prog != null) != usedprog) {
-				for (int i = 0; i < trans.length; i++) {
-					if (trans[i])
+			if((prog != null) != usedprog) {
+				for(int i = 0; i < trans.length; i++) {
+					if(trans[i])
 						repl[i] = true;
 				}
 			}
 			Matrix4f oc = cam, ow = wxf;
 			cur.copy(old);
-			for (int i = deplist.length - 1; i >= 0; i--) {
+			for(int i = deplist.length - 1; i >= 0; i--) {
 				int id = deplist[i].id;
-				if (repl[id]) {
-					if (cur.states[id] != null) {
+				if(repl[id]) {
+					if(cur.states[id] != null) {
 						cur.states[id].unapply(g);
-						if (debug)
+						if(debug)
 							stcheckerr(g, "unapply", cur.states[id]);
 					}
 					cur.states[id] = null;
 				}
 			}
-			for (int i = 0; i < deplist.length; i++) {
+			for(int i = 0; i < deplist.length; i++) {
 				int id = deplist[i].id;
-				if (repl[id]) {
+				if(repl[id]) {
 					cur.states[id] = next.states[id];
-					if (cur.states[id] != null) {
+					if(cur.states[id] != null) {
 						cur.states[id].apply(g);
-						if (debug)
+						if(debug)
 							stcheckerr(g, "apply", cur.states[id]);
 					}
-				} else if (trans[id]) {
+				} else if(trans[id]) {
 					cur.states[id].applyto(g, next.states[id]);
-					if (debug)
+					if(debug)
 						stcheckerr(g, "applyto", cur.states[id]);
 					GLState cs = cur.states[id];
 					(cur.states[id] = next.states[id]).applyfrom(g, cs);
-					if (debug)
+					if(debug)
 						stcheckerr(g, "applyfrom", cur.states[id]);
-				} else if ((prog != null) && dirty && (shaders[id] != null)) {
+				} else if((prog != null) && dirty && (shaders[id] != null)) {
 					cur.states[id].reapply(g);
-					if (debug)
+					if(debug)
 						stcheckerr(g, "reapply", cur.states[id]);
 				}
 			}
-			if ((oc != cam) || (ow != wxf)) {
+			if((oc != cam) || (ow != wxf)) {
 				/* See comment above */
 				mv.load(oc = cam).mul1(ow = wxf);
 				matmode(GL.GL_MODELVIEW);
 				gl.glLoadMatrixf(mv.m, 0);
 			}
 			checkerr(gl);
-			if (Config.profile)
+			if(Config.profile)
 				time += System.nanoTime() - st;
 		}
 
@@ -508,8 +495,8 @@ public abstract class GLState {
 		private void stcheckerr(GOut g, String func, GLState st) {
 			try {
 				checkerr(g.gl);
-			} catch (RuntimeException e) {
-				throw (new ApplyException(func, st, e));
+			} catch(RuntimeException e) {
+				throw(new ApplyException(func, st, e));
 			}
 		}
 
@@ -518,14 +505,14 @@ public abstract class GLState {
 		private int texunit = 0;
 
 		public void matmode(int mode) {
-			if (mode != matmode) {
+			if(mode != matmode) {
 				gl.glMatrixMode(mode);
 				matmode = mode;
 			}
 		}
 
 		public void texunit(int unit) {
-			if (unit != texunit) {
+			if(unit != texunit) {
 				gl.glActiveTexture(GL.GL_TEXTURE0 + unit);
 				texunit = unit;
 			}
@@ -552,35 +539,35 @@ public abstract class GLState {
 
 		private GLProgram findprog(int hash, GLShader[][] shaders) {
 			int idx = hash & (ptab.length - 1);
-			outer: for (SavedProg s = ptab[idx]; s != null; s = s.next) {
-				if (s.hash != hash)
+			outer: for(SavedProg s = ptab[idx]; s != null; s = s.next) {
+				if(s.hash != hash)
 					continue;
 				int i;
-				for (i = 0; i < s.shaders.length; i++) {
-					if (shaders[i] != s.shaders[i])
+				for(i = 0; i < s.shaders.length; i++) {
+					if(shaders[i] != s.shaders[i])
 						continue outer;
 				}
-				for (; i < shaders.length; i++) {
-					if (shaders[i] != null)
+				for(; i < shaders.length; i++) {
+					if(shaders[i] != null)
 						continue outer;
 				}
 				s.used = true;
-				return (s.prog);
+				return(s.prog);
 			}
 			GLProgram prog = new GLProgram(shaders);
 			SavedProg s = new SavedProg(hash, prog, shaders);
 			s.next = ptab[idx];
 			ptab[idx] = s;
 			nprog++;
-			if (nprog > ptab.length)
+			if(nprog > ptab.length)
 				rehash(ptab.length * 2);
-			return (prog);
+			return(prog);
 		}
 
 		private void rehash(int nlen) {
 			SavedProg[] ntab = new SavedProg[nlen];
-			for (int i = 0; i < ptab.length; i++) {
-				while (ptab[i] != null) {
+			for(int i = 0; i < ptab.length; i++) {
+				while(ptab[i] != null) {
 					SavedProg s = ptab[i];
 					ptab[i] = s.next;
 					int ni = s.hash & (ntab.length - 1);
@@ -593,12 +580,12 @@ public abstract class GLState {
 
 		public void clean() {
 			long now = System.currentTimeMillis();
-			if (now - lastclean > 60000) {
-				for (int i = 0; i < ptab.length; i++) {
+			if(now - lastclean > 60000) {
+				for(int i = 0; i < ptab.length; i++) {
 					SavedProg c, p;
-					for (c = ptab[i], p = null; c != null; c = c.next) {
-						if (!c.used) {
-							if (p != null)
+					for(c = ptab[i], p = null; c != null; c = c.next) {
+						if(!c.used) {
+							if(p != null)
 								p.next = c.next;
 							else
 								ptab[i] = c.next;
@@ -609,16 +596,15 @@ public abstract class GLState {
 						}
 					}
 				}
-				/*
-				 * XXX: Rehash into smaller table? It's probably not a problem,
-				 * but it might be nice just for completeness.
-				 */
+				/* XXX: Rehash into smaller table? It's probably not a
+				 * problem, but it might be nice just for
+				 * completeness. */
 				lastclean = now;
 			}
 		}
 
 		public int numprogs() {
-			return (nprog);
+			return(nprog);
 		}
 	}
 
@@ -626,57 +612,53 @@ public abstract class GLState {
 		private final Rendered r;
 
 		private Wrapping(Rendered r) {
-			if (r == null)
-				throw (new NullPointerException("Wrapping null in "
-						+ GLState.this));
+			if(r == null)
+				throw(new NullPointerException("Wrapping null in " + GLState.this));
 			this.r = r;
 		}
 
-		public void draw(GOut g) {
-		}
+		@Override
+		public void draw(GOut g) {}
 
+		@Override
 		public boolean setup(RenderList rl) {
 			rl.add(r, GLState.this);
-			return (false);
+			return(false);
 		}
 	}
 
 	public Rendered apply(Rendered r) {
-		return (new Wrapping(r));
+		return(new Wrapping(r));
+	}
+
+	public static abstract class Abstract extends GLState {
+		@Override
+		public void apply(GOut g) {}
+		@Override
+		public void unapply(GOut g) {}
 	}
 
 	public static GLState compose(final GLState... states) {
-		return (new GLState() {
-			public void apply(GOut g) {
-			}
-
-			public void unapply(GOut g) {
-			}
-
+		return(new Abstract() {
+			@Override
 			public void prep(Buffer buf) {
-				for (GLState st : states) {
-					if (st == null)
-						throw (new RuntimeException("null state in list of "
-								+ Arrays.asList(states)));
+				for(GLState st : states) {
+					if(st == null)
+						throw(new RuntimeException("null state in list of " + Arrays.asList(states)));
 					st.prep(buf);
 				}
 			}
 		});
 	}
 
-	public static class Delegate extends GLState {
+	public static class Delegate extends Abstract {
 		public GLState del;
 
 		public Delegate(GLState del) {
 			this.del = del;
 		}
 
-		public void apply(GOut g) {
-		}
-
-		public void unapply(GOut g) {
-		}
-
+		@Override
 		public void prep(Buffer buf) {
 			del.prep(buf);
 		}
@@ -688,9 +670,7 @@ public abstract class GLState {
 
 	public interface Global {
 		public void postsetup(RenderList rl);
-
 		public void prerender(RenderList rl, GOut g);
-
 		public void postrender(RenderList rl, GOut g);
 	}
 
@@ -701,24 +681,24 @@ public abstract class GLState {
 			slot = new Slot<StandAlone>(type, StandAlone.class, dep);
 		}
 
+		@Override
 		public void prep(Buffer buf) {
 			buf.put(slot, this);
 		}
 	}
 
 	public static final GLState nullstate = new GLState() {
-		public void apply(GOut g) {
-		}
-
-		public void unapply(GOut g) {
-		}
-
-		public void prep(Buffer buf) {
-		}
+		@Override
+		public void apply(GOut g) {}
+		@Override
+		public void unapply(GOut g) {}
+		@Override
+		public void prep(Buffer buf) {}
 	};
 
 	static {
 		Console.setscmd("applydb", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				Applier.debug = Utils.parsebool(args[1], false);
 			}

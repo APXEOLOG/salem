@@ -31,7 +31,7 @@ import java.util.*;
 import java.io.*;
 
 public class Session {
-	public static final int PVER = 18;
+	public static final int PVER = 19;
 
 	public static final int MSG_SESS = 0;
 	public static final int MSG_REL = 1;
@@ -86,6 +86,7 @@ public class Session {
 	byte[] cookie;
 	final Map<Integer, Indir<Resource>> rescache = new TreeMap<Integer, Indir<Resource>>();
 	public final Glob glob;
+	public byte[] sesskey;
 
 	@SuppressWarnings("serial")
 	public class MessageException extends RuntimeException {
@@ -115,6 +116,7 @@ public class Session {
 				public int resid = id;
 				Resource res;
 
+				@Override
 				public Resource get() {
 					if (res == null)
 						throw (new LoadingIndir(resid));
@@ -125,10 +127,12 @@ public class Session {
 					return (res);
 				}
 
+				@Override
 				public void set(Resource r) {
 					res = r;
 				}
 
+				@Override
 				public boolean equals(Object o) {
 					return ((this.getClass().isInstance(o)) && ((this
 							.getClass().cast(o)).resid == resid));
@@ -139,6 +143,7 @@ public class Session {
 					return ((this.getClass().cast(x)).resid - resid);
 				}
 
+				@Override
 				public String toString() {
 					if (res == null) {
 						return ("<res:" + resid + ">");
@@ -175,6 +180,7 @@ public class Session {
 			setDaemon(true);
 		}
 
+		@Override
 		public void run() {
 			try {
 				while (true) {
@@ -386,23 +392,23 @@ public class Session {
 							int olid = msg.int32();
 							boolean prs = (olid & 1) != 0;
 							olid >>= 1;
-							int resid = msg.uint16();
-							Indir<Resource> res;
-							Message sdt;
-							if (resid == 65535) {
-								res = null;
-								sdt = null;
-							} else {
-								if ((resid & 0x8000) != 0) {
-									resid &= ~0x8000;
-									sdt = msg.derive(0, msg.uint8());
-								} else {
-									sdt = new Message(0);
-								}
-								res = getres(resid);
-							}
-							if (gob != null)
-								oc.overlay(gob, olid, prs, res, sdt);
+			int resid = msg.uint16();
+			Indir<Resource> res;
+			Message sdt;
+			if (resid == 65535) {
+				res = null;
+				sdt = null;
+			} else {
+				if ((resid & 0x8000) != 0) {
+					resid &= ~0x8000;
+					sdt = msg.derive(0, msg.uint8());
+				} else {
+					sdt = new Message(0);
+				}
+				res = getres(resid);
+			}
+			if (gob != null)
+				oc.overlay(gob, olid, prs, res, sdt);
 						} else if (type == OD_HEALTH) {
 							int hp = msg.uint8();
 							if (gob != null)
@@ -475,8 +481,8 @@ public class Session {
 				glob.party.msg(msg);
 			} else if (msg.type == Message.RMSG_SFX) {
 				Indir<Resource> res = getres(msg.uint16());
-				double vol = ((double) msg.uint16()) / 256.0;
-				double spd = ((double) msg.uint16()) / 256.0;
+				double vol = msg.uint16() / 256.0;
+				double spd = msg.uint16() / 256.0;
 				Audio.play(res);
 			} else if (msg.type == Message.RMSG_CATTR) {
 				glob.cattr(msg);
@@ -494,6 +500,8 @@ public class Session {
 				glob.map.tilemap(msg);
 			} else if (msg.type == Message.RMSG_BUFF) {
 				glob.buffmsg(msg);
+			} else if(msg.type == Message.RMSG_SESSKEY) {
+				sesskey = msg.bytes();
 			} else {
 				throw (new MessageException("Unknown rmsg type: " + msg.type,
 						msg));
@@ -522,6 +530,7 @@ public class Session {
 			}
 		}
 
+		@Override
 		public void run() {
 			try {
 				alive = true;
@@ -611,6 +620,7 @@ public class Session {
 			}
 		}
 
+		@Override
 		public void interrupt() {
 			alive = false;
 			super.interrupt();
@@ -624,6 +634,7 @@ public class Session {
 			setDaemon(true);
 		}
 
+		@Override
 		public void run() {
 			try {
 				long to, last = 0, retries = 0;
@@ -640,10 +651,11 @@ public class Session {
 								}
 							}
 							Message msg = new Message(MSG_SESS);
-							msg.adduint16(1);
-							msg.addstring("Salem");
+							msg.adduint16(2);
+							msg.addstring("Haven");
 							msg.adduint16(PVER);
 							msg.addstring(username);
+							msg.adduint16(cookie.length);
 							msg.addbytes(cookie);
 							sendmsg(msg);
 							last = now;

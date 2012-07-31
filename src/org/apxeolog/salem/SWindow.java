@@ -18,16 +18,16 @@ public class SWindow extends Widget {
 	public static final int HEADER_ALIGN_CENTER = 1;
 	public static final int HEADER_ALIGN_LEFT = 0;
 	public static final int HEADER_ALIGN_RIGHT = 2;
-	
+
 	public static Text.Foundry captionFoundry = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
-	
+
 	protected static class SPictButtonClose extends SPictButton {
 		protected Tex btnImage = new TexI(Resource.loadimg("apx/gfx/hud/close-button"));
-		
+
 		public SPictButtonClose(Coord c, Coord sz, Widget parent) {
 			super(c, sz, parent);
 		}
-		
+
 		@Override
 		public void draw(GOut g) {
 			g.chcolor(0, 0, 0, 255);
@@ -38,24 +38,24 @@ public class SWindow extends Widget {
 			g.rect(Coord.z, sz.add(1, 1));
 			super.draw(g);
 		}
-		
+
 		@Override
 		public void click() {
 			wdgmsg("swindow_close");
 		}
 	}
-	
+
 	public static class SPictButtonSingle extends SPictButton {
 		protected Tex buttonTex;
 		protected String buttonAction;
-		
+
 		public SPictButtonSingle(Widget parent, BufferedImage img, String action) {
 			super(Coord.z, Coord.z, parent);
 			buttonTex = new TexI(img);
 			sz = buttonTex.sz();
 			buttonAction = action;
 		}
-		
+
 		@Override
 		public void draw(GOut g) {
 			g.chcolor(0, 0, 0, 255);
@@ -66,22 +66,22 @@ public class SWindow extends Widget {
 			g.rect(Coord.z, sz.add(1, 1));
 			super.draw(g);
 		}
-		
+
 		@Override
 		public void click() {
 			wdgmsg(this, buttonAction);
 		}
 	}
-	
+
 	protected static class SPictButtonMinimize extends SPictButton {
 		protected Tex btnImageMin = new TexI(Resource.loadimg("apx/gfx/hud/minimize-button"));
 		protected Tex btnImageMax = new TexI(Resource.loadimg("apx/gfx/hud/maximize-button"));
 		protected boolean stateNormal = true;
-		
+
 		public SPictButtonMinimize(Coord c, Coord sz, Widget parent) {
 			super(c, sz, parent);
 		}
-		
+
 		@Override
 		public void draw(GOut g) {
 			g.chcolor(0, 0, 0, 255);
@@ -93,7 +93,7 @@ public class SWindow extends Widget {
 			g.rect(Coord.z, sz.add(1, 1));
 			super.draw(g);
 		}
-		
+
 		@Override
 		public void click() {
 			if (stateNormal) {
@@ -104,16 +104,16 @@ public class SWindow extends Widget {
 			stateNormal = !stateNormal;
 		}
 	}
-	
+
 	protected static class SWindowHeader extends Widget {
 		private static final Coord minimalHeaderSize = new Coord(18, 18);
-		
+
 		protected SSimpleBorderBox headerBox = null;
 		protected Text headerText = null;
 		protected SPictButton btnClose = null;
 		protected SPictButton btnMinimize = null;
 		protected ArrayList<SPictButton> buttons = null;
-		
+
 		public SWindowHeader(Coord c, Coord sz, Widget parent, String caption, boolean min, boolean clo) {
 			super(c, sz, parent);
 			headerBox = new SSimpleBorderBox(Coord.z, 0, 0, 1);
@@ -123,35 +123,35 @@ public class SWindow extends Widget {
 			pSetMinimazable(min);
 			resize();
 		}
-		
+
 		public void setText(String text) {
 			pSetText(text);
 			resize();
 		}
-		
+
 		public String getText() {
 			if (headerText == null) return "";
 			return headerText.text;
 		}
-		
+
 		public void setClosable(boolean closable) {
 			pSetClosable(closable);
 			resize();
 		}
-		
+
 		public boolean isClosable() {
 			return btnClose != null;
 		}
-		
+
 		public boolean isMinimizable() {
 			return btnMinimize != null;
 		}
-		
+
 		public void setMinimazable(boolean minimazable) {
 			pSetMinimazable(minimazable);
 			resize();
 		}
-		
+
 		private void pSetClosable(boolean closable) {
 			if (closable) {
 				if (btnClose == null) btnClose = new SPictButtonClose(Coord.z, Coord.z, this);
@@ -160,7 +160,7 @@ public class SWindow extends Widget {
 				btnClose = null;
 			}
 		}
-		
+
 		private void pSetMinimazable(boolean minimazable) {
 			if (minimazable) {
 				if (btnMinimize == null) btnMinimize = new SPictButtonMinimize(Coord.z, Coord.z, this);
@@ -177,18 +177,18 @@ public class SWindow extends Widget {
 				headerText = null;
 			}
 		}
-		
+
 		protected Coord textSize() {
 			if (headerText != null) return headerText.sz().add(10, 0);
 			else return minimalHeaderSize;
 		}
-		
+
 		public SPictButton createPictButton(BufferedImage img, String action) {
 			SPictButtonSingle single = new SPictButtonSingle(this, img, action);
 			addPictControl(single);
 			return single;
 		}
-		
+
 		public void addPictControl(SPictButton btn) {
 			buttons.add(btn);
 			resize();
@@ -196,39 +196,39 @@ public class SWindow extends Widget {
 				((SWindow)parent).resize();
 			}
 		}
-		
+
 		public void removePictControl(SPictButton btn) {
 			buttons.remove(btn);
 			resize();
 			parent.resize(parent.sz);
 		}
-		
+
 		protected void resize() {
 			Coord contSize = Coord.z;
-			
+
 			contSize = contSize.add(textSize());
 			if (btnMinimize != null) {
 				btnMinimize.sz = new Coord(contSize.y, contSize.y);
 				btnMinimize.c = new Coord(contSize.x, 0);
 				contSize = contSize.add(btnMinimize.sz.x, 0);
 			}
-			
+
 			if (btnClose != null) {
 				btnClose.sz = new Coord(contSize.y, contSize.y);
 				btnClose.c = new Coord(contSize.x, 0);
 				contSize = contSize.add(btnClose.sz.x, 0);
 			}
-			
+
 			for (SPictButton btn : buttons) {
 				btn.sz = new Coord(contSize.y, contSize.y);
 				btn.c = new Coord(contSize.x, 0);
 				contSize = contSize.add(btn.sz.x, 0);
 			}
-			
+
 			headerBox.contentSize = contSize;
 			sz = headerBox.getBoxSize();
 		}
-		
+
 		@Override
 		public void draw(GOut initialGL) {
 			initialGL.chcolor(0, 0, 0, 255);
@@ -242,10 +242,11 @@ public class SWindow extends Widget {
 				initialGL.image(headerText.img, headerBox.getContentPosition().add(4, -1));
 			}
 		}
-		
+
 		protected boolean dragMode = false;
 		protected Coord doff = Coord.z;
-		
+
+		@Override
 		public boolean mousedown(Coord c, int button) {
 			parent.setfocus(this);
 			raise();
@@ -261,6 +262,7 @@ public class SWindow extends Widget {
 			return true;
 		}
 
+		@Override
 		public boolean mouseup(Coord c, int button) {
 			if (dragMode) {
 				ui.grabmouse(null);
@@ -271,6 +273,7 @@ public class SWindow extends Widget {
 			return true;
 		}
 
+		@Override
 		public void mousemove(Coord c) {
 			if (dragMode) {
 				parent.c = parent.c.add(c.add(doff.inv()));
@@ -279,9 +282,10 @@ public class SWindow extends Widget {
 			}
 		}
 	}
-	
+
 	static {
 		Widget.addtype("wnd", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				if (args.length < 2)
 					return (new SWindow(c, (Coord) args[0], parent, null));
@@ -291,13 +295,13 @@ public class SWindow extends Widget {
 			}
 		});
 	}
-	
+
 	protected SWindowHeader windowHeader = null;
 	protected SSimpleBorderBox windowBox = null;
 	protected boolean isMinimized = false;
-	
+
 	protected boolean allowResize = true;
-	
+
 	protected boolean dropTarget = false;
 	protected boolean dragMode = false;
 	protected Coord doff = Coord.z;
@@ -305,7 +309,7 @@ public class SWindow extends Widget {
 	public SWindow(Coord c, Coord sz, Widget parent, String cap, boolean closeable, boolean minimizable) {
 		this(c, sz, parent, cap, closeable, minimizable, false);
 	}
-	
+
 	public SWindow(Coord c, Coord sz, Widget parent, String cap, boolean closeable, boolean minimizable, boolean resizable) {
 		super(c, new Coord(0, 0), parent);
 		allowResize = resizable;
@@ -321,7 +325,7 @@ public class SWindow extends Widget {
 		//setfocustab(true);
 		parent.setfocus(this);
 	}
-	
+
 	public void setResizable(boolean resizable) {
 		allowResize = resizable;
 		if (allowResize) {
@@ -334,7 +338,7 @@ public class SWindow extends Widget {
 			resize(windowBox.getContentSize());
 		}
 	}
-	
+
 	@Override
 	public void unlink() {
 		savePosition();
@@ -344,7 +348,7 @@ public class SWindow extends Widget {
 	public SWindow(Coord c, Coord sz, Widget parent, String cap) {
 		this(c, sz, parent, cap, true, true);
 	}
-	
+
 	public void loadPosition() {
 		try {
 			if (windowHeader.headerText == null) return;
@@ -361,7 +365,7 @@ public class SWindow extends Widget {
 		} catch (Exception ex) {
 		}
 	}
-	
+
 	public void savePosition() {
 		try {
 			if (windowHeader.headerText == null) return;
@@ -372,15 +376,15 @@ public class SWindow extends Widget {
 		} catch (NullPointerException ex) {
 		}
 	}
-    
+
 	public void setText(String text) {
 		windowHeader.setText(text);
 	}
-	
+
 	public void setClosable(boolean closable) {
 		windowHeader.setClosable(closable);
 	}
-	
+
 	public void setMinimazable(boolean minimazable) {
 		windowHeader.setMinimazable(minimazable);
 	}
@@ -394,13 +398,14 @@ public class SWindow extends Widget {
 			windowHeader.c = xlate(new Coord(sz.sub(windowHeader.sz).x, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
 		}
 	}
-	
+
 	@Override
 	public void presize() {
 		resize();
 		super.presize();
 	}
-	
+
+	@Override
 	public void resize(Coord newSize) {
 		windowBox.contentSize = newSize;
 		sz = windowBox.getBoxSize();
@@ -409,6 +414,7 @@ public class SWindow extends Widget {
 			ch.presize();
 	}
 
+	@Override
 	public void draw(GOut initialGL) {
 		if (!isMinimized) {
 			initialGL.chcolor(0, 0, 0, 128);
@@ -427,16 +433,23 @@ public class SWindow extends Widget {
 		super.draw(initialGL);
 	}
 
-	public void pack() {
+	public Coord contentsz() {
 		Coord max = new Coord(0, 0);
-		for (Widget wdg = child; wdg != null; wdg = wdg.next) {
+		for(Widget wdg = child; wdg != null; wdg = wdg.next) {
+			if(wdg == windowHeader)
+				continue;
 			Coord br = wdg.c.add(wdg.sz);
-			if (br.x > max.x)
+			if(br.x > max.x)
 				max.x = br.x;
-			if (br.y > max.y)
+			if(br.y > max.y)
 				max.y = br.y;
 		}
-		resize(max.sub(1, 1));
+		return(max);
+	}
+
+	@Override
+	public void pack() {
+		resize(contentsz());
 	}
 
 	protected void minimize() {
@@ -454,7 +467,8 @@ public class SWindow extends Widget {
 		}
 		isMinimized = false;
 	}
-	
+
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "pack") {
 			pack();
@@ -465,22 +479,24 @@ public class SWindow extends Widget {
 		}
 	}
 
+	@Override
 	public Coord xlate(Coord c, boolean in) {
 		if (in) return c.add(windowBox.getContentPosition());
 		else return c.sub(windowBox.getContentPosition());
 	}
-	
+
 	protected Coord szOff = Coord.z;
 	protected boolean resizeMode = false;
-	
+
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		parent.setfocus(this);
 		raise();
-		
+
 		if (super.mousedown(c, button)) return true;
-		
+
 		if (isMinimized) return false;
-		
+
 		if (allowResize) {
 			Coord corner = windowBox.getBorderPosition().add(windowBox.getBorderSize()).add(4, 4);
 			if (c.isect(corner.sub(10, 10), new Coord(10, 10))) {
@@ -492,7 +508,7 @@ public class SWindow extends Widget {
 				return true;
 			}
 		}
-		
+
 		if (c.isect(windowBox.getBorderPosition(), windowBox.getBorderSize())) {
 			if (button == 1) {
 				ui.grabmouse(this);
@@ -502,11 +518,12 @@ public class SWindow extends Widget {
 			return true;
 		} else return false;
 	}
-	
+
 	public void resizeFinish() {
-		
+
 	}
 
+	@Override
 	public boolean mouseup(Coord c, int button) {
 		if (dragMode) {
 			ui.grabmouse(null);
@@ -523,6 +540,7 @@ public class SWindow extends Widget {
 		return true;
 	}
 
+	@Override
 	public void mousemove(Coord c) {
 		if (dragMode) {
 			this.c = this.c.add(c.add(doff.inv()));
@@ -540,15 +558,16 @@ public class SWindow extends Widget {
 			super.mousemove(c);
 		}
 	}
-	
+
 	public void addPictButton(SPictButton btn) {
 		windowHeader.addPictControl(btn);
 	}
-	
+
 	public SPictButton createPictButton(BufferedImage img, String action) {
 		return windowHeader.createPictButton(img, action);
 	}
 
+	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (msg.equals("swindow_close")) {
 			savePosition();
@@ -563,6 +582,7 @@ public class SWindow extends Widget {
 		}
 	}
 
+	@Override
 	public boolean type(char key, java.awt.event.KeyEvent ev) {
 		if (key == 27) {
 			if (ui.isRWidget(this)) wdgmsg("close");
@@ -584,6 +604,7 @@ public class SWindow extends Widget {
 		return (false);
 	}
 
+	@Override
 	public Object tooltip(Coord c, boolean again) {
 		Object ret = super.tooltip(c, again);
 		if (ret != null)

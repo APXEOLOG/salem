@@ -40,12 +40,13 @@ public class MapView extends PView implements DTarget {
 	private final Glob glob;
 	private int view = 2;
 	private Collection<Delayed> delayed = new LinkedList<Delayed>();
+	private Collection<Delayed> delayed2 = new LinkedList<Delayed>();
 	public Camera camera;
 	private Plob placing = null;
 	private int[] visol = new int[32];
 	private Grabber grab;
 
-	private interface Delayed {
+	interface Delayed {
 		public void run(GOut g);
 	}
 
@@ -85,6 +86,7 @@ public class MapView extends PView implements DTarget {
 
 		public abstract float angle();
 
+		@Override
 		public Matrix4f fin(Matrix4f p) {
 			if (loading)
 				throw (new Loading());
@@ -110,6 +112,7 @@ public class MapView extends PView implements DTarget {
 			angl = tangl = 0.0f;
 		}
 
+		@Override
 		public void resized() {
 			ca = (float) sz.y / (float) sz.x;
 			cd = 400.0f * ca;
@@ -120,14 +123,16 @@ public class MapView extends PView implements DTarget {
 			resized();
 		}
 
+		@Override
 		public boolean click(Coord c) {
 			anglorig = tangl;
 			dragorig = c;
 			return (true);
 		}
 
+		@Override
 		public void drag(Coord c) {
-			tangl = anglorig + ((float) (c.x - dragorig.x) / 100.0f);
+			tangl = anglorig + ((c.x - dragorig.x) / 100.0f);
 			tangl = tangl % ((float) Math.PI * 2.0f);
 		}
 
@@ -136,6 +141,7 @@ public class MapView extends PView implements DTarget {
 					.sin(da)) - (h / Math.sin(elev))));
 		}
 
+		@Override
 		public void tick(double dt) {
 			elev += (telev - elev) * (float) (1.0 - Math.pow(500, -dt));
 			if (Math.abs(telev - elev) < 0.0001)
@@ -177,11 +183,13 @@ public class MapView extends PView implements DTarget {
 			super.tick(dt);
 		}
 
+		@Override
 		public Matrix4f compute() {
 			return (PointedCam.compute(curc.add(0.0f, 0.0f, h), dist(elev),
 					elev, angl));
 		}
 
+		@Override
 		public float angle() {
 			return (angl);
 		}
@@ -189,6 +197,7 @@ public class MapView extends PView implements DTarget {
 		private static final float maxang = (float) (Math.PI / 2 - 0.1);
 		private static final float mindist = 10.0f;
 
+		@Override
 		public boolean wheel(Coord c, int amount) {
 			float fe = telev;
 			telev += amount * telev * 0.02f;
@@ -207,6 +216,7 @@ public class MapView extends PView implements DTarget {
 		private Coord dragorig = null;
 		private float elevorig, anglorig;
 
+		@Override
 		public Matrix4f compute() {
 			Coord3f cc = getcc();
 			cc.y = -cc.y;
@@ -214,10 +224,12 @@ public class MapView extends PView implements DTarget {
 					angl));
 		}
 
+		@Override
 		public float angle() {
 			return (angl);
 		}
 
+		@Override
 		public boolean click(Coord c) {
 			elevorig = elev;
 			anglorig = angl;
@@ -225,16 +237,18 @@ public class MapView extends PView implements DTarget {
 			return (true);
 		}
 
+		@Override
 		public void drag(Coord c) {
-			elev = elevorig - ((float) (c.y - dragorig.y) / 100.0f);
+			elev = elevorig - ((c.y - dragorig.y) / 100.0f);
 			if (elev < 0.0f)
 				elev = 0.0f;
 			if (elev > (Math.PI / 2.0))
 				elev = (float) Math.PI / 2.0f;
-			angl = anglorig + ((float) (c.x - dragorig.x) / 100.0f);
+			angl = anglorig + ((c.x - dragorig.x) / 100.0f);
 			angl = angl % ((float) Math.PI * 2.0f);
 		}
 
+		@Override
 		public boolean wheel(Coord c, int amount) {
 			float d = dist + (amount * 5);
 			if (d < 5)
@@ -246,6 +260,7 @@ public class MapView extends PView implements DTarget {
 
 	static {
 		Widget.addtype("mapview", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				Coord sz = (Coord) args[0];
 				Coord mc = (Coord) args[1];
@@ -274,7 +289,7 @@ public class MapView extends PView implements DTarget {
 		this.cc = cc;
 		this.plgob = plgob;
 		setcanfocus(true);
-		
+
 		GameUI gui = getparent(GameUI.class);
 		if (gui != null) {
 			gui.updateTilify();
@@ -286,7 +301,7 @@ public class MapView extends PView implements DTarget {
 		for (int ol : overlays)
 			visol[ol]++;
 	}
-	
+
 	public boolean haveol(int overlay) {
 		return visol[overlay] > 0;
 	}
@@ -297,9 +312,11 @@ public class MapView extends PView implements DTarget {
 	}
 
 	private final Rendered map = new Rendered() {
+		@Override
 		public void draw(GOut g) {
 		}
 
+		@Override
 		public boolean setup(RenderList rl) {
 			Coord cc = MapView.this.cc.div(tilesz).div(MCache.cutsz);
 			Coord o = new Coord();
@@ -321,22 +338,22 @@ public class MapView extends PView implements DTarget {
 			return (false);
 		}
 	};
-	
+
 	public static final int GRID_MODE_NONE = 0;
 	public static final int GRID_MODE_HEIGHTMAP = 1;
-	
+
 	public static int MAP_GRID_OVERLAY_ID = 30;
 	public static int MAP_POINTER_OVERLAY_ID = 31;
-	
+
 	public Overlay[] customOverlays = new Overlay[32];
 	public static HashMap<Integer, Class<?>> customOverlayInfo;
-	
+
 	static {
 		customOverlayInfo = new HashMap<Integer, Class<?>>();
 		customOverlayInfo.put(MAP_GRID_OVERLAY_ID, GridMesh.class);
 		customOverlayInfo.put(MAP_POINTER_OVERLAY_ID, PointerMesh.class);
 	}
-	
+
 	public void setupGrid() {
 		Coord ul = new Coord(getcc()).div(MCache.tilesz).div(MCache.cmaps).sub(1, 1).mul(MCache.cmaps);
 		if (customOverlays[MAP_GRID_OVERLAY_ID] == null) {
@@ -345,17 +362,17 @@ public class MapView extends PView implements DTarget {
 			customOverlays[MAP_GRID_OVERLAY_ID].update(ul, ul.add(MCache.cmaps.mul(3)));
 		}
 	}
-	
+
 	float cz = 0.0f;
-	
+
 	public void updatePointer(Coord cc) {
 		try {
 			cz = glob.map.getcz(cc);
 		} catch (Loading ex) {
-			
+
 		}
 	}
-	
+
 	private final Rendered mapol = new Rendered() {
 		private final GLState[] mats;
 		{
@@ -366,15 +383,17 @@ public class MapView extends PView implements DTarget {
 			mats[3] = new Material(new Color(128, 0, 255, 32));
 			mats[16] = new Material(new Color(0, 255, 0, 32));
 			mats[17] = new Material(new Color(255, 255, 0, 32));
-			
+
 			mats[MAP_GRID_OVERLAY_ID] = new Material(new Color(128, 128, 128, 192));
 			mats[MAP_POINTER_OVERLAY_ID] = new Material(new Color(255, 255, 255, 255));
 		}
 
+		@Override
 		public void draw(GOut g) {
-			
+
 		}
 
+		@Override
 		public boolean setup(RenderList rl) {
 			//setupGrid();
 			Coord cc = MapView.this.cc.div(tilesz).div(MCache.cutsz);
@@ -417,9 +436,11 @@ public class MapView extends PView implements DTarget {
 	}
 
 	private final Rendered gobs = new Rendered() {
+		@Override
 		public void draw(GOut g) {
 		}
 
+		@Override
 		public boolean setup(RenderList rl) {
 			synchronized (glob.oc) {
 				for (Gob gob : glob.oc)
@@ -429,6 +450,7 @@ public class MapView extends PView implements DTarget {
 		}
 	};
 
+	@Override
 	public Camera camera() {
 		return (camera);
 	}
@@ -436,6 +458,7 @@ public class MapView extends PView implements DTarget {
 	private Coord3f smapcc = null;
 	private Light.PSLights.ShadowMap smap = null;
 
+	@Override
 	public void setup(RenderList rl) {
 		Gob pl = player();
 		if (pl != null)
@@ -510,6 +533,7 @@ public class MapView extends PView implements DTarget {
 			return (col);
 		}
 
+		@Override
 		protected void render(GOut g, Rendered r) {
 			if (r instanceof FRendered)
 				((FRendered) r).drawflat(g);
@@ -519,6 +543,7 @@ public class MapView extends PView implements DTarget {
 			return (rmap.get(g.getpixel(c)));
 		}
 
+		@Override
 		protected void setup(Slot s, Rendered r) {
 			T t = map(r);
 			super.setup(s, r);
@@ -540,12 +565,14 @@ public class MapView extends PView implements DTarget {
 			super(plain);
 		}
 
+		@Override
 		protected MapMesh map(Rendered r) {
 			if (r instanceof MapMesh)
 				return ((MapMesh) r);
 			return (null);
 		}
 
+		@Override
 		protected void render(GOut g, Rendered r) {
 			if (r instanceof MapMesh) {
 				MapMesh m = (MapMesh) r;
@@ -566,7 +593,7 @@ public class MapView extends PView implements DTarget {
 			MapMesh hit = rl.get(g, c);
 			if (hit == null)
 				return (null);
-			rl.limit = (MapMesh) hit;
+			rl.limit = hit;
 		}
 		Coord tile;
 		{
@@ -605,10 +632,12 @@ public class MapView extends PView implements DTarget {
 			Gob curgob;
 			ClickInfo curinfo;
 
+			@Override
 			public ClickInfo map(Rendered r) {
 				return (curinfo);
 			}
 
+			@Override
 			public void add(Rendered r, GLState t) {
 				if (r instanceof Gob)
 					curgob = (Gob) r;
@@ -631,11 +660,17 @@ public class MapView extends PView implements DTarget {
 		}
 	}
 
-	protected void undelay(GOut g) {
-		synchronized (delayed) {
-			for (Delayed d : delayed)
+	public void delay2(Delayed d) {
+		synchronized(delayed2) {
+			delayed2.add(d);
+		}
+	}
+
+	protected void undelay(Collection<Delayed> list, GOut g) {
+		synchronized(list) {
+			for(Delayed d : list)
 				d.run(g);
-			delayed.clear();
+			list.clear();
 		}
 	}
 
@@ -727,29 +762,32 @@ public class MapView extends PView implements DTarget {
 		g.chcolor();
 	}
 
+	@Override
 	public void draw(GOut g) {
 		glob.map.sendreqs();
-		if ((olftimer != 0) && (olftimer < System.currentTimeMillis()))
+		if((olftimer != 0) && (olftimer < System.currentTimeMillis()))
 			unflashol();
 		try {
-			if (camera.loading)
-				throw (new MCache.LoadingMap());
-			undelay(g);
+			if(camera.loading)
+				throw(new MCache.LoadingMap());
+			undelay(delayed, g);
 			super.draw(g);
-		} catch (Loading e) {
+			undelay(delayed2, g);
+			poldraw(g);
+			partydraw(g);
+			if (ui.modshift && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
+				FastText.aprint(g, ui.mc.sub(0, 5), 0.5, 0.5, String.valueOf(cz));
+			}
+		} catch(Loading e) {
 			String text = "Loading...";
 			g.chcolor(Color.BLACK);
 			g.frect(Coord.z, sz);
 			g.chcolor(Color.WHITE);
 			g.atext(text, sz.div(2), 0.5, 0.5);
 		}
-		poldraw(g);
-		partydraw(g);
-		if (ui.modshift && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
-			FastText.aprint(g, ui.mc.sub(0, 5), 0.5, 0.5, String.valueOf(cz));
-		}
 	}
 
+	@Override
 	public void tick(double dt) {
 		camera.loading = false;
 		try {
@@ -761,6 +799,7 @@ public class MapView extends PView implements DTarget {
 			placing.ctick((int) (dt * 1000));
 	}
 
+	@Override
 	public void resize(Coord sz) {
 		super.resize(sz);
 		camera.resized();
@@ -789,6 +828,7 @@ public class MapView extends PView implements DTarget {
 				adjust = ta;
 			}
 
+			@Override
 			public void run(GOut g) {
 				GLState.Buffer bk = g.st.copy();
 				Coord mc;
@@ -825,6 +865,7 @@ public class MapView extends PView implements DTarget {
 		olftimer = 0;
 	}
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "place") {
 			Resource res = Resource.load((String) args[0], (Integer) args[1]);
@@ -855,6 +896,7 @@ public class MapView extends PView implements DTarget {
 			clickc = c;
 		}
 
+		@Override
 		public void run(GOut g) {
 			GLState.Buffer bk = g.st.copy();
 			Coord mapcl;
@@ -898,6 +940,7 @@ public class MapView extends PView implements DTarget {
 			clickb = b;
 		}
 
+		@Override
 		protected void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
 			if (grab != null) {
 				if (grab.mmousedown(mc, clickb))
@@ -922,10 +965,11 @@ public class MapView extends PView implements DTarget {
 			this.grab = null;
 	}
 
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		parent.setfocus(this);
 		if (button == 2) {
-			if (((Camera) camera).click(c)) {
+			if (camera.click(c)) {
 				ui.grabmouse(this);
 				camdrag = true;
 			}
@@ -946,12 +990,14 @@ public class MapView extends PView implements DTarget {
 	}
 
 	long lastHitDetect = 0;
-	
+
+	@Override
 	public void mousemove(Coord c) {
 		if (ui.modshift && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
 			if (System.currentTimeMillis() - lastHitDetect > 250) {
 				synchronized (delayed) {
 					delayed.add(new Hittest(c) {
+						@Override
 						public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
 							updatePointer(mc);
 							lastHitDetect = System.currentTimeMillis();
@@ -961,10 +1007,11 @@ public class MapView extends PView implements DTarget {
 			}
 		}
 		if (camdrag) {
-			((Camera) camera).drag(c);
+			camera.drag(c);
 		} else if (grab != null) {
 			synchronized (delayed) {
 				delayed.add(new Hittest(c) {
+					@Override
 					public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
 						grab.mmousemove(mc);
 					}
@@ -979,16 +1026,18 @@ public class MapView extends PView implements DTarget {
 		}
 	}
 
+	@Override
 	public boolean mouseup(Coord c, final int button) {
 		if (button == 2) {
 			if (camdrag) {
-				((Camera) camera).release();
+				camera.release();
 				ui.grabmouse(null);
 				camdrag = false;
 			}
 		} else if (grab != null) {
 			synchronized (delayed) {
 				delayed.add(new Hittest(c) {
+					@Override
 					public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
 						grab.mmouseup(mc, button);
 					}
@@ -998,25 +1047,28 @@ public class MapView extends PView implements DTarget {
 		return (true);
 	}
 
+	@Override
 	public boolean mousewheel(Coord c, int amount) {
 		if (ui.modshift) {
 			if (placing != null) {
 				placing.freerot = true;
 				if (ui.modctrl)
 					placing.a = (Math.PI / 4)
-							* Math.round((placing.a + (amount * Math.PI / 4))
-									/ (Math.PI / 4));
+					* Math.round((placing.a + (amount * Math.PI / 4))
+							/ (Math.PI / 4));
 				else
 					placing.a += amount * Math.PI / 16;
 			}
 			return (true);
 		}
-		return (((Camera) camera).wheel(c, amount));
+		return (camera.wheel(c, amount));
 	}
 
+	@Override
 	public boolean drop(final Coord cc, final Coord ul) {
 		synchronized (delayed) {
 			delayed.add(new Hittest(cc) {
+				@Override
 				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
 					if (HConfig.cl_tilify)
 						mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
@@ -1027,9 +1079,11 @@ public class MapView extends PView implements DTarget {
 		return (true);
 	}
 
+	@Override
 	public boolean iteminteract(Coord cc, Coord ul) {
 		synchronized (delayed) {
 			delayed.add(new Hittest(cc) {
+				@Override
 				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
 					if (HConfig.cl_tilify)
 						mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
@@ -1044,6 +1098,7 @@ public class MapView extends PView implements DTarget {
 		return (true);
 	}
 
+	@Override
 	public boolean globtype(char c, java.awt.event.KeyEvent ev) {
 		return (false);
 	}

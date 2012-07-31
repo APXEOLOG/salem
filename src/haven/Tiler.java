@@ -1,7 +1,7 @@
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
- *                     Björn Johannessen <johannessen.bjorn@gmail.com>
+ *                     BjГ¶rn Johannessen <johannessen.bjorn@gmail.com>
  *
  *  Redistribution and/or modification of this file is subject to the
  *  terms of the GNU Lesser General Public License, version 3, as
@@ -38,47 +38,31 @@ public abstract class Tiler {
 	}
 
 	public abstract void lay(MapMesh m, Random rnd, Coord lc, Coord gc);
-
-	public abstract void trans(MapMesh m, Random rnd, Tiler gt, Coord lc,
-			Coord gc, int z, int bmask, int cmask);
+	public abstract void trans(MapMesh m, Random rnd, Tiler gt, Coord lc, Coord gc, int z, int bmask, int cmask);
 
 	public void layover(MapMesh m, Coord lc, Coord gc, int z, Tile t) {
 		m.new Plane(m.gnd(), lc, z, t);
 	}
 
 	public static class FactMaker implements Resource.PublishedCode.Instancer {
-		public Factory make(Class<?> cl) throws InstantiationException,
-				IllegalAccessException {
-			if (Factory.class.isAssignableFrom(cl)) {
-				return (cl.asSubclass(Factory.class).newInstance());
-			} else if (Tiler.class.isAssignableFrom(cl)) {
-				final Class<? extends Tiler> tcl = cl.asSubclass(Tiler.class);
-				return (new Factory() {
-					public Tiler create(int id, Resource.Tileset set) {
-						try {
-							try {
-								Constructor<? extends Tiler> m = tcl
-										.getConstructor(Integer.TYPE,
-												Resource.Tileset.class);
-								return (m.newInstance(id, set));
-							} catch (NoSuchMethodException e) {
-							}
-							throw (new RuntimeException(
-									"Could not find dynamic tiler contructor for "
-											+ tcl));
-						} catch (IllegalAccessException e) {
-							throw (new RuntimeException(e));
-						} catch (InstantiationException e) {
-							throw (new RuntimeException(e));
-						} catch (InvocationTargetException e) {
-							if (e.getCause() instanceof RuntimeException)
-								throw ((RuntimeException) e.getCause());
-							throw (new RuntimeException(e));
+		@Override
+		public Factory make(Class<?> cl) throws InstantiationException, IllegalAccessException {
+			if(Factory.class.isAssignableFrom(cl)) {
+				return(cl.asSubclass(Factory.class).newInstance());
+			} else if(Tiler.class.isAssignableFrom(cl)) {
+				Class<? extends Tiler> tcl = cl.asSubclass(Tiler.class);
+				try {
+					final Constructor<? extends Tiler> cons = tcl.getConstructor(Integer.TYPE, Resource.Tileset.class);
+					return(new Factory() {
+						@Override
+						public Tiler create(int id, Resource.Tileset set) {
+							return(Utils.construct(cons, id, set));
 						}
-					}
-				});
+					});
+				} catch(NoSuchMethodException e) {}
+				throw(new RuntimeException("Could not find dynamic tiler contructor for " + tcl));
 			}
-			return (null);
+			return(null);
 		}
 	}
 

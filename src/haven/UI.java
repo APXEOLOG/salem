@@ -44,7 +44,7 @@ public class UI {
 	long lastevent, lasttick;
 	public Widget mouseon;
 	public Console cons = new WidgetConsole();
-	private Collection<AfterDraw> afterdraws = null;
+	private Collection<AfterDraw> afterdraws = new LinkedList<AfterDraw>();
 
 	{
 		lastevent = lasttick = System.currentTimeMillis();
@@ -61,11 +61,13 @@ public class UI {
 	private class WidgetConsole extends Console {
 		{
 			setcmd("q", new Command() {
+				@Override
 				public void run(Console cons, String[] args) {
 					HackThread.tg().interrupt();
 				}
 			});
 			setcmd("lo", new Command() {
+				@Override
 				public void run(Console cons, String[] args) {
 					sess.close();
 				}
@@ -83,6 +85,7 @@ public class UI {
 				findcmds(map, ch);
 		}
 
+		@Override
 		public Map<String, Command> findcmds() {
 			Map<String, Command> ret = super.findcmds();
 			findcmds(ret, root);
@@ -131,14 +134,12 @@ public class UI {
 	}
 
 	public void draw(GOut g) {
-		afterdraws = new LinkedList<AfterDraw>();
 		root.draw(g);
-		synchronized (afterdraws) {
-			for (AfterDraw ad : afterdraws) {
+		synchronized(afterdraws) {
+			for(AfterDraw ad : afterdraws)
 				ad.draw(g);
-			}
+			afterdraws.clear();
 		}
-		afterdraws = null;
 	}
 
 	public void newwidget(int id, String type, int parent, Object[] pargs,

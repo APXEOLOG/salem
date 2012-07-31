@@ -27,7 +27,7 @@
 package haven;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
+import java.awt.image.*;
 import javax.media.opengl.*;
 import java.nio.*;
 
@@ -124,7 +124,7 @@ public class GOut {
 	public void aimage(Tex tex, Coord c, double ax, double ay) {
 		Coord sz = tex.sz();
 		image(tex,
-				c.add((int) ((double) sz.x * -ax), (int) ((double) sz.y * -ay)));
+				c.add((int) (sz.x * -ax), (int) (sz.y * -ay)));
 	}
 
 	public void image(Tex tex, Coord c, Coord sz) {
@@ -188,7 +188,7 @@ public class GOut {
 		Tex T = t.tex();
 		Coord sz = t.sz();
 		image(T,
-				c.add((int) ((double) sz.x * -ax), (int) ((double) sz.y * -ay)));
+				c.add((int) (sz.x * -ax), (int) (sz.y * -ay)));
 		T.dispose();
 		checkerr();
 	}
@@ -221,14 +221,26 @@ public class GOut {
 	}
 
 	public void frect(Coord ul, Coord sz) {
+		ul = tx.add(ul);
+		Coord br = ul.add(sz);
+		if (ul.x < this.ul.x)
+			ul.x = this.ul.x;
+		if (ul.y < this.ul.y)
+			ul.y = this.ul.y;
+		if (br.x > this.ul.x + this.sz.x)
+			br.x = this.ul.x + this.sz.x;
+		if (br.y > this.ul.y + this.sz.y)
+			br.y = this.ul.y + this.sz.y;
+		if ((ul.x >= br.x) || (ul.y >= br.y))
+			return;
 		st.set(def2d);
 		state(color);
 		apply();
 		gl.glBegin(GL.GL_QUADS);
-		vertex(ul);
-		vertex(ul.add(new Coord(sz.x, 0)));
-		vertex(ul.add(sz));
-		vertex(ul.add(new Coord(0, sz.y)));
+		gl.glVertex2i(ul.x, ul.y);
+		gl.glVertex2i(br.x, ul.y);
+		gl.glVertex2i(br.x, br.y);
+		gl.glVertex2i(ul.x, br.y);
 		gl.glEnd();
 		checkerr();
 	}
@@ -321,7 +333,7 @@ public class GOut {
 	public void scale(double d) {
 		gl.glScaled(d, d, d);
 	}
-	
+
 	public Color getpixel(Coord c) {
 		IntBuffer tgt = ByteBuffer.allocateDirect(4)
 				.order(ByteOrder.nativeOrder()).asIntBuffer();
@@ -329,10 +341,27 @@ public class GOut {
 		gl.glReadPixels(c.x + tx.x, root.sz.y - c.y - tx.y, 1, 1, GL.GL_RGBA,
 				GL.GL_UNSIGNED_INT_8_8_8_8, tgt);
 		checkerr();
-		long rgb = ((long) tgt.get(0)) & 0xffffffffl;
+		long rgb = tgt.get(0) & 0xffffffffl;
 		int r = (int) ((rgb & 0xff000000l) >> 24);
 		int g = (int) ((rgb & 0x00ff0000l) >> 16);
 		int b = (int) ((rgb & 0x0000ff00l) >> 8);
 		return (new Color(r, g, b));
+	}
+
+	public BufferedImage getimage(Coord ul, Coord sz) {
+		ByteBuffer buf = Utils.mkbbuf(sz.x * sz.y * 4);
+		gl.glReadPixels(ul.x + tx.x, root.sz.y - ul.y - sz.y - tx.y, sz.x, sz.y, GL.GL_RGBA, GL.GL_UNSIGNED_INT_8_8_8_8, buf);
+		byte[] copy = new byte[buf.capacity()];
+		int fo = 0, to = (sz.y - 1) * sz.x * 4;
+		for(int y = 0; y < sz.y; y++, to -= sz.x * 4 * 2) {
+			for(int x = 0; x < sz.x; x++, fo += 4, to += 4) {
+				copy[to + 3] = buf.get(fo + 0);
+				copy[to + 2] = buf.get(fo + 1);
+				copy[to + 1] = buf.get(fo + 2);
+				copy[to + 0] = buf.get(fo + 3);
+			}
+		}
+		WritableRaster raster = Raster.createInterleavedRaster(new DataBufferByte(copy, copy.length), sz.x, sz.y, 4 * sz.x, 4, new int[] {0, 1, 2, 3}, null);
+		return(new BufferedImage(TexI.glcm, raster, false, null));
 	}
 }

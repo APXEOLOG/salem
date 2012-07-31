@@ -129,6 +129,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 	private Map<String, Console.Command> cmdmap = new TreeMap<String, Console.Command>();
 	{
 		cmdmap.put("sz", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				if (args.length == 3) {
 					int w = Integer.parseInt(args[1]), h = Integer
@@ -148,6 +149,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 			}
 		});
 		cmdmap.put("fsmode", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) throws Exception {
 				if (args.length == 3) {
 					DisplayMode mode = findmode(Integer.parseInt(args[1]),
@@ -161,18 +163,21 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 			}
 		});
 		cmdmap.put("fs", new Console.Command() {
+			@Override
 			@SuppressWarnings("static-access")
 			public void run(Console cons, String[] args) {
 				if (args.length >= 2) {
 					Runnable r;
 					if (Utils.atoi(args[1]) != 0) {
 						r = new Runnable() {
+							@Override
 							public void run() {
 								setfs();
 							}
 						};
 					} else {
 						r = new Runnable() {
+							@Override
 							public void run() {
 								setwnd();
 							}
@@ -184,6 +189,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 		});
 	}
 
+	@Override
 	public Map<String, Console.Command> findcmds() {
 		return (cmdmap);
 	}
@@ -201,7 +207,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 	}
 
 	public MainFrame(Coord isz) {
-		super("BD SaleM 3.3");
+		super("BD SaleM 3.4");
 		Coord sz;
 		if (isz == null) {
 			sz = Utils.getprefc("wndsz", new Coord(800, 600));
@@ -235,6 +241,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 		setVisible(true);
 		p.init();
 		addWindowListener(new WindowAdapter() {
+			@Override
 			public void windowClosing(WindowEvent e) {
 				g.interrupt();
 			}
@@ -246,12 +253,12 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 	private void savewndstate() {
 		if (prefs == null) {
 			if (getExtendedState() == NORMAL)
-			/*
-			 * Apparent, getSize attempts to return the "outer size" of the
-			 * window, including WM decorations, even though setSize sets the
-			 * "inner size" of the window. Therefore, use the Panel's size
-			 * instead; it ought to correspond to the inner size at all times.
-			 */{
+				/*
+				 * Apparent, getSize attempts to return the "outer size" of the
+				 * window, including WM decorations, even though setSize sets the
+				 * "inner size" of the window. Therefore, use the Panel's size
+				 * instead; it ought to correspond to the inner size at all times.
+				 */{
 				Dimension dim = p.getSize();
 				Utils.setprefc("wndsz", new Coord(dim.width, dim.height));
 			}
@@ -259,6 +266,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 		}
 	}
 
+	@Override
 	public void run() {
 		if (Thread.currentThread() != this.mt)
 			throw (new RuntimeException(
@@ -321,7 +329,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 	@SuppressWarnings("unused")
 	private static int netxres = -1;
 
-	private static void netxsurgery() {
+	private static void netxsurgery() throws Exception {
 		/* Force off NetX codebase classloading. */
 		Class<?> nxc;
 		try {
@@ -330,22 +338,20 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 			try {
 				nxc = Class.forName("netx.jnlp.runtime.JNLPClassLoader");
 			} catch (ClassNotFoundException e2) {
-				netxres = 0;
-				return;
+				throw (new Exception("No known NetX on classpath"));
 			}
 		}
 		ClassLoader cl = MainFrame.class.getClassLoader();
 		if (!nxc.isInstance(cl)) {
-			netxres = 1;
-			return;
+			throw (new Exception("Not running from a NetX classloader"));
 		}
 		Field cblf, lf;
 		try {
 			cblf = nxc.getDeclaredField("codeBaseLoader");
 			lf = nxc.getDeclaredField("loaders");
 		} catch (NoSuchFieldException e) {
-			netxres = 2;
-			return;
+			throw (new Exception(
+					"JNLPClassLoader does not conform to its known structure"));
 		}
 		cblf.setAccessible(true);
 		lf.setAccessible(true);
@@ -361,8 +367,8 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 			try {
 				curl = lf.get(cur);
 			} catch (IllegalAccessException e) {
-				netxres = 3;
-				return;
+				throw (new Exception(
+						"Reflection accessibility not available even though set"));
 			}
 			for (int i = 0; i < Array.getLength(curl); i++) {
 				Object other = Array.get(curl, i);
@@ -374,8 +380,8 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 			try {
 				cblf.set(cur, null);
 			} catch (IllegalAccessException e) {
-				netxres = 4;
-				return;
+				throw (new Exception(
+						"Reflection accessibility not available even though set"));
 			}
 		}
 	}
@@ -384,6 +390,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 		/* Work around a stupid deadlock bug in AWT. */
 		try {
 			javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
 				public void run() {
 					PrintStream bitbucket = new PrintStream(
 							new ByteArrayOutputStream());
@@ -458,6 +465,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 			final haven.error.ErrorHandler hg = new haven.error.ErrorHandler(
 					new java.net.URL(HConfig.mp_error_url));
 			hg.sethandler(new haven.error.ErrorGui(null) {
+				@Override
 				public void errorsent() {
 					hg.interrupt();
 				}
@@ -467,6 +475,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 		}
 
 		Thread main = new HackThread(g, new Runnable() {
+			@Override
 			public void run() {
 				main2(args);
 			}

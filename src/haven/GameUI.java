@@ -49,7 +49,7 @@ import org.apxeolog.salem.SWidgetOptions;
 import org.apxeolog.salem.SWindow;
 
 public class GameUI extends ConsoleHost implements DTarget, DropTarget,
-		Console.Directory {
+Console.Directory {
 	public final String chrid;
 	public final long plid;
 	public MenuGrid menu;
@@ -91,7 +91,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	public void updateWindowStyle() {
 		ui.root.resize(ui.root.sz);
 	}
-	
+
 	public void toggleGrid() {
 		if (HConfig.cl_grid_mode == MapView.GRID_MODE_NONE) {
 			HConfig.cl_grid_mode = MapView.GRID_MODE_HEIGHTMAP;
@@ -100,30 +100,35 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 		updateGrid();
 	}
-	
+
 	public void updateGrid() {
-		if (map == null) return;
+		if (map == null)
+			return;
 		if (HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
-			if (!map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.enol(MapView.MAP_GRID_OVERLAY_ID);
+			if (!map.haveol(MapView.MAP_GRID_OVERLAY_ID))
+				map.enol(MapView.MAP_GRID_OVERLAY_ID);
 		} else {
-			if (map.haveol(MapView.MAP_GRID_OVERLAY_ID)) map.disol(MapView.MAP_GRID_OVERLAY_ID);
+			if (map.haveol(MapView.MAP_GRID_OVERLAY_ID))
+				map.disol(MapView.MAP_GRID_OVERLAY_ID);
 		}
 	}
 
 	public void updateTilify() {
-		if (map == null) return;
+		if (map == null)
+			return;
 		if (map.haveol(MapView.MAP_POINTER_OVERLAY_ID) && !HConfig.cl_tilify) {
 			map.disol(MapView.MAP_POINTER_OVERLAY_ID);
-		} else if (!map.haveol(MapView.MAP_POINTER_OVERLAY_ID) && HConfig.cl_tilify) {
+		} else if (!map.haveol(MapView.MAP_POINTER_OVERLAY_ID)
+				&& HConfig.cl_tilify) {
 			map.enol(MapView.MAP_POINTER_OVERLAY_ID);
 		}
 	}
-	
+
 	public void toggleTilify() {
 		HConfig.cl_tilify = !HConfig.cl_tilify;
 		updateTilify();
 	}
-	
+
 	public void updateTempersToConfig() {
 		if (bdsTempers != null) {
 			boolean vs = bdsTempers.visible;
@@ -167,6 +172,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				Coord mvc = map.rootxlate(ui.mc);
 				if (mvc.isect(Coord.z, map.sz)) {
 					map.delay(map.new Hittest(mvc) {
+						@Override
 						protected void hit(Coord pc, Coord mc, Gob gob,
 								Rendered tgt) {
 							if (gob == null)
@@ -188,6 +194,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 
 	static {
 		addtype("gameui", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				String chrid = (String) args[0];
 				int plid = (Integer) args[1];
@@ -204,6 +211,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		setfocusctl(true);
 		menu = new MenuGrid(Coord.z, this);
 		new Avaview(new Coord(10, 10), Avaview.dasz, this, plid, "avacam") {
+			@Override
 			public boolean mousedown(Coord c, int button) {
 				return (true);
 			}
@@ -232,6 +240,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {
 			StringBuilder buf = new StringBuilder();
 
+			@Override
 			public void write(char[] src, int off, int len) {
 				buf.append(src, off, len);
 				int p;
@@ -241,15 +250,17 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				}
 			}
 
+			@Override
 			public void close() {
 			}
 
+			@Override
 			public void flush() {
 			}
 		});
 		makemenu();
 		resize(sz);
-		
+
 		SNetworkResources.onGameUILoad();
 	}
 
@@ -263,9 +274,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			this.gkey = (char) gkey;
 		}
 
+		@Override
 		public void click() {
 		}
 
+		@Override
 		public boolean globtype(char key, KeyEvent ev) {
 			if ((gkey != -1) && (key == gkey)) {
 				click();
@@ -280,6 +293,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			super(c, sz, parent, cap);
 		}
 
+		@Override
 		public void wdgmsg(Widget sender, String msg, Object... args) {
 			if (msg.equals("swindow_close") || msg.equals("close")) {
 				this.hide();
@@ -314,6 +328,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 	}
 
+	@Override
 	public Widget makechild(String type, Object[] pargs, Object[] cargs) {
 		String place = ((String) pargs[0]).intern();
 		if (place == "mapview") {
@@ -328,6 +343,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			// Minimap
 			SWindow mmapWindow = new SWindow(new Coord(sz.x - 250, 18),
 					new Coord(250, 250), this, "Minimap") {
+				@Override
 				public void wdgmsg(Widget sender, String msg, Object... args) {
 					if (msg.equals("mmap_reset")) {
 						LocalMiniMap mmap = findchild(LocalMiniMap.class);
@@ -341,6 +357,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 						super.wdgmsg(sender, msg, args);
 				};
 
+				@Override
 				public void resize(Coord sz) {
 					super.resize(sz);
 
@@ -365,6 +382,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 					"Display personal claims") {
 				boolean v = false;
 
+				@Override
 				public void click() {
 					if (!v) {
 						map.enol(0, 1);
@@ -379,9 +397,10 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 					"Display town claims") {
 				boolean v = false;
 
+				@Override
 				public void click() {
 					if (!v) {
-						
+
 						map.enol(2, 3);
 						v = true;
 					} else {
@@ -392,18 +411,21 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			};
 			new MenuButton(new Coord(36, 0), mapmenu, "tow", -1,
 					"Add marker to minimap") {
+				@Override
 				public void click() {
 					mmap.requestedMarkerSet = true;
 				}
 			};
 			new MenuButton(new Coord(54, 0), mapmenu, "tow", -1,
 					"Remove marker from minimap") {
+				@Override
 				public void click() {
 					SUtils.minimapMarkerRealCoords = null;
 				}
 			};
 			new MenuButton(new Coord(72, 0), mapmenu, "chat", -1,
 					"Chat (Ctrl+C)") {
+				@Override
 				public void click() {
 					chat.toggle();
 				}
@@ -447,6 +469,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			final Widget[] mk = { null };
 			makewnd = new SWindow(new Coord(200, 100), Coord.z, this,
 					"Crafting") {
+				@Override
 				public void wdgmsg(Widget sender, String msg, Object... args) {
 					if (msg.equals("swindow_close")) {
 						mk[0].wdgmsg("close");
@@ -455,6 +478,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 					super.wdgmsg(sender, msg, args);
 				}
 
+				@Override
 				public void cdestroy(Widget w) {
 					if (w == mk[0]) {
 						ui.destroy(this);
@@ -491,6 +515,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 	}
 
+	@Override
 	public void cdestroy(Widget w) {
 		if ((w instanceof GItem) && hand.contains(w)) {
 			hand.remove(w);
@@ -513,6 +538,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	}
 	Text progt = null;
 
+	@Override
 	public void draw(GOut g) {
 		mainmenu.show(!chat.expanded);
 		super.draw(g);
@@ -549,6 +575,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 	}
 
+	@Override
 	public void tick(double dt) {
 		super.tick(dt);
 		if (!afk && (System.currentTimeMillis() - ui.lastevent > 300000)) {
@@ -560,6 +587,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		dwalkupd();
 	}
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "err") {
 			String err = (String) args[0];
@@ -644,6 +672,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 	}
 
+	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (sender == menu) {
 			wdgmsg(msg, args);
@@ -759,6 +788,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 				this);
 		int x = 0;
 		new MenuButton(new Coord(x, 0), mainmenu, "inv", 9, "Inventory (Tab)") {
+			@Override
 			public void click() {
 				if ((invwnd != null) && invwnd.show(!invwnd.visible)) {
 					invwnd.raise();
@@ -769,6 +799,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		x += 62;
 		new MenuButton(new Coord(x, 0), mainmenu, "equ", 5,
 				"Equipment (Ctrl+E)") {
+			@Override
 			public void click() {
 				if ((equwnd != null) && equwnd.show(!equwnd.visible)) {
 					equwnd.raise();
@@ -779,6 +810,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		x += 62;
 		new MenuButton(new Coord(x, 0), mainmenu, "chr", 20,
 				"Studying (Ctrl+T)") {
+			@Override
 			public void click() {
 				if ((chrwdg != null) && chrwdg.show(!chrwdg.visible)) {
 					chrwdg.raise();
@@ -790,6 +822,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		x += 62;
 		new MenuButton(new Coord(x, 0), mainmenu, "bud", 2,
 				"Buddy List (Ctrl+B)") {
+			@Override
 			public void click() {
 				if ((buddies != null) && buddies.show(!buddies.visible)) {
 					buddies.raise();
@@ -800,6 +833,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		};
 		x += 62;
 		new MenuButton(new Coord(x, 0), mainmenu, "pol", 16, "Town (Ctrl+P)") {
+			@Override
 			public void click() {
 				if ((polity != null) && polity.show(!polity.visible)) {
 					polity.raise();
@@ -811,11 +845,13 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		x += 62;
 		new MenuButton(new Coord(x, 0), mainmenu, "opt", -1,
 				"Options (BDSaleM)") {
+			@Override
 			public void click() {
 				toggleOptions();
 			}
 		};
 		menumenu = new Widget(Coord.z, new Coord(132, 33), this) {
+			@Override
 			public void draw(GOut g) {
 				super.draw(g);
 				try {
@@ -835,6 +871,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		};
 		new MenuButton(new Coord(66, 0), menumenu, "blk", 19,
 				"Toggle maneuver (Ctrl+S)") {
+			@Override
 			public void click() {
 				act("blk");
 			}
@@ -856,6 +893,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		}
 	}
 
+	@Override
 	public boolean globtype(char key, KeyEvent ev) {
 		// Check toolbar hotkeys
 		for (SToolbar tb : bdsToolbars) {
@@ -877,6 +915,11 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		if (key == ':') {
 			entercmd();
 			return (true);
+		} else if ((Config.screenurl != null)
+				&& (ukey == 'S')
+				&& ((ev.getModifiersEx() & (KeyEvent.META_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) != 0)) {
+			Screenshooter.take(this, Config.screenurl);
+			return (true);
 		} else if ((ukey == 'W') || (ukey == 'A') || (ukey == 'S')
 				|| (ukey == 'D')) {
 			dwalkdown(ukey, ev);
@@ -887,6 +930,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		return (super.globtype(key, ev));
 	}
 
+	@Override
 	public boolean keydown(KeyEvent ev) {
 		char ukey = Character.toUpperCase(ev.getKeyChar());
 		if (dwalking
@@ -897,6 +941,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		return (super.keydown(ev));
 	}
 
+	@Override
 	public boolean keyup(KeyEvent ev) {
 		char ukey = Character.toUpperCase(ev.getKeyChar());
 		if (dwalking
@@ -907,24 +952,29 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		return (super.keyup(ev));
 	}
 
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		if (showbeltp() && beltwdg.click(c, button))
 			return (true);
 		return (super.mousedown(c, button));
 	}
 
+	@Override
 	public boolean drop(Coord cc, Coord ul) {
 		return (showbeltp() && beltwdg.item(cc));
 	}
 
+	@Override
 	public boolean iteminteract(Coord cc, Coord ul) {
 		return (false);
 	}
 
+	@Override
 	public boolean dropthing(Coord c, Object thing) {
 		return (showbeltp() && beltwdg.thing(c, thing));
 	}
 
+	@Override
 	public void resize(Coord sz) {
 		this.sz = sz;
 		menu.c = sz.sub(menu.sz);
@@ -948,12 +998,14 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		super.resize(sz);
 	}
 
+	@Override
 	public void presize() {
 		resize(parent.sz);
 	}
 
 	private static final Resource errsfx = Resource.load("sfx/error");
 
+	@Override
 	public void error(String msg) {
 		errtime = System.currentTimeMillis();
 		lasterr = errfoundry.render(msg);
@@ -974,7 +1026,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 
 		private Coord beltc(int i) {
 			return (new Coord(/* ((sz.x - (invsq.sz().x * 12) - (2 * 11)) / 2) */
-			135 + ((invsq.sz().x + 2) * i) + (10 * (i / 4)), sz.y - 26
+					135 + ((invsq.sz().x + 2) * i) + (10 * (i / 4)), sz.y - 26
 					- invsq.sz().y - 2));
 		}
 
@@ -986,6 +1038,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (-1);
 		}
 
+		@Override
 		public int draw(GOut g, int by) {
 			for (int i = 0; i < 12; i++) {
 				int slot = i + (curbelt * 12);
@@ -1004,6 +1057,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (invsq.sz().y);
 		}
 
+		@Override
 		public boolean click(Coord c, int button) {
 			int slot = beltslot(c);
 			if (slot != -1) {
@@ -1016,6 +1070,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (false);
 		}
 
+		@Override
 		public boolean key(KeyEvent ev) {
 			boolean M = (ev.getModifiersEx() & (KeyEvent.META_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) != 0;
 			for (int i = 0; i < beltkeys.length; i++) {
@@ -1032,6 +1087,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (false);
 		}
 
+		@Override
 		public boolean item(Coord c) {
 			int slot = beltslot(c);
 			if (slot != -1) {
@@ -1041,6 +1097,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (false);
 		}
 
+		@Override
 		public boolean thing(Coord c, Object thing) {
 			int slot = beltslot(c);
 			if (slot != -1) {
@@ -1061,7 +1118,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 
 		private Coord beltc(int i) {
 			return (new Coord(/* ((sz.x - (invsq.sz().x * 12) - (2 * 11)) / 2) */
-			135 + ((invsq.sz().x + 2) * i) + (10 * (i / 5)), sz.y - 26
+					135 + ((invsq.sz().x + 2) * i) + (10 * (i / 5)), sz.y - 26
 					- invsq.sz().y - 2));
 		}
 
@@ -1073,6 +1130,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (-1);
 		}
 
+		@Override
 		public int draw(GOut g, int by) {
 			for (int i = 0; i < 10; i++) {
 				int slot = i + (curbelt * 12);
@@ -1091,6 +1149,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (invsq.sz().y);
 		}
 
+		@Override
 		public boolean click(Coord c, int button) {
 			int slot = beltslot(c);
 			if (slot != -1) {
@@ -1103,6 +1162,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (false);
 		}
 
+		@Override
 		public boolean key(KeyEvent ev) {
 			int c = ev.getKeyChar();
 			if ((c < KeyEvent.VK_0) || (c > KeyEvent.VK_9))
@@ -1117,6 +1177,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (true);
 		}
 
+		@Override
 		public boolean item(Coord c) {
 			int slot = beltslot(c);
 			if (slot != -1) {
@@ -1126,6 +1187,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			return (false);
 		}
 
+		@Override
 		public boolean thing(Coord c, Object thing) {
 			int slot = beltslot(c);
 			if (slot != -1) {
@@ -1155,12 +1217,14 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 	private Map<String, Console.Command> cmdmap = new TreeMap<String, Console.Command>();
 	{
 		cmdmap.put("afk", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				afk = true;
 				wdgmsg("afk");
 			}
 		});
 		cmdmap.put("act", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				Object[] ad = new Object[args.length - 1];
 				System.arraycopy(args, 1, ad, 0, ad.length);
@@ -1168,6 +1232,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 			}
 		});
 		cmdmap.put("belt", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				if (args[1].equals("f")) {
 					beltwdg = new FKeyBelt();
@@ -1180,6 +1245,7 @@ public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 		});
 	}
 
+	@Override
 	public Map<String, Console.Command> findcmds() {
 		return (cmdmap);
 	}

@@ -53,6 +53,7 @@ public class Utils {
 
 	public static void defer(final Runnable r) {
 		Defer.later(new Defer.Callable<Object>() {
+			@Override
 			public Object call() {
 				r.run();
 				return (null);
@@ -274,12 +275,12 @@ public class Utils {
 		if (h < 128)
 			return (b | ((long) h << 56));
 		else
-			return (0L + ((long) (-255 + h) * 0x0100000000000000L) + (-0x0100000000000000L + b));
+			return (0L + ((-255 + h) * 0x0100000000000000L) + (-0x0100000000000000L + b));
 	}
 
 	static void int32e(int num, byte[] buf, int off) {
 		if (num < 0)
-			uint32e(0x100000000L + ((long) num), buf, off);
+			uint32e(0x100000000L + num, buf, off);
 		else
 			uint32e(num, buf, off);
 	}
@@ -314,7 +315,7 @@ public class Utils {
 			throw (new RuntimeException("Invalid special float encoded (" + m
 					+ ")"));
 		}
-		double v = (((double) m) / 2147483648.0) + 1.0;
+		double v = (m / 2147483648.0) + 1.0;
 		if (s)
 			v = -v;
 		return (Math.pow(2.0, e) * v);
@@ -355,6 +356,64 @@ public class Utils {
 			ret[o] = (byte) ((hex2num(hex.charAt(i)) << 4) | hex2num(hex
 					.charAt(i + 1)));
 		return (ret);
+	}
+
+	private final static String base64set = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	private final static int[] base64rev;
+
+	static {
+		int[] rev = new int[128];
+		for(int i = 0; i < 128; rev[i++] = -1);
+		for(int i = 0; i < base64set.length(); i++)
+			rev[base64set.charAt(i)] = i;
+		base64rev = rev;
+	}
+
+	public static String base64enc(byte[] in) {
+		StringBuilder buf = new StringBuilder();
+		int p = 0;
+		while(in.length - p >= 3) {
+			buf.append(base64set.charAt( (in[p + 0] & 0xfc) >> 2));
+			buf.append(base64set.charAt(((in[p + 0] & 0x03) << 4) | ((in[p + 1] & 0xf0) >> 4)));
+			buf.append(base64set.charAt(((in[p + 1] & 0x0f) << 2) | ((in[p + 2] & 0xc0) >> 6)));
+			buf.append(base64set.charAt(  in[p + 2] & 0x3f));
+			p += 3;
+		}
+		if(in.length == p + 1) {
+			buf.append(base64set.charAt( (in[p + 0] & 0xfc) >> 2));
+			buf.append(base64set.charAt( (in[p + 0] & 0x03) << 4));
+			buf.append("==");
+		} else if(in.length == p + 2) {
+			buf.append(base64set.charAt( (in[p + 0] & 0xfc) >> 2));
+			buf.append(base64set.charAt(((in[p + 0] & 0x03) << 4) | ((in[p + 1] & 0xf0) >> 4)));
+			buf.append(base64set.charAt( (in[p + 1] & 0x0f) << 2));
+			buf.append("=");
+		}
+		return(buf.toString());
+	}
+
+	public static byte[] base64dec(String in) {
+		ByteArrayOutputStream buf = new ByteArrayOutputStream();
+		int cur = 0, b = 8;
+		for(int i = 0; i < in.length(); i++) {
+			char c = in.charAt(i);
+			if(c >= 128)
+				throw(new IllegalArgumentException());
+			if(c == '=')
+				break;
+			int d = base64rev[c];
+			if(d == -1)
+				throw(new IllegalArgumentException());
+			b -= 6;
+			if(b <= 0) {
+				cur |= d >> -b;
+			buf.write(cur);
+			b += 8;
+			cur = 0;
+			}
+			cur |= d << b;
+		}
+		return(buf.toByteArray());
 	}
 
 	public static String[] splitwords(String text) {
@@ -558,10 +617,10 @@ public class Utils {
 						.getAlpha(img.getRGB(x - 2, y - 1)) >= 250))
 						|| ((x > 0) && (y > 1) && (x < sz.x - 1) && (Utils.rgbm
 								.getAlpha(img.getRGB(x - 1, y - 2)) >= 250))
-						|| ((x < sz.x - 2) && (y > 0) && (y < sz.y - 1) && (Utils.rgbm
-								.getAlpha(img.getRGB(x, y - 1)) >= 250))
-						|| ((x > 0) && (y < sz.y - 2) && (x < sz.x - 1) && (Utils.rgbm
-								.getAlpha(img.getRGB(x - 1, y)) >= 250)))
+								|| ((x < sz.x - 2) && (y > 0) && (y < sz.y - 1) && (Utils.rgbm
+										.getAlpha(img.getRGB(x, y - 1)) >= 250))
+										|| ((x > 0) && (y < sz.y - 2) && (x < sz.x - 1) && (Utils.rgbm
+												.getAlpha(img.getRGB(x - 1, y)) >= 250)))
 					ol.setRGB(x, y, col.getRGB());
 			}
 		}
@@ -621,6 +680,14 @@ public class Utils {
 		if (r < 0)
 			r += b;
 		return (r);
+	}
+
+	public static float clip(float d, float min, float max) {
+		if(d < min)
+			return(min);
+		if(d > max)
+			return(max);
+		return(d);
 	}
 
 	public static double clip(double d, double min, double max) {
@@ -705,6 +772,10 @@ public class Utils {
 		return (b);
 	}
 
+	public static ByteBuffer mkbbuf(int n) {
+		return (ByteBuffer.allocateDirect(n));
+	}
+
 	public static ShortBuffer bufcp(short[] a) {
 		ShortBuffer b = mksbuf(a.length);
 		b.put(a);
@@ -742,9 +813,9 @@ public class Utils {
 	}
 
 	public static float[] c2fa(Color c) {
-		return (new float[] { ((float) c.getRed() / 255.0f),
-				((float) c.getGreen() / 255.0f),
-				((float) c.getBlue() / 255.0f), ((float) c.getAlpha() / 255.0f) });
+		return (new float[] { (c.getRed() / 255.0f),
+				(c.getGreen() / 255.0f),
+				(c.getBlue() / 255.0f), (c.getAlpha() / 255.0f) });
 	}
 
 	@SuppressWarnings("unchecked")
@@ -780,16 +851,19 @@ public class Utils {
 
 	static {
 		Console.setscmd("die", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				throw (new Error("Triggered death"));
 			}
 		});
 		Console.setscmd("threads", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				Utils.dumptg(null, cons.out);
 			}
 		});
 		Console.setscmd("gc", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				System.gc();
 			}

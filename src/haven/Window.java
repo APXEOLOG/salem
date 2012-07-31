@@ -35,9 +35,9 @@ public class Window extends Widget implements DTarget {
 	static Tex topblob = Resource.loadtex("gfx/hud/tmain");
 	static Tex botblob = Resource.loadtex("gfx/hud/bmain");
 	static BufferedImage[] cbtni = new BufferedImage[] {
-			Resource.loadimg("gfx/hud/cbtn"),
-			Resource.loadimg("gfx/hud/cbtnd"),
-			Resource.loadimg("gfx/hud/cbtnh") };
+		Resource.loadimg("gfx/hud/cbtn"),
+		Resource.loadimg("gfx/hud/cbtnd"),
+		Resource.loadimg("gfx/hud/cbtnh") };
 	static Color cc = Color.YELLOW;
 	static Text.Foundry cf = new Text.Foundry(new Font("Serif", Font.PLAIN, 12));
 	public static final IBox swbox = new IBox("gfx/hud", "stl", "str", "sbl",
@@ -53,17 +53,17 @@ public class Window extends Widget implements DTarget {
 	public Coord doff;
 	public IButton cbtn;
 
-//	static {
-//		Widget.addtype("wnd", new WidgetFactory() {
-//			public Widget create(Coord c, Widget parent, Object[] args) {
-//				if (args.length < 2)
-//					return (new Window(c, (Coord) args[0], parent, null));
-//				else
-//					return (new Window(c, (Coord) args[0], parent,
-//							(String) args[1]));
-//			}
-//		});
-//	}
+	//	static {
+	//		Widget.addtype("wnd", new WidgetFactory() {
+	//			public Widget create(Coord c, Widget parent, Object[] args) {
+	//				if (args.length < 2)
+	//					return (new Window(c, (Coord) args[0], parent, null));
+	//				else
+	//					return (new Window(c, (Coord) args[0], parent,
+	//							(String) args[1]));
+	//			}
+	//		});
+	//	}
 
 	private void placecbtn() {
 		cbtn.c = xlate(
@@ -96,6 +96,7 @@ public class Window extends Widget implements DTarget {
 	public void cdraw(GOut g) {
 	}
 
+	@Override
 	public void draw(GOut og) {
 		GOut g = og.reclip(tlo, wsz);
 		Coord bgul = wbox.tloff();
@@ -122,20 +123,26 @@ public class Window extends Widget implements DTarget {
 		super.draw(og);
 	}
 
-	public void pack() {
+	public Coord contentsz() {
 		Coord max = new Coord(0, 0);
-		for (Widget wdg = child; wdg != null; wdg = wdg.next) {
-			if (wdg == cbtn)
+		for(Widget wdg = child; wdg != null; wdg = wdg.next) {
+			if(wdg == cbtn)
 				continue;
 			Coord br = wdg.c.add(wdg.sz);
-			if (br.x > max.x)
+			if(br.x > max.x)
 				max.x = br.x;
-			if (br.y > max.y)
+			if(br.y > max.y)
 				max.y = br.y;
 		}
-		resize(max.sub(1, 1));
+		return(max);
 	}
 
+	@Override
+	public void pack() {
+		resize(contentsz());
+	}
+
+	@Override
 	public void resize(Coord sz) {
 		sz = sz.add(tlo).add(rbo).add(wbox.bisz()).add(mrgn.mul(2));
 		this.sz = sz;
@@ -146,6 +153,7 @@ public class Window extends Widget implements DTarget {
 			ch.presize();
 	}
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "pack") {
 			pack();
@@ -156,6 +164,7 @@ public class Window extends Widget implements DTarget {
 		}
 	}
 
+	@Override
 	public Coord xlate(Coord c, boolean in) {
 		Coord ctl = wbox.tloff();
 		if (in)
@@ -164,6 +173,7 @@ public class Window extends Widget implements DTarget {
 			return (c.add(ctl.inv()).add(tlo.inv()).add(mrgn.inv()));
 	}
 
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		parent.setfocus(this);
 		raise();
@@ -179,6 +189,7 @@ public class Window extends Widget implements DTarget {
 		return (true);
 	}
 
+	@Override
 	public boolean mouseup(Coord c, int button) {
 		if (dm) {
 			ui.grabmouse(null);
@@ -189,6 +200,7 @@ public class Window extends Widget implements DTarget {
 		return (true);
 	}
 
+	@Override
 	public void mousemove(Coord c) {
 		if (dm) {
 			this.c = this.c.add(c.add(doff.inv()));
@@ -197,6 +209,7 @@ public class Window extends Widget implements DTarget {
 		}
 	}
 
+	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (sender == cbtn) {
 			wdgmsg("close");
@@ -205,6 +218,7 @@ public class Window extends Widget implements DTarget {
 		}
 	}
 
+	@Override
 	public boolean type(char key, java.awt.event.KeyEvent ev) {
 		if (key == 27) {
 			wdgmsg("close");
@@ -213,6 +227,7 @@ public class Window extends Widget implements DTarget {
 		return (super.type(key, ev));
 	}
 
+	@Override
 	public boolean drop(Coord cc, Coord ul) {
 		if (dt) {
 			wdgmsg("drop", cc);
@@ -221,10 +236,12 @@ public class Window extends Widget implements DTarget {
 		return (false);
 	}
 
+	@Override
 	public boolean iteminteract(Coord cc, Coord ul) {
 		return (false);
 	}
 
+	@Override
 	public Object tooltip(Coord c, boolean again) {
 		Object ret = super.tooltip(c, again);
 		if (ret != null)
