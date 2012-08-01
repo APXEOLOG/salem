@@ -31,7 +31,7 @@ import java.util.*;
 import java.io.*;
 
 public class Session {
-	public static final int PVER = 19;
+	public static final int PVER = 20;
 
 	public static final int MSG_SESS = 0;
 	public static final int MSG_REL = 1;
@@ -98,7 +98,6 @@ public class Session {
 		}
 	}
 
-	@SuppressWarnings("serial")
 	public static class LoadingIndir extends Loading {
 		public int resid;
 
@@ -108,23 +107,23 @@ public class Session {
 	}
 
 	public Indir<Resource> getres(final int id) {
-		synchronized (rescache) {
+		synchronized(rescache) {
 			Indir<Resource> ret = rescache.get(id);
-			if (ret != null)
-				return (ret);
+			if(ret != null)
+				return(ret);
 			ret = new Indir<Resource>() {
 				public int resid = id;
 				Resource res;
 
 				@Override
 				public Resource get() {
-					if (res == null)
-						throw (new LoadingIndir(resid));
-					if (res.loading) {
+					if(res == null)
+						throw(new LoadingIndir(resid));
+					if(res.loading) {
 						res.boostprio(0);
-						throw (new Resource.Loading(res));
+						throw(new Resource.Loading(res));
 					}
-					return (res);
+					return(res);
 				}
 
 				@Override
@@ -134,29 +133,27 @@ public class Session {
 
 				@Override
 				public boolean equals(Object o) {
-					return ((this.getClass().isInstance(o)) && ((this
-							.getClass().cast(o)).resid == resid));
+					return((this.getClass().isInstance(o)) && ((this.getClass().cast(o)).resid == resid));
 				}
 
-				@SuppressWarnings("unused")
 				public int compareTo(Indir<Resource> x) {
-					return ((this.getClass().cast(x)).resid - resid);
+					return((this.getClass().cast(x)).resid - resid);
 				}
 
 				@Override
 				public String toString() {
-					if (res == null) {
-						return ("<res:" + resid + ">");
+					if(res == null) {
+						return("<res:" + resid + ">");
 					} else {
-						if (res.loading)
-							return ("<!" + res + ">");
+						if(res.loading)
+							return("<!" + res + ">");
 						else
-							return ("<" + res + ">");
+							return("<" + res + ">");
 					}
 				}
 			};
 			rescache.put(id, ret);
-			return (ret);
+			return(ret);
 		}
 	}
 
@@ -183,16 +180,15 @@ public class Session {
 		@Override
 		public void run() {
 			try {
-				while (true) {
+				while(true) {
 					long now, then;
 					then = System.currentTimeMillis();
 					glob.oc.tick();
 					now = System.currentTimeMillis();
-					if (now - then < 70)
+					if(now - then < 70)
 						Thread.sleep(70 - (now - then));
 				}
-			} catch (InterruptedException e) {
-			}
+			} catch(InterruptedException e) {}
 		}
 	}
 
@@ -205,11 +201,10 @@ public class Session {
 		}
 
 		private void gotack(int seq) {
-			synchronized (pending) {
-				for (ListIterator<Message> i = pending.listIterator(); i
-						.hasNext();) {
+			synchronized(pending) {
+				for(ListIterator<Message> i = pending.listIterator(); i.hasNext(); ) {
 					Message msg = i.next();
-					if (msg.seq <= seq)
+					if(msg.seq <= seq)
 						i.remove();
 				}
 			}
@@ -217,189 +212,186 @@ public class Session {
 
 		private void getobjdata(Message msg) {
 			OCache oc = glob.oc;
-			while (msg.off < msg.blob.length) {
+			while(msg.off < msg.blob.length) {
 				int fl = msg.uint8();
 				long id = msg.uint32();
 				int frame = msg.int32();
-				synchronized (oc) {
-					if ((fl & 1) != 0)
+				synchronized(oc) {
+					if((fl & 1) != 0)
 						oc.remove(id, frame - 1);
 					Gob gob = oc.getgob(id, frame);
-					if (gob != null) {
+					if(gob != null) {
 						gob.frame = frame;
 						gob.virtual = ((fl & 2) != 0);
 					}
-					while (true) {
+					while(true) {
 						int type = msg.uint8();
-						if (type == OD_REM) {
+						if(type == OD_REM) {
 							oc.remove(id, frame);
-						} else if (type == OD_MOVE) {
+						} else if(type == OD_MOVE) {
 							Coord c = msg.coord();
 							int ia = msg.uint16();
-							if (gob != null)
+							if(gob != null)
 								oc.move(gob, c, (ia / 65536.0) * Math.PI * 2);
-						} else if (type == OD_RES) {
+						} else if(type == OD_RES) {
 							int resid = msg.uint16();
 							Message sdt;
-							if ((resid & 0x8000) != 0) {
+							if((resid & 0x8000) != 0) {
 								resid &= ~0x8000;
 								sdt = msg.derive(0, msg.uint8());
 							} else {
 								sdt = new Message(0);
 							}
-							if (gob != null)
+							if(gob != null)
 								oc.cres(gob, getres(resid), sdt);
-						} else if (type == OD_LINBEG) {
+						} else if(type == OD_LINBEG) {
 							Coord s = msg.coord();
 							Coord t = msg.coord();
 							int c = msg.int32();
-							if (gob != null)
+							if(gob != null)
 								oc.linbeg(gob, s, t, c);
-						} else if (type == OD_LINSTEP) {
+						} else if(type == OD_LINSTEP) {
 							int l = msg.int32();
-							if (gob != null)
+							if(gob != null)
 								oc.linstep(gob, l);
-						} else if (type == OD_SPEECH) {
+						} else if(type == OD_SPEECH) {
 							float zo = msg.int16() / 100.0f;
 							String text = msg.string();
-							if (gob != null)
+							if(gob != null)
 								oc.speak(gob, zo, text);
-						} else if (type == OD_COMPOSE) {
+						} else if(type == OD_COMPOSE) {
 							Indir<Resource> base = getres(msg.uint16());
-							if (gob != null)
+							if(gob != null)
 								oc.composite(gob, base);
-						} else if (type == OD_CMPPOSE) {
+						} else if(type == OD_CMPPOSE) {
 							List<Indir<Resource>> poses = null, tposes = null;
 							int pfl = msg.uint8();
 							int seq = msg.uint8();
 							boolean interp = (pfl & 1) != 0;
-							if ((pfl & 2) != 0) {
+							if((pfl & 2) != 0) {
 								poses = new LinkedList<Indir<Resource>>();
-								while (true) {
+								while(true) {
 									int resid = msg.uint16();
-									if (resid == 65535)
+									if(resid == 65535)
 										break;
 									poses.add(getres(resid));
 								}
 							}
 							float ttime = 0;
-							if ((pfl & 4) != 0) {
+							if((pfl & 4) != 0) {
 								tposes = new LinkedList<Indir<Resource>>();
-								while (true) {
+								while(true) {
 									int resid = msg.uint16();
-									if (resid == 65535)
+									if(resid == 65535)
 										break;
 									tposes.add(getres(resid));
 								}
 								ttime = (msg.uint8() / 10.0f);
 							}
-							if (gob != null)
-								oc.cmppose(gob, seq, poses, tposes, interp,
-										ttime);
-						} else if (type == OD_CMPMOD) {
+							if(gob != null)
+								oc.cmppose(gob, seq, poses, tposes, interp, ttime);
+						} else if(type == OD_CMPMOD) {
 							List<Composited.MD> mod = new LinkedList<Composited.MD>();
-							while (true) {
+							while(true) {
 								int modid = msg.uint16();
-								if (modid == 65535)
+								if(modid == 65535)
 									break;
 								Indir<Resource> modr = getres(modid);
 								List<Indir<Resource>> tex = new LinkedList<Indir<Resource>>();
-								while (true) {
+								while(true) {
 									int resid = msg.uint16();
-									if (resid == 65535)
+									if(resid == 65535)
 										break;
 									tex.add(getres(resid));
 								}
 								mod.add(new Composited.MD(modr, tex));
 							}
-							if (gob != null)
+							if(gob != null)
 								oc.cmpmod(gob, mod);
-						} else if (type == OD_CMPEQU) {
+						} else if(type == OD_CMPEQU) {
 							List<Composited.ED> equ = new LinkedList<Composited.ED>();
-							while (true) {
+							while(true) {
 								int h = msg.uint8();
-								if (h == 255)
+								if(h == 255)
 									break;
 								int ef = h & 0x80;
 								int et = h & 0x7f;
 								String at = msg.string();
 								Indir<Resource> res;
 								int resid = msg.uint16();
-								if (resid == 65535)
+								if(resid == 65535)
 									res = null;
 								else
 									res = getres(resid);
 								Coord3f off;
-								if ((ef & 128) != 0) {
-									int x = msg.int16(), y = msg.int16(), z = msg
-											.int16();
-									off = new Coord3f(x / 1000.0f, y / 1000.0f,
-											z / 1000.0f);
+								if((ef & 128) != 0) {
+									int x = msg.int16(), y = msg.int16(), z = msg.int16();
+									off = new Coord3f(x / 1000.0f, y / 1000.0f, z / 1000.0f);
 								} else {
 									off = Coord3f.o;
 								}
 								equ.add(new Composited.ED(et, at, res, off));
 							}
-							if (gob != null)
+							if(gob != null)
 								oc.cmpequ(gob, equ);
-						} else if (type == OD_DRAWOFF) {
+						} else if(type == OD_DRAWOFF) {
 							Coord off = msg.coord();
-							if (gob != null)
+							if(gob != null)
 								oc.drawoff(gob, off);
-						} else if (type == OD_LUMIN) {
+						} else if(type == OD_LUMIN) {
 							Coord off = msg.coord();
 							int sz = msg.uint16();
 							int str = msg.uint8();
-							if (gob != null)
+							if(gob != null)
 								oc.lumin(gob, off, sz, str);
-						} else if (type == OD_AVATAR) {
+						} else if(type == OD_AVATAR) {
 							List<Indir<Resource>> layers = new LinkedList<Indir<Resource>>();
-							while (true) {
+							while(true) {
 								int layer = msg.uint16();
-								if (layer == 65535)
+								if(layer == 65535)
 									break;
 								layers.add(getres(layer));
 							}
-							if (gob != null)
+							if(gob != null)
 								oc.avatar(gob, layers);
-						} else if (type == OD_FOLLOW) {
+						} else if(type == OD_FOLLOW) {
 							long oid = msg.uint32();
 							Indir<Resource> xfres = null;
 							String xfname = null;
-							if (oid != 0xffffffffl) {
+							if(oid != 0xffffffffl) {
 								xfres = getres(msg.uint16());
 								xfname = msg.string();
 							}
-							if (gob != null)
+							if(gob != null)
 								oc.follow(gob, oid, xfres, xfname);
-						} else if (type == OD_HOMING) {
+						} else if(type == OD_HOMING) {
 							long oid = msg.uint32();
-							if (oid == 0xffffffffl) {
-								if (gob != null)
+							if(oid == 0xffffffffl) {
+								if(gob != null)
 									oc.homostop(gob);
-							} else if (oid == 0xfffffffel) {
+							} else if(oid == 0xfffffffel) {
 								Coord tgtc = msg.coord();
 								int v = msg.uint16();
-								if (gob != null)
+								if(gob != null)
 									oc.homocoord(gob, tgtc, v);
 							} else {
 								Coord tgtc = msg.coord();
 								int v = msg.uint16();
-								if (gob != null)
+								if(gob != null)
 									oc.homing(gob, oid, tgtc, v);
 							}
-						} else if (type == OD_OVERLAY) {
+						} else if(type == OD_OVERLAY) {
 							int olid = msg.int32();
 							boolean prs = (olid & 1) != 0;
 							olid >>= 1;
 			int resid = msg.uint16();
 			Indir<Resource> res;
 			Message sdt;
-			if (resid == 65535) {
+			if(resid == 65535) {
 				res = null;
 				sdt = null;
 			} else {
-				if ((resid & 0x8000) != 0) {
+				if((resid & 0x8000) != 0) {
 					resid &= ~0x8000;
 					sdt = msg.derive(0, msg.uint8());
 				} else {
@@ -407,125 +399,119 @@ public class Session {
 				}
 				res = getres(resid);
 			}
-			if (gob != null)
+			if(gob != null)
 				oc.overlay(gob, olid, prs, res, sdt);
-						} else if (type == OD_HEALTH) {
+						} else if(type == OD_HEALTH) {
 							int hp = msg.uint8();
-							if (gob != null)
+							if(gob != null)
 								oc.health(gob, hp);
-						} else if (type == OD_BUDDY) {
+						} else if(type == OD_BUDDY) {
 							String name = msg.string();
-							if (name.length() > 0) {
+							if(name.length() > 0) {
 								int group = msg.uint8();
 								int btype = msg.uint8();
-								if (gob != null)
+								if(gob != null)
 									oc.buddy(gob, name, group, btype);
 							} else {
-								if (gob != null)
+								if(gob != null)
 									oc.buddy(gob, null, 0, 0);
 							}
-						} else if (type == OD_END) {
+						} else if(type == OD_END) {
 							break;
 						} else {
-							throw (new MessageException(
-									"Unknown objdelta type: " + type, msg));
+							throw(new MessageException("Unknown objdelta type: " + type, msg));
 						}
 					}
 				}
-				synchronized (objacks) {
-					if (objacks.containsKey(id)) {
+				synchronized(objacks) {
+					if(objacks.containsKey(id)) {
 						ObjAck a = objacks.get(id);
 						a.frame = frame;
 						a.recv = System.currentTimeMillis();
 					} else {
-						objacks.put(
-								id,
-								new ObjAck(id, frame, System
-										.currentTimeMillis()));
+						objacks.put(id, new ObjAck(id, frame, System.currentTimeMillis()));
 					}
 				}
 			}
-			synchronized (sworker) {
+			synchronized(sworker) {
 				sworker.notifyAll();
 			}
 		}
 
-		@SuppressWarnings("unused")
 		private void handlerel(Message msg) {
-			if (msg.type == Message.RMSG_NEWWDG) {
-				synchronized (uimsgs) {
+			if(msg.type == Message.RMSG_NEWWDG) {
+				synchronized(uimsgs) {
 					uimsgs.add(msg);
 				}
-			} else if (msg.type == Message.RMSG_WDGMSG) {
-				synchronized (uimsgs) {
+			} else if(msg.type == Message.RMSG_WDGMSG) {
+				synchronized(uimsgs) {
 					uimsgs.add(msg);
 				}
-			} else if (msg.type == Message.RMSG_DSTWDG) {
-				synchronized (uimsgs) {
+			} else if(msg.type == Message.RMSG_DSTWDG) {
+				synchronized(uimsgs) {
 					uimsgs.add(msg);
 				}
-			} else if (msg.type == Message.RMSG_MAPIV) {
+			} else if(msg.type == Message.RMSG_MAPIV) {
 				glob.map.invalblob(msg);
-			} else if (msg.type == Message.RMSG_GLOBLOB) {
+			} else if(msg.type == Message.RMSG_GLOBLOB) {
 				glob.blob(msg);
-			} else if (msg.type == Message.RMSG_PAGINAE) {
+			} else if(msg.type == Message.RMSG_PAGINAE) {
 				glob.paginae(msg);
-			} else if (msg.type == Message.RMSG_RESID) {
+			} else if(msg.type == Message.RMSG_RESID) {
 				int resid = msg.uint16();
 				String resname = msg.string();
 				int resver = msg.uint16();
-				synchronized (rescache) {
+				synchronized(rescache) {
 					getres(resid).set(Resource.load(resname, resver, -5));
 				}
-			} else if (msg.type == Message.RMSG_PARTY) {
+			} else if(msg.type == Message.RMSG_PARTY) {
 				glob.party.msg(msg);
-			} else if (msg.type == Message.RMSG_SFX) {
+			} else if(msg.type == Message.RMSG_SFX) {
 				Indir<Resource> res = getres(msg.uint16());
 				double vol = msg.uint16() / 256.0;
 				double spd = msg.uint16() / 256.0;
 				Audio.play(res);
-			} else if (msg.type == Message.RMSG_CATTR) {
+			} else if(msg.type == Message.RMSG_CATTR) {
 				glob.cattr(msg);
-			} else if (msg.type == Message.RMSG_MUSIC) {
+			} else if(msg.type == Message.RMSG_MUSIC) {
 				String resnm = msg.string();
 				int resver = msg.uint16();
 				boolean loop = !msg.eom() && (msg.uint8() != 0);
-				if (Music.enabled) {
-					if (resnm.equals(""))
+				if(Music.enabled) {
+					if(resnm.equals(""))
 						Music.play(null, false);
 					else
 						Music.play(Resource.load(resnm, resver), loop);
 				}
-			} else if (msg.type == Message.RMSG_TILES) {
+			} else if(msg.type == Message.RMSG_TILES) {
 				glob.map.tilemap(msg);
-			} else if (msg.type == Message.RMSG_BUFF) {
+			} else if(msg.type == Message.RMSG_BUFF) {
 				glob.buffmsg(msg);
 			} else if(msg.type == Message.RMSG_SESSKEY) {
 				sesskey = msg.bytes();
 			} else {
-				throw (new MessageException("Unknown rmsg type: " + msg.type,
-						msg));
+				throw(new MessageException("Unknown rmsg type: " + msg.type, msg));
 			}
 		}
 
 		private void getrel(int seq, Message msg) {
-			if (seq == rseq) {
+			if(seq == rseq) {
 				int lastack;
-				synchronized (uimsgs) {
+				synchronized(uimsgs) {
 					handlerel(msg);
-					while (true) {
+					while(true) {
 						rseq = ((lastack = rseq) + 1) % 65536;
-						if (!waiting.containsKey(rseq))
+						if(!waiting.containsKey(rseq))
 							break;
 						handlerel(waiting.get(rseq));
 						waiting.remove(rseq);
 					}
 				}
 				sendack(lastack);
-				synchronized (Session.this) {
+				synchronized(Session.this) {
 					Session.this.notifyAll();
 				}
-			} else if (Utils.floormod(seq - rseq, 65536) < 32768) {
+			} else if(Utils.floormod(seq - rseq, 65536) < 32768) {
 				waiting.put(seq, msg);
 			}
 		}
@@ -536,34 +522,29 @@ public class Session {
 				alive = true;
 				try {
 					sk.setSoTimeout(1000);
-				} catch (SocketException e) {
-					throw (new RuntimeException(e));
+				} catch(SocketException e) {
+					throw(new RuntimeException(e));
 				}
-				while (alive) {
-					DatagramPacket p = new DatagramPacket(new byte[65536],
-							65536);
+				while(alive) {
+					DatagramPacket p = new DatagramPacket(new byte[65536], 65536);
 					try {
 						sk.receive(p);
-					} catch (java.nio.channels.ClosedByInterruptException e) {
-						/*
-						 * Except apparently Sun's J2SE doesn't throw this when
-						 * interrupted :P
-						 */
+					} catch(java.nio.channels.ClosedByInterruptException e) {
+						/* Except apparently Sun's J2SE doesn't throw this when interrupted :P*/
 						break;
-					} catch (SocketTimeoutException e) {
+					} catch(SocketTimeoutException e) {
 						continue;
-					} catch (IOException e) {
-						throw (new RuntimeException(e));
+					} catch(IOException e) {
+						throw(new RuntimeException(e));
 					}
-					if (!p.getSocketAddress().equals(server))
+					if(!p.getSocketAddress().equals(server))
 						continue;
-					Message msg = new Message(p.getData()[0], p.getData(), 1,
-							p.getLength() - 1);
-					if (msg.type == MSG_SESS) {
-						if (state == "conn") {
+					Message msg = new Message(p.getData()[0], p.getData(), 1, p.getLength() - 1);
+					if(msg.type == MSG_SESS) {
+						if(state == "conn") {
 							int error = msg.uint8();
-							synchronized (Session.this) {
-								if (error == 0) {
+							synchronized(Session.this) {
+								if(error == 0) {
 									state = "";
 								} else {
 									connfailed = error;
@@ -573,47 +554,42 @@ public class Session {
 							}
 						}
 					}
-					if (state != "conn") {
-						if (msg.type == MSG_SESS) {
-						} else if (msg.type == MSG_REL) {
+					if(state != "conn") {
+						if(msg.type == MSG_SESS) {
+						} else if(msg.type == MSG_REL) {
 							int seq = msg.uint16();
-							while (!msg.eom()) {
+							while(!msg.eom()) {
 								int type = msg.uint8();
 								int len;
-								if ((type & 0x80) != 0) {
+								if((type & 0x80) != 0) {
 									type &= 0x7f;
 									len = msg.uint16();
 								} else {
 									len = msg.blob.length - msg.off;
 								}
-								getrel(seq, new Message(type, msg.blob,
-										msg.off, len));
+								getrel(seq, new Message(type, msg.blob, msg.off, len));
 								msg.off += len;
 								seq++;
 							}
-						} else if (msg.type == MSG_ACK) {
+						} else if(msg.type == MSG_ACK) {
 							gotack(msg.uint16());
-						} else if (msg.type == MSG_MAPDATA) {
+						} else if(msg.type == MSG_MAPDATA) {
 							glob.map.mapdata(msg);
-						} else if (msg.type == MSG_OBJDATA) {
+						} else if(msg.type == MSG_OBJDATA) {
 							getobjdata(msg);
-						} else if (msg.type == MSG_CLOSE) {
-							synchronized (Session.this) {
+						} else if(msg.type == MSG_CLOSE) {
+							synchronized(Session.this) {
 								state = "fin";
 								Session.this.notifyAll();
 							}
 							Session.this.close();
 						} else {
-							throw (new MessageException(
-									"Unknown message type: " + msg.type, msg));
+							throw(new MessageException("Unknown message type: " + msg.type, msg));
 						}
 					}
 				}
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				//
 			} finally {
-				synchronized (Session.this) {
+				synchronized(Session.this) {
 					state = "dead";
 					Session.this.notifyAll();
 				}
@@ -638,13 +614,13 @@ public class Session {
 		public void run() {
 			try {
 				long to, last = 0, retries = 0;
-				while (true) {
+				while(true) {
 
 					long now = System.currentTimeMillis();
-					if (state == "conn") {
-						if (now - last > 2000) {
-							if (++retries > 5) {
-								synchronized (Session.this) {
+					if(state == "conn") {
+						if(now - last > 2000) {
+							if(++retries > 5) {
+								synchronized(Session.this) {
 									connfailed = SESSERR_CONN;
 									Session.this.notifyAll();
 									return;
@@ -652,7 +628,7 @@ public class Session {
 							}
 							Message msg = new Message(MSG_SESS);
 							msg.adduint16(2);
-							msg.addstring("Haven");
+							msg.addstring("Salem");
 							msg.adduint16(PVER);
 							msg.addstring(username);
 							msg.adduint16(cookie.length);
@@ -663,43 +639,46 @@ public class Session {
 						Thread.sleep(100);
 					} else {
 						to = 5000;
-						synchronized (pending) {
-							if (pending.size() > 0)
+						synchronized(pending) {
+							if(pending.size() > 0)
 								to = 60;
 						}
-						synchronized (objacks) {
-							if ((objacks.size() > 0) && (to > 120))
+						synchronized(objacks) {
+							if((objacks.size() > 0) && (to > 120))
 								to = 200;
 						}
-						synchronized (this) {
-							if (acktime > 0)
+						synchronized(this) {
+							if(acktime > 0)
 								to = acktime + ackthresh - now;
-							if (to > 0)
+							if(to > 0)
 								this.wait(to);
 						}
 						now = System.currentTimeMillis();
 						boolean beat = true;
 						/*
-						 * if((closing != -1) && (now - closing > 500)) {
-						 * Message cm = new Message(MSG_CLOSE); sendmsg(cm);
-						 * closing = now; if(++ctries > 5)
-						 * getThreadGroup().interrupt(); }
+			  if((closing != -1) && (now - closing > 500)) {
+			  Message cm = new Message(MSG_CLOSE);
+			  sendmsg(cm);
+			  closing = now;
+			  if(++ctries > 5)
+			  getThreadGroup().interrupt();
+			  }
 						 */
-						synchronized (pending) {
-							if (pending.size() > 0) {
-								for (Message msg : pending) {
+						synchronized(pending) {
+							if(pending.size() > 0) {
+								for(Message msg : pending) {
 									int txtime;
-									if (msg.retx == 0)
+									if(msg.retx == 0)
 										txtime = 0;
-									else if (msg.retx == 1)
+									else if(msg.retx == 1)
 										txtime = 80;
-									else if (msg.retx < 4)
+									else if(msg.retx < 4)
 										txtime = 200;
-									else if (msg.retx < 10)
+									else if(msg.retx < 10)
 										txtime = 620;
 									else
 										txtime = 2000;
-									if (now - msg.last > txtime) { /* XXX */
+									if(now - msg.last > txtime) { /* XXX */
 										msg.last = now;
 										msg.retx++;
 										Message rmsg = new Message(MSG_REL);
@@ -712,65 +691,62 @@ public class Session {
 								beat = false;
 							}
 						}
-						synchronized (objacks) {
+						synchronized(objacks) {
 							Message msg = null;
-							for (Iterator<ObjAck> i = objacks.values()
-									.iterator(); i.hasNext();) {
+							for(Iterator<ObjAck> i = objacks.values().iterator(); i.hasNext();) {
 								ObjAck a = i.next();
 								boolean send = false, del = false;
-								if (now - a.sent > 200)
+								if(now - a.sent > 200)
 									send = true;
-								if (now - a.recv > 120)
+								if(now - a.recv > 120)
 									send = del = true;
-								if (send) {
-									if (msg == null)
+								if(send) {
+									if(msg == null)
 										msg = new Message(MSG_OBJACK);
 									msg.adduint32(a.id);
 									msg.addint32(a.frame);
 									a.sent = now;
 								}
-								if (del)
+								if(del)
 									i.remove();
 							}
-							if (msg != null) {
+							if(msg != null) {
 								sendmsg(msg);
 								beat = false;
 							}
 						}
-						synchronized (this) {
-							if ((acktime > 0) && (now - acktime >= ackthresh)) {
-								byte[] msg = { MSG_ACK, 0, 0 };
+						synchronized(this) {
+							if((acktime > 0) && (now - acktime >= ackthresh)) {
+								byte[] msg = {MSG_ACK, 0, 0};
 								Utils.uint16e(ackseq, msg, 1);
 								sendmsg(msg);
 								acktime = -1;
 								beat = false;
 							}
 						}
-						if (beat) {
-							if (now - last > 5000) {
-								sendmsg(new byte[] { MSG_BEAT });
+						if(beat) {
+							if(now - last > 5000) {
+								sendmsg(new byte[] {MSG_BEAT});
 								last = now;
 							}
 						}
 					}
 				}
-			} catch (InterruptedException e) {
-				for (int i = 0; i < 5; i++) {
+			} catch(InterruptedException e) {
+				for(int i = 0; i < 5; i++) {
 					sendmsg(new Message(MSG_CLOSE));
 					long f = System.currentTimeMillis();
-					while (true) {
-						synchronized (Session.this) {
-							if ((state == "conn") || (state == "fin")
-									|| (state == "dead"))
+					while(true) {
+						synchronized(Session.this) {
+							if((state == "conn") || (state == "fin") || (state == "dead"))
 								break;
 							state = "close";
 							long now = System.currentTimeMillis();
-							if (now - f > 500)
+							if(now - f > 500)
 								break;
 							try {
 								Session.this.wait(500 - (now - f));
-							} catch (InterruptedException e2) {
-							}
+							} catch(InterruptedException e2) {}
 						}
 					}
 				}
@@ -788,8 +764,8 @@ public class Session {
 		glob = new Glob(this);
 		try {
 			sk = new DatagramSocket();
-		} catch (SocketException e) {
-			throw (new RuntimeException(e));
+		} catch(SocketException e) {
+			throw(new RuntimeException(e));
 		}
 		rworker = new RWorker();
 		rworker.start();
@@ -800,8 +776,8 @@ public class Session {
 	}
 
 	private void sendack(int seq) {
-		synchronized (sworker) {
-			if (acktime < 0)
+		synchronized(sworker) {
+			if(acktime < 0)
 				acktime = System.currentTimeMillis();
 			ackseq = seq;
 			sworker.notifyAll();
@@ -813,31 +789,31 @@ public class Session {
 	}
 
 	public synchronized boolean alive() {
-		return (state != "dead");
+		return(state != "dead");
 	}
 
 	public void queuemsg(Message msg) {
 		msg.seq = tseq;
 		tseq = (tseq + 1) % 65536;
-		synchronized (pending) {
+		synchronized(pending) {
 			pending.add(msg);
 		}
-		synchronized (sworker) {
+		synchronized(sworker) {
 			sworker.notify();
 		}
 	}
 
 	public Message getuimsg() {
-		synchronized (uimsgs) {
-			if (uimsgs.size() == 0)
-				return (null);
-			return (uimsgs.remove());
+		synchronized(uimsgs) {
+			if(uimsgs.size() == 0)
+				return(null);
+			return(uimsgs.remove());
 		}
 	}
 
 	public void sendmsg(Message msg) {
 		byte[] buf = new byte[msg.blob.length + 1];
-		buf[0] = (byte) msg.type;
+		buf[0] = (byte)msg.type;
 		System.arraycopy(msg.blob, 0, buf, 1, msg.blob.length);
 		sendmsg(buf);
 	}
@@ -845,7 +821,7 @@ public class Session {
 	public void sendmsg(byte[] msg) {
 		try {
 			sk.send(new DatagramPacket(msg, msg.length, server));
-		} catch (IOException e) {
+		} catch(IOException e) {
 		}
 	}
 }

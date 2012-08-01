@@ -407,6 +407,7 @@ public class SWindow extends Widget {
 
 	@Override
 	public void resize(Coord newSize) {
+		ALS.alDebugPrint("resize", newSize, this.getClass().getSimpleName());
 		windowBox.contentSize = newSize;
 		sz = windowBox.getBoxSize();
 		resize();
@@ -449,6 +450,7 @@ public class SWindow extends Widget {
 
 	@Override
 	public void pack() {
+		ALS.alDebugPrint("pack", this.getClass().getSimpleName());
 		resize(contentsz());
 	}
 

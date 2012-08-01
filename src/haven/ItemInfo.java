@@ -68,6 +68,7 @@ public abstract class ItemInfo {
 			this.str = Text.render(str);
 		}
 
+		@Override
 		public BufferedImage longtip() {
 			return (str.img);
 		}
@@ -85,6 +86,7 @@ public abstract class ItemInfo {
 			this(owner, Text.render(str));
 		}
 
+		@Override
 		public BufferedImage longtip() {
 			return (str.img);
 		}
@@ -99,6 +101,7 @@ public abstract class ItemInfo {
 			this.sub = sub;
 		}
 
+		@Override
 		public BufferedImage longtip() {
 			BufferedImage stip = longtip(sub);
 			BufferedImage img = TexI.mkbuf(new Coord(stip.getWidth() + 10, stip

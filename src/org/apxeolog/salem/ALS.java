@@ -1,10 +1,11 @@
 package org.apxeolog.salem;
 
 public class ALS {
-	protected static int PRINT_LEVEL = 0;
-	
+	protected static int DEBUG_LEVEL = 1;
+
 	public static void alDebugPrint(Object...objects) {
-		if (PRINT_LEVEL == 0) return;
+		if (DEBUG_LEVEL == 0) return;
+
 		for (Object obj : objects) {
 			if (obj instanceof Iterable<?>) {
 				System.out.print("[ ");

@@ -48,6 +48,8 @@ public class CharWnd extends SWindow {
 	public final Map<String, Attr> attrs = new HashMap<String, Attr>();
 	public final SkillList csk, nsk;
 	private final SkillInfo ski;
+	public int cmod;
+	private final Label cmodl;
 
 	@Override
 	public void savePosition() {
@@ -81,6 +83,7 @@ public class CharWnd extends SWindow {
 			parent.wdgmsg("sattr", shortName);
 		}
 
+		@Override
 		public boolean mousedown(Coord c, int btn) {
 			if (btn == 1 && ui.modctrl) {
 				buy();
@@ -106,6 +109,7 @@ public class CharWnd extends SWindow {
 			((SWindow) parent).resize();
 		}
 
+		@Override
 		public Object tooltip(Coord c, boolean again) {
 			if (c.x < 57 || c.x > textSize().x)
 				return null;
@@ -180,6 +184,7 @@ public class CharWnd extends SWindow {
 
 	static {
 		Widget.addtype("chr", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				return (new CharWnd(c, parent));
 			}
@@ -187,6 +192,7 @@ public class CharWnd extends SWindow {
 		{
 			final List<String> ao = new ArrayList<String>();
 			Map<String, String> an = new HashMap<String, String>() {
+				@Override
 				public String put(String k, String v) {
 					ao.add(k);
 					return (super.put(k, v));
@@ -259,6 +265,7 @@ public class CharWnd extends SWindow {
 			super(c, sz, parent, "", skbodfnd);
 		}
 
+		@Override
 		public void tick(double dt) {
 			if (d) {
 				try {
@@ -296,6 +303,7 @@ public class CharWnd extends SWindow {
 		for (int i = 0; i < o.length; i++)
 			o[i] = new Integer(i);
 		Arrays.sort(o, new Comparator<Integer>() {
+			@Override
 			public int compare(Integer a, Integer b) {
 				return (attrorder.indexOf(attrs[a.intValue()]) - attrorder
 						.indexOf(attrs[b.intValue()]));
@@ -314,6 +322,7 @@ public class CharWnd extends SWindow {
 		public Skill[] skills = new Skill[0];
 		private boolean loading = false;
 		private final Comparator<Skill> skcomp = new Comparator<Skill>() {
+			@Override
 			public int compare(Skill a, Skill b) {
 				String an, bn;
 				try {
@@ -339,6 +348,7 @@ public class CharWnd extends SWindow {
 			sb = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
 		}
 
+		@Override
 		public void draw(GOut g) {
 			if (loading) {
 				loading = false;
@@ -384,11 +394,13 @@ public class CharWnd extends SWindow {
 			loading = true;
 		}
 
+		@Override
 		public boolean mousewheel(Coord c, int amount) {
 			sb.ch(amount);
 			return (true);
 		}
 
+		@Override
 		public boolean mousedown(Coord c, int button) {
 			if (super.mousedown(c, button))
 				return (true);
@@ -448,6 +460,7 @@ public class CharWnd extends SWindow {
 				rnm = Text.render(longname, Color.white);
 		}
 
+		@Override
 		public void draw(GOut g) {
 			g.image(res.layer(Resource.imgc).tex(), imgc);
 			g.image(rnm.tex(), nmc);
@@ -514,6 +527,7 @@ public class CharWnd extends SWindow {
 
 		private int a = 0;
 
+		@Override
 		public boolean mousedown(Coord c, int btn) {
 			if ((btn == 1) && c.isect(expc, expsz)) {
 				if (ui.modctrl) {
@@ -532,6 +546,7 @@ public class CharWnd extends SWindow {
 			return (false);
 		}
 
+		@Override
 		public boolean mouseup(Coord c, int btn) {
 			if ((btn == 1) && (a == 1)) {
 				a = 0;
@@ -549,7 +564,7 @@ public class CharWnd extends SWindow {
 	}
 
 	public CharWnd(Coord c, Widget parent) {
-		super(c, new Coord(620, 340), parent, "Character");
+		super(c, new Coord(620, 360), parent, "Character");
 		windowHeader.unlink();
 		windowHeader = new CharWndWindowHeader(Coord.z, Coord.z, this,
 				"Character", true, true);
@@ -561,9 +576,18 @@ public class CharWnd extends SWindow {
 			this.attrs.put(nm, new Attr(nm, new Coord(0, y), this));
 			y += 20;
 		}
+		y += 10;
+		cmodl = new Label(new Coord(0, y + 5), this, "Learning Ability: ");
+		new Button(new Coord(200, y), 40, this, "Reset") {
+			@Override
+			public void click() {
+				CharWnd.this.wdgmsg("lreset");
+			}
+		};
 		new Label(new Coord(250, 0), this, "Skills:");
 		new Label(new Coord(250, 30), this, "Current:");
 		this.csk = new SkillList(new Coord(250, 45), new Coord(170, 120), this) {
+			@Override
 			protected void changed(Skill sk) {
 				if (sk != null)
 					nsk.unsel();
@@ -572,6 +596,7 @@ public class CharWnd extends SWindow {
 		};
 		new Label(new Coord(250, 170), this, "Available:");
 		this.nsk = new SkillList(new Coord(250, 185), new Coord(170, 120), this) {
+			@Override
 			protected void drawsk(GOut g, Skill sk, Coord c) {
 				int astate = sk.afforded();
 				if (astate == 3)
@@ -584,6 +609,7 @@ public class CharWnd extends SWindow {
 				g.chcolor();
 			}
 
+			@Override
 			protected void changed(Skill sk) {
 				if (sk != null)
 					csk.unsel();
@@ -591,6 +617,7 @@ public class CharWnd extends SWindow {
 			}
 		};
 		new Button(new Coord(250, 310), 50, this, "Buy") {
+			@Override
 			public void click() {
 				if (nsk.sel >= 0) {
 					CharWnd.this.wdgmsg("buy", nsk.skills[nsk.sel].nm);
@@ -612,13 +639,13 @@ public class CharWnd extends SWindow {
 				double op = maxlp / 100.;
 				double meterperc = currentlp / op;
 				((CharWndWindowHeader) windowHeader)
-						.setMeterValue((int) meterperc);
+				.setMeterValue((int) meterperc);
 				if (meterperc != 100)
 					((CharWndWindowHeader) windowHeader)
-							.setMeterColor(new Color(0, 0, 255, 225));
+					.setMeterColor(new Color(0, 0, 255, 225));
 				else
 					((CharWndWindowHeader) windowHeader)
-							.setMeterColor(new Color(0, 255, 0, 225));
+					.setMeterColor(new Color(0, 255, 0, 225));
 				if (ui.lasttip instanceof WItem.ItemTip) {
 					GItem item = ((WItem.ItemTip) ui.lasttip).item();
 					Inspiration insp = ItemInfo.find(Inspiration.class,
@@ -630,15 +657,15 @@ public class CharWnd extends SWindow {
 								itemExp += atr.sexp;
 								double futureperc = (itemExp * 1.) / op;
 								((CharWndWindowHeader) windowHeader)
-										.setFutureValue((int) futureperc);
+								.setFutureValue((int) futureperc);
 								if ((int) futureperc > 100)
 									((CharWndWindowHeader) windowHeader)
-											.setFutureColor(new Color(255, 255,
-													0));
+									.setFutureColor(new Color(255, 255,
+											0));
 								else
 									((CharWndWindowHeader) windowHeader)
-											.setFutureColor(new Color(200, 200,
-													0));
+									.setFutureColor(new Color(200, 200,
+											0));
 								break;
 							}
 						}
@@ -682,6 +709,7 @@ public class CharWnd extends SWindow {
 
 	private Collection<Skill> acccsk, accnsk;
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "exp") {
 			((CharWndWindowHeader) windowHeader).freeTipCache();
@@ -728,6 +756,9 @@ public class CharWnd extends SWindow {
 				accnsk = buf;
 			else
 				nsk.pop(buf);
+		} else if(msg == "cmod") {
+			cmod = (Integer)args[0];
+			cmodl.settext(String.format("Learning ability: %d%%", cmod));
 		}
 	}
 }
