@@ -52,7 +52,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 
 import org.apxeolog.salem.SToolbarConfig.SToolbarConfigSlot;
-import org.apxeolog.salem.SUtils.HighlightInfo;
+import org.apxeolog.salem.config.MinimapHighlightConfig;
+import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
 
 public class SWidgetOptions extends Hidewnd {
 	public static final RichText.Foundry foundry = new RichText.Foundry(
@@ -66,26 +67,26 @@ public class SWidgetOptions extends Hidewnd {
 		SToolbarConfig.updateToolbars(ui.root);
 		super.unlink();
 	}
-	
+
 	@Override
 	protected void maximize() {
 		super.maximize();
 		for (Tab t : body.tabs) t.hide();
 		body.showtab(ftab);
 	};
-	
+
 	Tab ftab;
-	
+
 	int tb_buf_mode = -1;
 	int tb_buf_key = -1;
-	
+
 	public SWidgetOptions(Coord c, Widget parent) {
 		super(c, new Coord(345, 300), parent, "Options");
 
 		body = new Tabs(Coord.z, new Coord(345, 290), this);
 
 		Tab tab;
-		
+
 		{ /* Highlight TAB */
 			tab = body.new Tab(new Coord(90, 10), 70, "Highlight") {
 				@Override
@@ -105,7 +106,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 		}
-		
+
 		{ /* Toolbars TAB */
 			tab = body.new Tab(new Coord(170, 10), 70, "Toolbars") {
 				@Override
@@ -115,15 +116,15 @@ public class SWidgetOptions extends Hidewnd {
 					super.draw(g);
 				}
 			};
-			
+
 			new Label(new Coord(20, 40), tab, "Defined toolbars:");
-			
+
 			final TextEntry hotkeyGrabber = new TextEntry(new Coord(180, 60), new Coord(80, 20), tab, "") {
 				@Override
 				public boolean type(char c, KeyEvent e){
 					return true;
 				}
-				
+
 				@Override
 				public boolean keydown(KeyEvent event) {
 					int kcode = event.getKeyCode();
@@ -139,42 +140,44 @@ public class SWidgetOptions extends Hidewnd {
 					if(event.isShiftDown())
 						mods += "Shift+";
 					settext(mods+hotkey);
-					
+
 					tb_buf_mode = event.getModifiersEx();
 					tb_buf_key = event.getKeyCode();
-					
+
 					return true;
 				}
 			};
-			
+
 			final TextEntry toolbarName = new TextEntry(new Coord(20, 190), new Coord(90, 20), tab, "ToolbarName");
-			
+
 			final SlotsList slotSet = new SlotsList(new Coord(180, 90), new Coord(150, 120), tab) {
 				@Override
 				protected void changed(int index) {
 					hotkeyGrabber.settext("");
 				}
 			};
-			
+
 			final ToolbarsList toolbarsList = new ToolbarsList(new Coord(20, 60),	new Coord(150, 120), tab, SToolbarConfig.definedToolbars) {
 				@Override
 				protected void changed(int index) {
 					if (index == -1) return;
 					toolbarName.settext(getSelectedToolbar().tbName);
-					
+
 					slotSet.setupToolbar(getSelectedToolbar());
 				}
 			};
-						
+
 			new Button(new Coord(120, 190), 50, tab, "Add") {
+				@Override
 				public void click() {
 					if (!SToolbarConfig.definedToolbars.containsKey(toolbarName.text)) {
 						toolbarsList.addToolbar(toolbarName.text);
 					}
 				};
 			};
-			
+
 			new Button(new Coord(30, 220), 60, tab, "Remove") {
+				@Override
 				public void click() {
 					if (toolbarsList.getSelectedToolbar() != null) {
 						toolbarsList.removeCurrent();
@@ -183,38 +186,42 @@ public class SWidgetOptions extends Hidewnd {
 				};
 			};
 			new Button(new Coord(100, 220), 60, tab, "Toggle") {
+				@Override
 				public void click() {
 					if (toolbarsList.getSelectedToolbar() != null) {
 						toolbarsList.toggleCurrent();
 					}
 				};
 			};
-			
+
 			new Label(new Coord(220, 40), tab, "Toolbar settings:");
-			
+
 			new Button(new Coord(270, 60), 60, tab, "Add") {
+				@Override
 				public void click() {
 					if (tb_buf_key > -1 && tb_buf_mode > -1)
 						slotSet.addSlot(tb_buf_mode, tb_buf_key);
 				};
 			};
-			
+
 			new Button(new Coord(190, 220), 60, tab, "Set") {
+				@Override
 				public void click() {
 					if (tb_buf_key > -1 && tb_buf_mode > -1)
 						slotSet.setSlot(tb_buf_mode, tb_buf_key);
 				};
 			};
-			
+
 			new Button(new Coord(260, 220), 60, tab, "Remove") {
+				@Override
 				public void click() {
 					slotSet.removeCurrent();
 				};
 			};
-			
+
 		}
-		
-		
+
+
 		{ /* General TAB */
 			GameUI gui = getparent(GameUI.class);
 			ftab = tab = body.new Tab(new Coord(10, 10), 70, "General") {
@@ -225,8 +232,9 @@ public class SWidgetOptions extends Hidewnd {
 					super.draw(g);
 				}
 			};
-			
+
 			new Button(new Coord(200, 40), 120, tab, "Logout") {
+				@Override
 				public void click() {
 					ui.sess.close();
 					if(!HConfig.cl_render_on)
@@ -239,25 +247,28 @@ public class SWidgetOptions extends Hidewnd {
 				{
 					val = max - HConfig.cl_sfx_volume;
 				}
-			public void changed() {
-				HConfig.cl_sfx_volume = max - val;
-				HConfig.saveConfig();
-				double vol = (max-val)/100.;
-				Audio.setvolume(vol);
-			}
-			public Object tooltip(Coord c, boolean a) {
-				return Integer.toString(max - val);
-			}
-			public boolean mousewheel(Coord c, int amount) {
-				if(val+amount < min)
-					val = min;
-				else if(val+amount > max)
-					val = max;
-				else
-					val = val + amount;
-				changed();
-				return (true);
-			}
+				@Override
+				public void changed() {
+					HConfig.cl_sfx_volume = max - val;
+					HConfig.saveConfig();
+					double vol = (max-val)/100.;
+					Audio.setvolume(vol);
+				}
+				@Override
+				public Object tooltip(Coord c, boolean a) {
+					return Integer.toString(max - val);
+				}
+				@Override
+				public boolean mousewheel(Coord c, int amount) {
+					if(val+amount < min)
+						val = min;
+					else if(val+amount > max)
+						val = max;
+					else
+						val = val + amount;
+					changed();
+					return (true);
+				}
 			}).changed();
 
 			CheckBox checkb = new CheckBox(new Coord(20, 40), tab, "Toogle shadows") {
@@ -268,7 +279,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			if (gui != null) checkb.set(gui.togglesdw);
-			
+
 			checkb = new CheckBox(new Coord(20, 80), tab, "Dump minimaps") {
 				@Override
 				public void changed(boolean val) {
@@ -277,7 +288,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			checkb.set(HConfig.cl_dump_minimaps);
-			
+
 			checkb = new CheckBox(new Coord(20, 120), tab, "New tempers") {
 				@Override
 				public void changed(boolean val) {
@@ -288,7 +299,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			checkb.set(HConfig.cl_use_new_tempers);
-			
+
 			new Label(new Coord(20, 160), tab, "Windows header align:");
 			final CheckBox[] aligns = new CheckBox[3];
 			aligns[0] = new CheckBox(new Coord(20, 170), tab, "Left") {
@@ -302,7 +313,7 @@ public class SWidgetOptions extends Hidewnd {
 					HConfig.saveConfig();
 				}
 			};
-			
+
 			aligns[1] = new CheckBox(new Coord(80, 170), tab, "Center") {
 				@Override
 				public void changed(boolean val) {
@@ -314,7 +325,7 @@ public class SWidgetOptions extends Hidewnd {
 					HConfig.saveConfig();
 				}
 			};
-			
+
 			aligns[2] = new CheckBox(new Coord(140, 170), tab, "Right") {
 				@Override
 				public void changed(boolean val) {
@@ -327,7 +338,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			aligns[HConfig.cl_swindow_header_align].a = true;
-			
+
 			checkb = new CheckBox(new Coord(20, 210), tab, "Use Free Camera") {
 				@Override
 				public void changed(boolean val) {
@@ -338,7 +349,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			checkb.set(HConfig.cl_use_free_cam);
-			
+
 			checkb = new CheckBox(new Coord(20, 250), tab, "Use New Chat") {
 				@Override
 				public void changed(boolean val) {
@@ -355,7 +366,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			checkb.set(HConfig.cl_use_new_chat);
-			
+
 			checkb = new CheckBox(new Coord(120, 250), tab, "Use New Toolbars") {
 				@Override
 				public void changed(boolean val) {
@@ -368,23 +379,23 @@ public class SWidgetOptions extends Hidewnd {
 		}
 		body.showtab(ftab);
 	}
-	
+
 	public static class HideInfo extends Widget {
 		protected HighlightInfo current;
 		protected CheckBox curCheck;
-		
+
 		public HideInfo(Coord c, Coord sz, Widget parent) {
 			super(c, sz, parent);
 			curCheck = new CheckBox(new Coord(10, 90), this, "Visible");
 			curCheck.hide();
 		}
-		
+
 		public void setCurrent(HighlightInfo hl) {
 			current = hl;
 			curCheck.show();
 			curCheck.a = hl.getBool();
 		}
-		
+
 		@Override
 		public void wdgmsg(Widget sender, String msg, Object... args) {
 			if (sender == curCheck && msg.equals("ch")) {
@@ -392,7 +403,7 @@ public class SWidgetOptions extends Hidewnd {
 				current.setBool(val);
 			} else super.wdgmsg(sender, msg, args);
 		}
-		
+
 		@Override
 		public void draw(GOut g) {
 			g.chcolor(0, 0, 0, 255);
@@ -403,7 +414,7 @@ public class SWidgetOptions extends Hidewnd {
 			if (current != null) {
 				try {
 					g.image(current.getTex(), new Coord(10, 10), new Coord(40, 40));
-					g.atext(current.getName(), new Coord(60, 30), 0, 0);
+					g.atext(current.getTooltip(), new Coord(60, 30), 0, 0);
 				} catch (Loading e) {
 					g.image(WItem.missing.layer(Resource.imgc).tex(), new Coord(10, 10), new Coord(40, 40));
 					g.atext("...", new Coord(100, 30), 1, 1);
@@ -412,16 +423,17 @@ public class SWidgetOptions extends Hidewnd {
 			super.draw(g);
 		}
 	}
-	
+
 	public static class HideList extends Widget {
 		private int h;
 		private Scrollbar sb;
 		private int sel;
 		public HighlightInfo[] hlList;
-		
+
 		private final Comparator<HighlightInfo> hlComparator = new Comparator<HighlightInfo>() {
+			@Override
 			public int compare(HighlightInfo a, HighlightInfo b) {
-				return (a.getName().compareTo(b.getName()));
+				return (a.getTooltip().compareTo(b.getTooltip()));
 			}
 		};
 
@@ -432,24 +444,23 @@ public class SWidgetOptions extends Hidewnd {
 			sb = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
 			updateList();
 		}
-		
+
 		public void updateList() {
-			synchronized (SUtils.mmapHighlightInfoCache) {
-				hlList = SUtils.mmapHighlightInfoCache.values().toArray(new HighlightInfo[SUtils.mmapHighlightInfoCache.size()]);
-				Arrays.sort(hlList, hlComparator);
-				sb.val = 0;
-				sb.max = hlList.length - h;
-				sel = -1;
-			}
+			hlList = MinimapHighlightConfig.getHashMap().values().toArray(new HighlightInfo[MinimapHighlightConfig.getHashMap().size()]);
+			Arrays.sort(hlList, hlComparator);
+			sb.val = 0;
+			sb.max = hlList.length - h;
+			sel = -1;
 		}
 
+		@Override
 		public void draw(GOut g) {
 			g.chcolor(0, 0, 0, 255);
 			g.frect(Coord.z, sz);
 			g.chcolor(255, 255, 255, 255);
 			g.rect(Coord.z, sz.add(1, 1));
 			g.chcolor();
-			
+
 			for (int i = 0; i < h; i++) {
 				if (i + sb.val >= hlList.length) continue;
 				HighlightInfo hl = hlList[i + sb.val];
@@ -465,7 +476,7 @@ public class SWidgetOptions extends Hidewnd {
 					} else {
 						g.chcolor(255, 128, 128, 255);
 					}
-					g.atext(hl.getName(), new Coord(25, i * 20 + 10), 0, 0.5);
+					g.atext(hl.getTooltip(), new Coord(25, i * 20 + 10), 0, 0.5);
 				} catch (Loading e) {
 					g.image(WItem.missing.layer(Resource.imgc).tex(), new Coord(0, i * 20), new Coord(20, 20));
 					g.atext("...", new Coord(25, i * 20 + 10), 0, 0.5);
@@ -475,11 +486,13 @@ public class SWidgetOptions extends Hidewnd {
 			super.draw(g);
 		}
 
+		@Override
 		public boolean mousewheel(Coord c, int amount) {
 			sb.ch(amount);
 			return (true);
 		}
 
+		@Override
 		public boolean mousedown(Coord c, int button) {
 			if (super.mousedown(c, button))
 				return (true);
@@ -501,7 +514,7 @@ public class SWidgetOptions extends Hidewnd {
 			changed(null);
 		}
 	}
-	
+
 	public static class TextList extends Widget {
 		private int iCannotRememberWhyDoINeedThisVariable;
 		private Scrollbar scrollbar;
@@ -510,44 +523,45 @@ public class SWidgetOptions extends Hidewnd {
 
 		public TextList(Coord c, Coord sz, Widget parent) {
 			super(c, sz, parent);
-			
+
 			iCannotRememberWhyDoINeedThisVariable = sz.y / 20;
-			
+
 			scrollbar = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
 			scrollbar.val = 0;
-			
+
 			selectedIndex = -1;
-			
+
 			textList = new ArrayList<String>();
 		}
-		
+
 		public void addText(String text) {
 			textList.add(text);
 			scrollbar.max = textList.size() - iCannotRememberWhyDoINeedThisVariable;
 		}
-		
+
 		public String getSelectedText() {
 			if (selectedIndex >= 0 && selectedIndex < textList.size()) return textList.get(selectedIndex);
 			return null;
 		}
-		
+
 		public int getSelectedIndex() {
 			return selectedIndex;
 		}
-		
+
 		public void removeCurrent() {
 			textList.remove(selectedIndex);
 			scrollbar.max = textList.size() - iCannotRememberWhyDoINeedThisVariable;
 			selectedIndex = -1;
 		}
 
+		@Override
 		public void draw(GOut g) {
 			g.chcolor(0, 0, 0, 255);
 			g.frect(Coord.z, sz);
 			g.chcolor(255, 255, 255, 255);
 			g.rect(Coord.z, sz.add(1, 1));
 			g.chcolor();
-			
+
 			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
 				if (i + scrollbar.val >= textList.size()) continue;
 				String hl = textList.get(i + scrollbar.val);
@@ -562,11 +576,13 @@ public class SWidgetOptions extends Hidewnd {
 			super.draw(g);
 		}
 
+		@Override
 		public boolean mousewheel(Coord c, int amount) {
 			scrollbar.ch(amount);
 			return (true);
 		}
 
+		@Override
 		public boolean mousedown(Coord c, int button) {
 			if (super.mousedown(c, button))
 				return (true);
@@ -581,7 +597,7 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		protected void changed(int index) {
-			
+
 		}
 
 		public void unsel() {
@@ -589,8 +605,8 @@ public class SWidgetOptions extends Hidewnd {
 			changed(selectedIndex);
 		}
 	}
-	
-	
+
+
 	/* Toolbars */
 	public static class ToolbarsList extends Widget {
 		private int iCannotRememberWhyDoINeedThisVariable;
@@ -601,43 +617,43 @@ public class SWidgetOptions extends Hidewnd {
 
 		public ToolbarsList(Coord c, Coord sz, Widget parent, HashMap<String, SToolbarConfig> tbMap) {
 			super(c, sz, parent);
-			
+
 			iCannotRememberWhyDoINeedThisVariable = sz.y / 20;
-			
+
 			scrollbar = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
 			scrollbar.val = 0;
 			toolbarsMap = tbMap;
 			selectedIndex = -1;
-			
+
 			textListBuf = new ArrayList<String>();
 			for (String str : toolbarsMap.keySet()) {
 				textListBuf.add(str);
 			}
 		}
-		
+
 		public void addToolbar(String text) {
 			SToolbarConfig newtb = new SToolbarConfig(text);
 			toolbarsMap.put(text, newtb);
 			textListBuf.add(text);
 			scrollbar.max = textListBuf.size() - iCannotRememberWhyDoINeedThisVariable;
 		}
-		
+
 		public SToolbarConfig getSelectedToolbar() {
 			if (selectedIndex >= 0 && selectedIndex < textListBuf.size()) return toolbarsMap.get(textListBuf.get(selectedIndex));
 			return null;
 		}
-		
+
 		public int getSelectedIndex() {
 			return selectedIndex;
 		}
-		
+
 		public void removeCurrent() {
 			toolbarsMap.remove(textListBuf.get(selectedIndex));
 			textListBuf.remove(selectedIndex);
 			scrollbar.max = textListBuf.size() - iCannotRememberWhyDoINeedThisVariable;
 			selectedIndex = -1;
 		}
-		
+
 		public void toggleCurrent() {
 			SToolbarConfig tbcfg = getSelectedToolbar();
 			if (tbcfg != null) {
@@ -645,13 +661,14 @@ public class SWidgetOptions extends Hidewnd {
 			}
 		}
 
+		@Override
 		public void draw(GOut g) {
 			g.chcolor(0, 0, 0, 255);
 			g.frect(Coord.z, sz);
 			g.chcolor(255, 255, 255, 255);
 			g.rect(Coord.z, sz.add(1, 1));
 			g.chcolor();
-			
+
 			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
 				if (i + scrollbar.val >= textListBuf.size()) continue;
 				String hl = textListBuf.get(i + scrollbar.val);
@@ -671,11 +688,13 @@ public class SWidgetOptions extends Hidewnd {
 			super.draw(g);
 		}
 
+		@Override
 		public boolean mousewheel(Coord c, int amount) {
 			scrollbar.ch(amount);
 			return (true);
 		}
 
+		@Override
 		public boolean mousedown(Coord c, int button) {
 			if (super.mousedown(c, button))
 				return (true);
@@ -690,7 +709,7 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		protected void changed(int index) {
-			
+
 		}
 
 		public void unsel() {
@@ -698,7 +717,7 @@ public class SWidgetOptions extends Hidewnd {
 			changed(selectedIndex);
 		}
 	}
-	
+
 	public static class SlotsList extends Widget {
 		private int iCannotRememberWhyDoINeedThisVariable;
 		private Scrollbar scrollbar;
@@ -707,15 +726,15 @@ public class SWidgetOptions extends Hidewnd {
 
 		public SlotsList(Coord c, Coord sz, Widget parent) {
 			super(c, sz, parent);
-			
+
 			iCannotRememberWhyDoINeedThisVariable = sz.y / 20;
-			
+
 			scrollbar = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 0);
 			scrollbar.val = 0;
-			
+
 			selectedIndex = -1;
 		}
-		
+
 		public void setSlot(int mode, int key) {
 			SToolbarConfigSlot slot = getSelectedSlot();
 			if (slot != null) {
@@ -728,29 +747,29 @@ public class SWidgetOptions extends Hidewnd {
 		public void setupToolbar(SToolbarConfig tb) {
 			assocedToolbar = tb;
 		}
-		
+
 		public int size() {
 			if (assocedToolbar != null) {
 				return assocedToolbar.slotList.size();
 			} else return 0;
 		}
-		
+
 		public void addSlot(int mode, int key) {
 			SToolbarConfigSlot slot = new SToolbarConfigSlot(mode, key);
 			if (assocedToolbar != null)
 				assocedToolbar.slotList.add(slot);
 			scrollbar.max = size() - iCannotRememberWhyDoINeedThisVariable;
 		}
-		
+
 		public SToolbarConfigSlot getSelectedSlot() {
 			if (selectedIndex >= 0 && selectedIndex < size()) return assocedToolbar.slotList.get(selectedIndex);
 			return null;
 		}
-		
+
 		public int getSelectedIndex() {
 			return selectedIndex;
 		}
-		
+
 		public void removeCurrent() {
 			if (size() <= 0) return;
 			assocedToolbar.slotList.remove(selectedIndex);
@@ -758,13 +777,14 @@ public class SWidgetOptions extends Hidewnd {
 			selectedIndex = -1;
 		}
 
+		@Override
 		public void draw(GOut g) {
 			g.chcolor(0, 0, 0, 255);
 			g.frect(Coord.z, sz);
 			g.chcolor(255, 255, 255, 255);
 			g.rect(Coord.z, sz.add(1, 1));
 			g.chcolor();
-			
+
 			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
 				if (i + scrollbar.val >= size()) continue;
 				SToolbarConfigSlot hl = assocedToolbar.slotList.get(i + scrollbar.val);
@@ -779,11 +799,13 @@ public class SWidgetOptions extends Hidewnd {
 			super.draw(g);
 		}
 
+		@Override
 		public boolean mousewheel(Coord c, int amount) {
 			scrollbar.ch(amount);
 			return (true);
 		}
 
+		@Override
 		public boolean mousedown(Coord c, int button) {
 			if (super.mousedown(c, button))
 				return (true);
@@ -798,7 +820,7 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		protected void changed(int index) {
-			
+
 		}
 
 		public void unsel() {

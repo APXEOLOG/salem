@@ -14,6 +14,8 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apxeolog.salem.config.XMLConfigProvider;
+
 /**
  *  == Haven and Hearth Extended ==
  * Class for save/load settings. This class use reflection.
@@ -37,21 +39,21 @@ public class HConfig {
 	public static String 	mp_error_url = "http://unionclient.ru/salem/error/";
 	public static Integer	cl_grid_mode = MapView.GRID_MODE_NONE;
 	public static String	mp_guid = UUID.randomUUID().toString();
-	
+
 	private static Properties configFile = new Properties();
 	private static HashMap<String, String> additionTokens= new HashMap<String, String>();
-	
+
 	public static void addValue(String name, Object value) {
 		additionTokens.put(name, value.toString());
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static <T, V> T getValue(String name, Class vclass) {
 		Object ret = additionTokens.get(name);
 		if (ret != null) return castToType(vclass, ret);
 		else return null;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private static <T, V> T castToType(V classType, Object value) {
 		if (classType.equals(Integer.class)) {
@@ -66,33 +68,34 @@ public class HConfig {
 			return (T) Float.valueOf((String)value);
 		} else return null;
 	}
-	
+
 	public static void loadConfig() {
 		try {
 			configFile.load(new FileInputStream(new File("salem.cfg")));
 			for (Entry<Object, Object> entry : configFile.entrySet()) {
 				String filedName = (String) entry.getKey();
-					try {
-						Field optionField = HConfig.class.getField(filedName);
-						if (Modifier.isStatic(optionField.getModifiers()) && Modifier.isPublic(optionField.getModifiers())) {
-							optionField.set(null, castToType(optionField.getType(), entry.getValue()));
-						}
-					} catch (NoSuchFieldException e) {
-						addValue(filedName, entry.getValue());
-					} catch (SecurityException e) {
-					} catch (IllegalArgumentException e) {
-					} catch (IllegalAccessException e) {
+				try {
+					Field optionField = HConfig.class.getField(filedName);
+					if (Modifier.isStatic(optionField.getModifiers()) && Modifier.isPublic(optionField.getModifiers())) {
+						optionField.set(null, castToType(optionField.getType(), entry.getValue()));
 					}
+				} catch (NoSuchFieldException e) {
+					addValue(filedName, entry.getValue());
+				} catch (SecurityException e) {
+				} catch (IllegalArgumentException e) {
+				} catch (IllegalAccessException e) {
+				}
 			}
-			
+
 			SToolbarConfig.load();
 		} catch (IOException e) {
 		} finally {
 			configFile.clear();
 		}
 	}
-	
+
 	public static void saveConfig() {
+
 		try {
 			configFile.clear();
 			Field[] configFields = HConfig.class.getFields();
@@ -107,7 +110,7 @@ public class HConfig {
 			}
 			File config = new File("salem.cfg");
 			if (config.exists()) config.createNewFile();
-			
+
 			for (Map.Entry<String, String> set : additionTokens.entrySet()) {
 				configFile.put(set.getKey(), set.getValue());
 			}
@@ -117,5 +120,9 @@ public class HConfig {
 		} finally {
 			configFile.clear();
 		}
+	}
+
+	static {
+		XMLConfigProvider.getConfig("null");
 	}
 }

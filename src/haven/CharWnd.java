@@ -37,8 +37,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SWindow;
+import org.apxeolog.salem.config.UIConfig;
+import org.apxeolog.salem.config.XMLConfigProvider;
+import org.apxeolog.salem.config.UIConfig.WidgetState;
 
 @SuppressWarnings("serial")
 public class CharWnd extends SWindow {
@@ -52,11 +54,27 @@ public class CharWnd extends SWindow {
 	private final Label cmodl;
 
 	@Override
-	public void savePosition() {
+	public void loadState() {
 		try {
-			HConfig.addValue("swnd_pos_Character", c);
-			HConfig.saveConfig();
-		} catch (NullPointerException ex) {
+			WidgetState state = UIConfig.getWidgetState("Character");
+			if (state != null) {
+				c = state.wPos;
+				resize(state.wSize);
+			}
+		} catch (Exception ex) {
+
+		}
+	}
+
+	@Override
+	public void saveState() {
+		try {
+			WidgetState state = UIConfig.getNewWidgetState("Character");
+			state.wPos = c;
+			state.wSize = windowBox.getContentSize();
+			XMLConfigProvider.save();
+		} catch (Exception ex) {
+
 		}
 	}
 

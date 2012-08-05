@@ -14,6 +14,10 @@ import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import org.apxeolog.salem.config.UIConfig;
+import org.apxeolog.salem.config.XMLConfigProvider;
+import org.apxeolog.salem.config.UIConfig.WidgetState;
+
 public class SWindow extends Widget {
 	public static final int HEADER_ALIGN_CENTER = 1;
 	public static final int HEADER_ALIGN_LEFT = 0;
@@ -321,7 +325,7 @@ public class SWindow extends Widget {
 		windowBox = new SSimpleBorderBox(sz, 0, 2, 1);
 		windowBox.marginTop = windowHeader.sz.y;
 		resize(sz);
-		loadPosition();
+		loadState();
 		//setfocustab(true);
 		parent.setfocus(this);
 	}
@@ -341,7 +345,7 @@ public class SWindow extends Widget {
 
 	@Override
 	public void unlink() {
-		savePosition();
+		saveState();
 		super.unlink();
 	}
 
@@ -349,31 +353,28 @@ public class SWindow extends Widget {
 		this(c, sz, parent, cap, true, true);
 	}
 
-	public void loadPosition() {
+	public void loadState() {
 		try {
 			if (windowHeader.headerText == null) return;
-			Object obj = HConfig.getValue("swnd_pos_" + windowHeader.headerText.text, String.class);
-			if (obj instanceof String) {
-				Coord cc = Coord.fromString((String) obj);
-				if (cc != null) c = cc;
-			}
-			obj = HConfig.getValue("swnd_size_" + windowHeader.headerText.text, String.class);
-			if (obj instanceof String) {
-				Coord cc = Coord.fromString((String) obj);
-				if (cc != null) resize(cc);
+			WidgetState state = UIConfig.getWidgetState(windowHeader.headerText.text);
+			if (state != null) {
+				c = state.wPos;
+				resize(state.wSize);
 			}
 		} catch (Exception ex) {
+
 		}
 	}
 
-	public void savePosition() {
+	public void saveState() {
 		try {
 			if (windowHeader.headerText == null) return;
-			HConfig.addValue("swnd_pos_" + windowHeader.headerText.text, c);
-			if (allowResize)
-				HConfig.addValue("swnd_size_" + windowHeader.headerText.text, windowBox.getContentSize());
-			HConfig.saveConfig();
-		} catch (NullPointerException ex) {
+			WidgetState state = UIConfig.getNewWidgetState(windowHeader.headerText.text);
+			state.wPos = c;
+			state.wSize = windowBox.getContentSize();
+			XMLConfigProvider.save();
+		} catch (Exception ex) {
+
 		}
 	}
 
@@ -530,11 +531,11 @@ public class SWindow extends Widget {
 		if (dragMode) {
 			ui.grabmouse(null);
 			dragMode = false;
-			savePosition();
+			saveState();
 		} else if (resizeMode) {
 			ui.grabmouse(null);
 			resizeMode = false;
-			savePosition();
+			saveState();
 			resizeFinish();
 		} else {
 			super.mouseup(c, button);
@@ -572,7 +573,7 @@ public class SWindow extends Widget {
 	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (msg.equals("swindow_close")) {
-			savePosition();
+			saveState();
 			if (ui.isRWidget(this)) wdgmsg("close");
 			else unlink();
 		} else if (msg.equals("swindow_minimize")) {

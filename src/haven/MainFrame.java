@@ -51,6 +51,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 
 import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.config.XMLConfigProvider;
 
 @SuppressWarnings("serial")
 public class MainFrame extends Frame implements Runnable, Console.Directory {
@@ -417,9 +418,11 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 		try {
 			javabughack();
 		} catch (InterruptedException e) {
+			XMLConfigProvider.save(true);
 			return;
 		}
 		setupres();
+		XMLConfigProvider.init();
 		MainFrame f = new MainFrame(null);
 		if (Utils.getprefb("fullscreen", false))
 			f.setfs();
@@ -427,6 +430,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 		try {
 			f.mt.join();
 		} catch (InterruptedException e) {
+			XMLConfigProvider.save(true);
 			f.g.interrupt();
 			return;
 		}
@@ -455,11 +459,13 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 			} catch (IOException e) {
 			}
 		}
+		XMLConfigProvider.save(true);
 		System.exit(0);
 	}
 
 	public static void main(final String[] args) {
 		/* Set up the error handler as early as humanly possible. */
+		XMLConfigProvider.load();
 		ThreadGroup g = new ThreadGroup("Haven main group");
 		try {
 			final haven.error.ErrorHandler hg = new haven.error.ErrorHandler(
