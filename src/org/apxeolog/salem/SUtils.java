@@ -3,10 +3,13 @@ package org.apxeolog.salem;
 import haven.Composite;
 import haven.Coord;
 import haven.GOut;
+import haven.GameUI;
 import haven.Gob;
+import haven.Loading;
 import haven.LocalMiniMap;
 import haven.MapView;
-import java.awt.Color;
+import haven.Widget;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,11 +22,8 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import org.apxeolog.salem.config.MinimapHighlightConfig;
-import org.apxeolog.salem.config.MinimapHighlightConfig.CompositeHighlightInfo;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
-import org.apxeolog.salem.config.MinimapHighlightConfig.PlayerHighlightInfo;
 
 public class SUtils {
 	public static void writeText(File f, String text) {
@@ -38,11 +38,107 @@ public class SUtils {
 		}
 	}
 
+	private static void disposeFromHighlightCache(long id) {
+		MinimapMarker buf =  highlightCache.get(id);
+		if (buf != null) {
+			buf.unlink();
+			highlightCache.remove(id);
+		}
+	}
+
+	public static class MinimapMarker extends Widget {
+		protected HighlightInfo hInfo = null;
+		protected long id;
+
+		protected boolean needDispose = false;
+		protected boolean passed = false;
+
+		public void check() {
+			if (!passed || !hInfo.getBool()) {
+				needDispose = true;
+			} else {
+				needDispose = false;
+			}
+			passed = false;
+		}
+
+		public MinimapMarker(Coord c, Coord sz, Widget parent, HighlightInfo info, Gob gob) {
+			super(c, sz, parent);
+			hInfo = info;
+			id = gob.id;
+		}
+
+		protected long lastRedrawTime = 0;
+
+		@Override
+		public void draw(GOut g) {
+			if (needDispose) {
+				if (System.currentTimeMillis() - lastRedrawTime > 250) {
+					disposeFromHighlightCache(id);
+				}
+			} else {
+				lastRedrawTime = System.currentTimeMillis();
+			}
+			Gob gob = ui.sess.glob.oc.getgob(id);
+			if (hInfo != null) {
+				hInfo.draw(g, Coord.z, gob);
+			}
+		}
+
+		@Override
+		public Object tooltip(Coord c, boolean again) {
+			Gob gob = ui.sess.glob.oc.getgob(id);
+			if (gob != null)
+				return hInfo.getTooltip(gob);
+			else return null;
+		}
+
+		public void pass() {
+			passed = true;
+		}
+
+		public void updateCoord(Coord nc) {
+			c = nc.sub(hInfo.getSize().div(2));
+		}
+
+		protected boolean pressed = false;
+
+		@Override
+		public boolean mousedown(Coord c, int button) {
+			if (button != 3) return super.mousedown(c, button);
+			pressed = true;
+			ui.grabmouse(this);
+			return true;
+		}
+
+		@Override
+		public boolean mouseup(Coord c, int button) {
+			if (pressed && button == 3) {
+				pressed = false;
+				ui.grabmouse(null);
+				if (c.isect(new Coord(0, 0), sz))
+					click();
+				return true;
+			}
+			return super.mouseup(c, button);
+		}
+
+		private void click() {
+			if (!hInfo.allowClick()) return;
+			GameUI gui = getparent(GameUI.class);
+			Gob gob = ui.sess.glob.oc.getgob(id);
+			if (gui != null && gob != null) {
+				gui.map.parent.wdgmsg(gui.map, "click", gui.map.ui.mc, gob.rc, 3, 0, (int) gob.id, gob.rc, -1);
+			}
+		}
+	}
+
 	public static Coord minimapMarkerRealCoords = null;
 	public static Coord lastMinimapClickCoord = null;
 
+	private static final HashMap<Long, MinimapMarker> highlightCache = new HashMap<Long, MinimapMarker>();
+
 	private static final ArrayList<Pair<HighlightInfo, Gob>> gobSyncCache = new ArrayList<Pair<HighlightInfo, Gob>>();
-	public static final Coord minimapIconSize = new Coord(24, 24);
 
 	/**
 	 * Draw gobs on minimap
@@ -54,47 +150,55 @@ public class SUtils {
 	public static void drawMinimapGob(GOut g, MapView mv, LocalMiniMap mmap) {
 		gobSyncCache.clear();
 		// Precache gobs and free sync block
-		String resname, lastPart = "";
+		String resname; Composite comp = null; HighlightInfo info = null;
+		MinimapMarker bufMarker = null;
 		synchronized (mv.ui.sess.glob.oc) {
 			for (Gob gob : mv.ui.sess.glob.oc) {
-				resname = gob.resname(); lastPart = "";
-				if (resname.lastIndexOf("/") <= 0) {
-					// Animals and players
-					Composite comp = gob.getattr(Composite.class);
-					if (comp != null) {
-						resname = comp.resname();
-						if (resname.contains("/kritter/")) {
-							int index = resname.indexOf("/kritter/") + 9;
-							lastPart = resname.substring(index, resname.indexOf('/', index + 1));
-						} else if (resname.contains("/borka/")) {
-							// Player
-							lastPart = "borka";
-						} else continue;
-					} else continue;
-				} else {
-					lastPart = resname.substring(resname.lastIndexOf("/") + 1);
-				}
-
-				HighlightInfo info = MinimapHighlightConfig.getHighlightInfo(lastPart);
-				if (info != null) {
-					gobSyncCache.add(new Pair<HighlightInfo, Gob>(info,gob));
+				if (gob.id == mv.plgob) continue;
+				try {
+					Coord ul = mmap.realToLocal(new Coord(gob.getrc()));
+					if (highlightCache.get(gob.id) != null) {
+						bufMarker = highlightCache.get(gob.id);
+						bufMarker.updateCoord(ul);
+						bufMarker.pass();
+					} else {
+						comp = gob.getattr(Composite.class);
+						if (comp != null) {
+							resname = comp.resname();
+						} else {
+							resname = gob.resname();
+						}
+						info = MinimapHighlightConfig.getHighlightInfo(resname);
+						if (info != null && info.getBool()) {
+							bufMarker = new MinimapMarker(ul, info.getSize(), mmap, info, gob);
+							bufMarker.pass();
+							highlightCache.put(gob.id, bufMarker);
+						}
+					}
+				} catch (Loading ex) {
+					// skip
 				}
 			}
 		}
-		// Draw curios
-		for (Pair<HighlightInfo, Gob> pair : gobSyncCache) {
-			try {
-				Coord ul = mmap.realToLocal(new Coord(pair.getSecond().getrc()));
-				if (!ul.isect(minimapIconSize, mmap.sz.sub(minimapIconSize))) continue;
+		for (MinimapMarker marker : highlightCache.values()) {
+			marker.check();
+		}
 
-				pair.getFirst().draw(g, ul, pair.getSecond());
+		// Draw curios
+		/*for (Pair<HighlightInfo, Gob> pair : gobSyncCache) {
+			try {
+				info = pair.getFirst();
+				Coord ul = mmap.realToLocal(new Coord(pair.getSecond().getrc()));
+				if (!ul.isect(info.getSize(), mmap.sz.sub(info.getSize()))) continue;
+
+				info.draw(g, ul, pair.getSecond());
 			} catch (Exception ex) {
 				// WOOPS
 			}
-		}
-		if (lastMinimapClickCoord != null) {
+		}*/
+		/*if (lastMinimapClickCoord != null) {
 			for (int i = gobSyncCache.size() - 1; i >= 0; i--) {
-				if (gobSyncCache.get(i).getFirst() instanceof PlayerHighlightInfo || gobSyncCache.get(i).getFirst() instanceof CompositeHighlightInfo) continue;
+				//if (gobSyncCache.get(i).getFirst() instanceof PlayerHighlightInfo || gobSyncCache.get(i).getFirst() instanceof CompositeHighlightInfo) continue;
 
 				Gob gob = gobSyncCache.get(i).getSecond();
 				Coord ul = mmap.realToLocal(new Coord(gob.getc())).sub(minimapIconSize.div(2));
@@ -104,16 +208,16 @@ public class SUtils {
 					break;
 				}
 			}
-		}
+		}*/
 		// Draw minimap marker
-		if (minimapMarkerRealCoords != null) {
+		/*if (minimapMarkerRealCoords != null) {
 			Coord markerMinimapMapCoord = strictInRect(mmap.realToLocal(minimapMarkerRealCoords), minimapIconSize, mmap.sz.sub(minimapIconSize));
 			g.chcolor(Color.BLACK);
 			g.frect(markerMinimapMapCoord.sub(minimapIconSize), minimapIconSize);
 			g.chcolor(Color.RED);
 			g.fellipse(markerMinimapMapCoord.sub(minimapIconSize.div(2)), minimapIconSize.div(2));
 			g.chcolor();
-		}
+		}*/
 	}
 
 	public static void moveToRealCoords(MapView mv, Coord realCoord) {

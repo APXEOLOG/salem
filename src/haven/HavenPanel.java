@@ -50,7 +50,7 @@ import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 
-import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.config.XConfig;
 
 @SuppressWarnings("serial")
 public class HavenPanel extends GLCanvas implements Runnable {
@@ -102,6 +102,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 	private void initgl() {
 		final haven.error.ErrorHandler h = haven.error.ErrorHandler.find();
 		addGLEventListener(new GLEventListener() {
+			@Override
 			public void display(GLAutoDrawable d) {
 				GL gl = d.getGL();
 				if (inited && rdr)
@@ -109,6 +110,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 				GLObject.disposeall(gl);
 			}
 
+			@Override
 			public void init(GLAutoDrawable d) {
 				GL gl = d.getGL();
 				glconf = GLConfig.fromgl(gl, d.getContext(),
@@ -125,6 +127,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 					h.lsetprop("gl.conf", glconf);
 				}
 				gstate = new GLState() {
+					@Override
 					public void apply(GOut g) {
 						GL gl = g.gl;
 						gl.glColor3f(1, 1, 1);
@@ -144,18 +147,22 @@ public class HavenPanel extends GLCanvas implements Runnable {
 						GOut.checkerr(gl);
 					}
 
+					@Override
 					public void unapply(GOut g) {
 					}
 
+					@Override
 					public void prep(Buffer buf) {
 						buf.put(global, this);
 					}
 				};
 			}
 
+			@Override
 			public void reshape(GLAutoDrawable d, final int x, final int y,
 					final int w, final int h) {
 				ostate = new GLState() {
+					@Override
 					public void apply(GOut g) {
 						GL gl = g.gl;
 						g.st.matmode(GL.GL_PROJECTION);
@@ -163,14 +170,17 @@ public class HavenPanel extends GLCanvas implements Runnable {
 						gl.glOrtho(0, w, h, 0, -1, 1);
 					}
 
+					@Override
 					public void unapply(GOut g) {
 					}
 
+					@Override
 					public void prep(Buffer buf) {
 						buf.put(proj2d, this);
 					}
 				};
 				rtstate = new GLState() {
+					@Override
 					public void apply(GOut g) {
 						GL gl = g.gl;
 						g.st.matmode(GL.GL_PROJECTION);
@@ -178,9 +188,11 @@ public class HavenPanel extends GLCanvas implements Runnable {
 						gl.glOrtho(0, w, 0, h, -1, 1);
 					}
 
+					@Override
 					public void unapply(GOut g) {
 					}
 
+					@Override
 					public void prep(Buffer buf) {
 						buf.put(proj2d, this);
 					}
@@ -189,6 +201,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 				HavenPanel.this.h = h;
 			}
 
+			@Override
 			public void displayChanged(GLAutoDrawable d, boolean cp1,
 					boolean cp2) {
 			}
@@ -199,6 +212,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 		setFocusTraversalKeysEnabled(false);
 		newui(null);
 		addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyTyped(KeyEvent e) {
 				synchronized (events) {
 					events.add(e);
@@ -206,6 +220,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 				}
 			}
 
+			@Override
 			public void keyPressed(KeyEvent e) {
 				synchronized (events) {
 					events.add(e);
@@ -213,6 +228,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 				}
 			}
 
+			@Override
 			public void keyReleased(KeyEvent e) {
 				synchronized (events) {
 					events.add(e);
@@ -221,6 +237,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 			}
 		});
 		addMouseListener(new MouseAdapter() {
+			@Override
 			public void mousePressed(MouseEvent e) {
 				synchronized (events) {
 					events.add(e);
@@ -228,6 +245,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 				}
 			}
 
+			@Override
 			public void mouseReleased(MouseEvent e) {
 				synchronized (events) {
 					events.add(e);
@@ -236,12 +254,14 @@ public class HavenPanel extends GLCanvas implements Runnable {
 			}
 		});
 		addMouseMotionListener(new MouseMotionListener() {
+			@Override
 			public void mouseDragged(MouseEvent e) {
 				synchronized (events) {
 					events.add(e);
 				}
 			}
 
+			@Override
 			public void mouseMoved(MouseEvent e) {
 				synchronized (events) {
 					events.add(e);
@@ -249,6 +269,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 			}
 		});
 		addMouseWheelListener(new MouseWheelListener() {
+			@Override
 			public void mouseWheelMoved(MouseWheelEvent e) {
 				synchronized (events) {
 					events.add(e);
@@ -289,14 +310,14 @@ public class HavenPanel extends GLCanvas implements Runnable {
 		ostate.prep(ibuf);
 		GOut g = new GOut(gl, getContext(), glconf, state, ibuf,
 				new Coord(w, h));
-		
-		if (!HConfig.cl_render_on) {
+
+		if (!XConfig.cl_render_on) {
 			gl.glClearColor(0, 0, 0, 1);
 			gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 			FastText.aprintf(g, new Coord(w / 2, h / 2), 0.5, 0.5, "Render disabled. Press Ctrl + Y...");
 			return;
 		}
-		
+
 		state.set(ibuf);
 
 		g.state(rtstate);
@@ -450,6 +471,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 		}
 	}
 
+	@Override
 	public void run() {
 		try {
 			long now, fthen, then;

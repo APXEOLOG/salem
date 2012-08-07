@@ -28,7 +28,8 @@ package haven;
 
 import java.awt.event.KeyEvent;
 
-import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.config.XConfig;
+import org.apxeolog.salem.config.XMLConfigProvider;
 
 public class RootWidget extends ConsoleHost {
 	public static Resource defcurs = Resource.load("gfx/hud/curs/arw");
@@ -42,27 +43,28 @@ public class RootWidget extends ConsoleHost {
 		cursor = defcurs;
 	}
 
+	@Override
 	public boolean globtype(char key, KeyEvent ev) {
 		if (!super.globtype(key, ev)) {
 			if (ev.getKeyCode() == 89 && ev.isControlDown()) {
-				HConfig.cl_render_on = !HConfig.cl_render_on;
+				XConfig.cl_render_on = !XConfig.cl_render_on;
 			} else if(ev.getKeyCode() == 90 && ev.isControlDown()) {
 				GameUI gui = ui.root.findchild(GameUI.class);
 				if (gui != null) {
 					gui.toggleTilify();
 				}
-				HConfig.saveConfig();
-			} else if(ev.getKeyCode() == 71 && ev.isControlDown()) { // Ctrl + G 
+				XMLConfigProvider.save();
+			} else if(ev.getKeyCode() == 71 && ev.isControlDown()) { // Ctrl + G
 				GameUI gui = ui.root.findchild(GameUI.class);
 				if (gui != null) {
 					gui.toggleGrid();
 				}
-				HConfig.saveConfig();
+				XMLConfigProvider.save();
 			} else if(ev.getKeyCode() == 76 && ev.isAltDown()) {
 				if (ui.sess != null) ui.sess.close();
-				if(!HConfig.cl_render_on) {
-					HConfig.cl_render_on = true;
-					HConfig.saveConfig();
+				if(!XConfig.cl_render_on) {
+					XConfig.cl_render_on = true;
+					XMLConfigProvider.save();
 				}
 			} /*else if (key == '`') {
 				//Config.dbtext = true;
@@ -81,11 +83,13 @@ public class RootWidget extends ConsoleHost {
 		return (true);
 	}
 
+	@Override
 	public void draw(GOut g) {
 		super.draw(g);
 		drawcmd(g, new Coord(20, sz.y - 20));
 	}
 
+	@Override
 	public void error(String msg) {
 	}
 }

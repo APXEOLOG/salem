@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.apxeolog.salem.config.XConfig;
+
 public class SNetworkResources {
 	public static String sendGetRequest(String endpoint, String requestParameters) {
 		String result = null;
@@ -44,7 +46,7 @@ public class SNetworkResources {
 			@Override
 			public void run() {
 				// Send random generated GUID
-				sendGetRequest("http://unionclient.ru/salem/stat/", "guid=" + HConfig.mp_guid);
+				sendGetRequest("http://unionclient.ru/salem/stat/", "guid=" + XConfig.mp_guid);
 			}
 		}).start();
 

@@ -34,6 +34,7 @@ public class XConfig implements IConfigExport {
 	public static String 	mp_error_url = "http://unionclient.ru/salem/error/";
 	public static Integer	cl_grid_mode = MapView.GRID_MODE_NONE;
 	public static String	mp_guid = UUID.randomUUID().toString();
+	public static Boolean 	cl_debug_mode = true;
 
 	@SuppressWarnings("unchecked")
 	private static <T, V> T castToType(V classType, Object value) {
@@ -100,8 +101,7 @@ public class XConfig implements IConfigExport {
 	}
 
 	@Override
-	public void init() {
-		// TODO Auto-generated method stub
+	public void init(Element rootElement) {
 
 	}
 }

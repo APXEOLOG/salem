@@ -38,7 +38,7 @@ import java.util.regex.*;
 import java.io.IOException;
 import java.awt.datatransfer.*;
 
-import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.config.XConfig;
 
 public class ChatUI extends Widget {
 	public static final RichText.Foundry fnd = new RichText.Foundry(new ChatParser(TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 9, TextAttribute.FOREGROUND, Color.BLACK));
@@ -60,6 +60,7 @@ public class ChatUI extends Widget {
 		setcanfocus(false);
 	}
 
+	@SuppressWarnings("serial")
 	public static class ChatAttribute extends Attribute {
 		private ChatAttribute(String name) {
 			super(name);
@@ -277,6 +278,7 @@ public class ChatUI extends Widget {
 		}
 
 		public final Comparator<CharPos> poscmp = new Comparator<CharPos>() {
+			@SuppressWarnings("unused")
 			@Override
 			public int compare(CharPos a, CharPos b) {
 				if(a.msg != b.msg) {
@@ -933,6 +935,7 @@ public class ChatUI extends Widget {
 	}
 
 	private class Notification {
+		@SuppressWarnings("unused")
 		public final Channel chan;
 		public final Text chnm;
 		public final Channel.Message msg;
@@ -1143,7 +1146,7 @@ public class ChatUI extends Widget {
 
 	@Override
 	public boolean globtype(char key, KeyEvent ev) {
-		if (HConfig.cl_use_new_chat) return false;
+		if (XConfig.cl_use_new_chat) return false;
 
 		if (key == 10) {
 			if (!expanded && (sel instanceof EntryChannel)) {

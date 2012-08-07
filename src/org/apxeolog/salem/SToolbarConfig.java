@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.apxeolog.salem.config.XConfig;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -20,15 +21,15 @@ public class SToolbarConfig {
 	public static class SToolbarConfigSlot {
 		public int sMode = 0;
 		public int sKey = 0;
-		
+
 		protected String slotString = null;
-		
+
 		public SToolbarConfigSlot(int mode, int key) {
 			sMode = mode;
 			sKey = key;
 			rebuildString();
 		}
-		
+
 		public void rebuildString() {
 			slotString = "";
 			if((sMode & InputEvent.CTRL_DOWN_MASK) != 0)
@@ -39,41 +40,41 @@ public class SToolbarConfig {
 				slotString += "Shift";
 			slotString += KeyEvent.getKeyText(sKey);
 		}
-		
+
 		public String getString() {
 			return slotString;
 		}
 	}
-	
+
 	protected String tbName;
 	protected ArrayList<SToolbarConfigSlot> slotList;
 	protected boolean enabled = true;
-	
+
 	public SToolbarConfig(String name) {
 		tbName = name;
 		slotList = new ArrayList<SToolbarConfig.SToolbarConfigSlot>();
 	}
-	
+
 	public void addSlot(int mode, int key) {
 		slotList.add(new SToolbarConfigSlot(mode, key));
 	}
-	
+
 	public void removeSlot(int index) {
 		if (index >= 0 && index < slotList.size())
 			slotList.remove(index);
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.format("Toolbar name: %s, %d slots", tbName, slotList.size());
 	}
-	
+
 	public void toggle() {
 		enabled = !enabled;
 	}
-	
+
 	public static HashMap<String, SToolbarConfig> definedToolbars = new HashMap<String, SToolbarConfig>();
-	
+
 	public static void load() {
 		File tbConf = new File("toolbars.xml");
 		if (!tbConf.exists()) {
@@ -105,39 +106,39 @@ public class SToolbarConfig {
 			}
 		}
 	}
-	
+
 	public static void save() {
 		File tbConf = new File("toolbars.xml");
 		if (tbConf.exists() && tbConf.canWrite()) {
 			Document tbConfXML = HXml.newDoc();
 			if (tbConfXML != null) {
 				Element root = tbConfXML.createElement("root");
-				
+
 				for (SToolbarConfig cfg : definedToolbars.values()) {
 					Element currentToolbar = tbConfXML.createElement("toolbar");
 					currentToolbar.setAttribute("name", cfg.tbName);
 					currentToolbar.setAttribute("enabled", String.valueOf(cfg.enabled));
-					
+
 					for (int j = 0; j < cfg.slotList.size(); j++) {
 						int mode = cfg.slotList.get(j).sMode;
 						int key = cfg.slotList.get(j).sKey;
-						
+
 						Element slot = tbConfXML.createElement("slot");
 						slot.setAttribute("mode", String.valueOf(mode));
 						slot.setAttribute("key", String.valueOf(key));
-						
+
 						currentToolbar.appendChild(slot);
 					}
-					
+
 					root.appendChild(currentToolbar);
 				}
-				
+
 				tbConfXML.appendChild(root);
 			}
 			HXml.saveXML(tbConfXML, tbConf);
 		}
 	}
-	
+
 	public static void updateToolbars(Widget root) {
 		GameUI gUI = root.findchild(GameUI.class);
 		if (gUI != null) {
@@ -145,8 +146,8 @@ public class SToolbarConfig {
 				for (SToolbar tb : gUI.bdsToolbars) tb.unlink();
 				gUI.bdsToolbars.clear();
 			}
-			
-			if (HConfig.cl_use_new_toolbars) {
+
+			if (XConfig.cl_use_new_toolbars) {
 				for (SToolbarConfig cfg : definedToolbars.values()) {
 					if (cfg.enabled && cfg.slotList.size() > 0)
 						new SToolbar(new Coord(10, 10), gUI, cfg);

@@ -98,6 +98,7 @@ public class Session {
 		}
 	}
 
+	@SuppressWarnings("serial")
 	public static class LoadingIndir extends Loading {
 		public int resid;
 
@@ -136,6 +137,7 @@ public class Session {
 					return((this.getClass().isInstance(o)) && ((this.getClass().cast(o)).resid == resid));
 				}
 
+				@SuppressWarnings("unused")
 				public int compareTo(Indir<Resource> x) {
 					return((this.getClass().cast(x)).resid - resid);
 				}
@@ -438,6 +440,7 @@ public class Session {
 			}
 		}
 
+		@SuppressWarnings("unused")
 		private void handlerel(Message msg) {
 			if(msg.type == Message.RMSG_NEWWDG) {
 				synchronized(uimsgs) {

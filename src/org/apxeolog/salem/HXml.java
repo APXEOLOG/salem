@@ -1,6 +1,7 @@
 package org.apxeolog.salem;
 
 import java.io.File;
+import java.io.InputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -19,11 +20,25 @@ public class HXml {
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 		builderFactory.setIgnoringElementContentWhitespace(true);
 		builderFactory.setIgnoringComments(true);
-		//builderFactory.
 		DocumentBuilder builder = null;
 		try {
 			builder = builderFactory.newDocumentBuilder();
 			Document document = builder.parse(file);
+			doRecursive(document);
+			return document;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public static Document readXMLFile(InputStream stream) {
+		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+		builderFactory.setIgnoringElementContentWhitespace(true);
+		builderFactory.setIgnoringComments(true);
+		DocumentBuilder builder = null;
+		try {
+			builder = builderFactory.newDocumentBuilder();
+			Document document = builder.parse(stream);
 			doRecursive(document);
 			return document;
 		} catch (Exception e) {

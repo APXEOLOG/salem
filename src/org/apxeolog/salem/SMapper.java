@@ -22,34 +22,36 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.imageio.ImageIO;
 
+import org.apxeolog.salem.config.XConfig;
+
 public class SMapper {
 	private static SMapper instance = null;
-	
+
 	public static SMapper getInstance() {
 		if (instance == null) instance = new SMapper();
 		return instance;
 	}
-	
+
 	protected File mapRootDirectory;
 	protected File currentSessionDirectory;
 	protected MCache mapCache;
-	
+
 	protected Coord currentSessionStartGrid = null;
 	protected Coord lastPlayerRealCoords = Coord.z;
 	protected ArrayList<Coord> dumpedGrids;
-	
+
 	protected Thread mapperThread;
-	
+
 	protected ConcurrentLinkedQueue<Pair<Coord, Coord>> gridsToDump;
 	protected HashMap<Coord, MapTile> cache;
-	
+
 	private SMapper() {
 		mapRootDirectory = new File("map");
 		if (!mapRootDirectory.exists()) mapRootDirectory.mkdir();
 		dumpedGrids = new ArrayList<Coord>();
 		gridsToDump = new ConcurrentLinkedQueue<Pair<Coord, Coord>>();
 		cache = new HashMap<Coord, MapTile>();
-		
+
 		mapperThread = new Thread(HackThread.tg(), new Runnable() {
 			@Override
 			public void run() {
@@ -58,19 +60,19 @@ public class SMapper {
 					while ((entry = gridsToDump.poll()) != null) {
 						Grid gridToDump = null;
 						BufferedImage img = null;
-						
+
 						while (gridToDump == null || img == null) {
 							try {
-									Coord div = Coord.z;
-									synchronized (lastPlayerRealCoords) {
-										div = entry.getFirst().sub(lastPlayerRealCoords.div(tilesz).div(cmaps)).abs();
-									}
-									if (div.x > 1 || div.y > 1) break;
-									synchronized (mapCache) {
-										gridToDump = mapCache.getgrid(entry.getFirst());
-									}
-									img = gridToDump.getGridImage();
-								
+								Coord div = Coord.z;
+								synchronized (lastPlayerRealCoords) {
+									div = entry.getFirst().sub(lastPlayerRealCoords.div(tilesz).div(cmaps)).abs();
+								}
+								if (div.x > 1 || div.y > 1) break;
+								synchronized (mapCache) {
+									gridToDump = mapCache.getgrid(entry.getFirst());
+								}
+								img = gridToDump.getGridImage();
+
 							} catch (Loading ex) {
 								gridToDump = null;
 								try {
@@ -79,18 +81,18 @@ public class SMapper {
 								}
 							}
 						}
-						
+
 						if (gridToDump == null || img == null) continue;
-						
-						if (HConfig.cl_dump_minimaps) {
+
+						if (XConfig.cl_dump_minimaps) {
 							try {
-								String imgName = String.format("tile_%d_%d.png", 
-											entry.getFirst().sub(entry.getSecond()).x,
-											entry.getFirst().sub(entry.getSecond()).y);
+								String imgName = String.format("tile_%d_%d.png",
+										entry.getFirst().sub(entry.getSecond()).x,
+										entry.getFirst().sub(entry.getSecond()).y);
 								File outputFile = new File(currentSessionDirectory, imgName);
 								ImageIO.write(img, "PNG", outputFile);
 							} catch (IOException ex) {
-	
+
 							}
 						}
 						synchronized (cache) {
@@ -107,24 +109,24 @@ public class SMapper {
 		}, "SMapper Thread"	);
 		mapperThread.start();
 	}
-	
+
 	public MapTile getCachedTile(Coord gridCoord) {
 		synchronized (cache) {
 			return cache.get(gridCoord);
 		}
 	}
-	
+
 	public boolean isGridDumped(Coord grid) {
 		return dumpedGrids.contains(grid);
 	}
-	
+
 	public void checkMapperSession(Coord playerRealCoords, MCache mCache) {
 		if (playerRealCoords.dist(lastPlayerRealCoords) > tilesz.x * 100) startNewSession(playerRealCoords, mCache);
 		synchronized (lastPlayerRealCoords) {
 			lastPlayerRealCoords = playerRealCoords;
 		}
 	}
-	
+
 	public void startNewSession(Coord playerRealCoords, MCache mCache) {
 		currentSessionStartGrid = playerRealCoords.div(tilesz).div(cmaps);
 		synchronized (lastPlayerRealCoords) {
@@ -135,7 +137,7 @@ public class SMapper {
 			cache.clear();
 		}
 		mapCache = mCache;
-		if(HConfig.cl_dump_minimaps) {
+		if(XConfig.cl_dump_minimaps) {
 			String sessionName = getCurrentDateTimeString(System.currentTimeMillis());
 			try {
 				currentSessionDirectory = new File(mapRootDirectory, sessionName);
@@ -148,7 +150,7 @@ public class SMapper {
 			}
 		}
 	}
-	
+
 	public synchronized void dumpMinimap(Coord gridCoord) {
 		if (currentSessionStartGrid == null) return;
 		if (isGridDumped(gridCoord)) return;
@@ -157,7 +159,7 @@ public class SMapper {
 		dumpedGrids.add(gridCoord);
 		gridsToDump.add(new Pair<Coord, Coord>(gridCoord, new Coord(currentSessionStartGrid)));
 	}
-	
+
 	public static String getCurrentDateTimeString(long session) {
 		return (new SimpleDateFormat("yyyy-MM-dd HH.mm.ss")).format(new Date(session));
 	}

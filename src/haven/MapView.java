@@ -32,7 +32,7 @@ import java.awt.Color;
 import java.util.*;
 import javax.media.opengl.*;
 
-import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.config.XConfig;
 
 public class MapView extends PView implements DTarget {
 	public long plgob = -1;
@@ -273,7 +273,7 @@ public class MapView extends PView implements DTarget {
 	}
 
 	public void setupCamera() {
-		if (HConfig.cl_use_free_cam) {
+		if (XConfig.cl_use_free_cam) {
 			if (!(camera instanceof FreeCam))
 				camera = new FreeCam();
 		} else {
@@ -364,6 +364,7 @@ public class MapView extends PView implements DTarget {
 	}
 
 	float cz = 0.0f;
+	Gob hoveredGob = null;
 
 	public void updatePointer(Coord cc) {
 		try {
@@ -775,8 +776,15 @@ public class MapView extends PView implements DTarget {
 			undelay(delayed2, g);
 			poldraw(g);
 			partydraw(g);
-			if (ui.modshift && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
+			if (ui.modshift && XConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
 				FastText.aprint(g, ui.mc.sub(0, 5), 0.5, 0.5, String.valueOf(cz));
+			}
+			if (ui.modctrl && XConfig.cl_debug_mode && hoveredGob != null) {
+				FastText.aprint(g, ui.mc.add(0, 16), 0.5, 0.5, hoveredGob.resname());
+				Composite comp = hoveredGob.getattr(Composite.class);
+				if (comp != null) {
+					FastText.aprint(g, ui.mc.add(0, 24), 0.5, 0.5, "Composite: " + comp.resname());
+				}
 			}
 		} catch(Loading e) {
 			String text = "Loading...";
@@ -946,7 +954,7 @@ public class MapView extends PView implements DTarget {
 				if (grab.mmousedown(mc, clickb))
 					return;
 			}
-			if (HConfig.cl_tilify)
+			if (XConfig.cl_tilify)
 				mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
 			if (gob == null)
 				wdgmsg("click", pc, mc, clickb, ui.modflags());
@@ -976,7 +984,7 @@ public class MapView extends PView implements DTarget {
 		} else if (placing != null) {
 			if (placing.lastmc != null) {
 				Coord buf = placing.rc;
-				if (HConfig.cl_tilify)
+				if (XConfig.cl_tilify)
 					buf = buf.div(tilesz).mul(tilesz).add(tilesz.div(2));
 				wdgmsg("place", buf, (int) (placing.a * 180 / Math.PI), button,
 						ui.modflags());
@@ -993,13 +1001,14 @@ public class MapView extends PView implements DTarget {
 
 	@Override
 	public void mousemove(Coord c) {
-		if (ui.modshift && HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
+		if ((ui.modshift && XConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) || (ui.modctrl && XConfig.cl_debug_mode)) {
 			if (System.currentTimeMillis() - lastHitDetect > 250) {
 				synchronized (delayed) {
 					delayed.add(new Hittest(c) {
 						@Override
 						public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
 							updatePointer(mc);
+							hoveredGob = gob;
 							lastHitDetect = System.currentTimeMillis();
 						}
 					});
@@ -1070,7 +1079,7 @@ public class MapView extends PView implements DTarget {
 			delayed.add(new Hittest(cc) {
 				@Override
 				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
-					if (HConfig.cl_tilify)
+					if (XConfig.cl_tilify)
 						mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
 					wdgmsg("drop", pc, mc, ui.modflags());
 				}
@@ -1085,7 +1094,7 @@ public class MapView extends PView implements DTarget {
 			delayed.add(new Hittest(cc) {
 				@Override
 				public void hit(Coord pc, Coord mc, Gob gob, Rendered tgt) {
-					if (HConfig.cl_tilify)
+					if (XConfig.cl_tilify)
 						mc = mc.div(tilesz).mul(tilesz).add(tilesz.div(2));
 					if (gob == null)
 						wdgmsg("itemact", pc, mc, ui.modflags());

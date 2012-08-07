@@ -54,6 +54,8 @@ import java.util.HashMap;
 import org.apxeolog.salem.SToolbarConfig.SToolbarConfigSlot;
 import org.apxeolog.salem.config.MinimapHighlightConfig;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
+import org.apxeolog.salem.config.XConfig;
+import org.apxeolog.salem.config.XMLConfigProvider;
 
 public class SWidgetOptions extends Hidewnd {
 	public static final RichText.Foundry foundry = new RichText.Foundry(
@@ -62,7 +64,7 @@ public class SWidgetOptions extends Hidewnd {
 
 	@Override
 	public void unlink() {
-		HConfig.saveConfig();
+		XMLConfigProvider.save();
 		SToolbarConfig.save();
 		SToolbarConfig.updateToolbars(ui.root);
 		super.unlink();
@@ -237,20 +239,20 @@ public class SWidgetOptions extends Hidewnd {
 				@Override
 				public void click() {
 					ui.sess.close();
-					if(!HConfig.cl_render_on)
-						HConfig.cl_render_on = true;
+					if(!XConfig.cl_render_on)
+						XConfig.cl_render_on = true;
 				}
 			};
 
 			new Label(new Coord(250, 190), tab, "SFX volume");
 			(new Scrollbar(new Coord(285, 85), 100, tab, 0, 100) {
 				{
-					val = max - HConfig.cl_sfx_volume;
+					val = max - XConfig.cl_sfx_volume;
 				}
 				@Override
 				public void changed() {
-					HConfig.cl_sfx_volume = max - val;
-					HConfig.saveConfig();
+					XConfig.cl_sfx_volume = max - val;
+					XMLConfigProvider.save();
 					double vol = (max-val)/100.;
 					Audio.setvolume(vol);
 				}
@@ -283,81 +285,81 @@ public class SWidgetOptions extends Hidewnd {
 			checkb = new CheckBox(new Coord(20, 80), tab, "Dump minimaps") {
 				@Override
 				public void changed(boolean val) {
-					HConfig.cl_dump_minimaps = val;
-					HConfig.saveConfig();
+					XConfig.cl_dump_minimaps = val;
+					XMLConfigProvider.save();
 				}
 			};
-			checkb.set(HConfig.cl_dump_minimaps);
+			checkb.set(XConfig.cl_dump_minimaps);
 
 			checkb = new CheckBox(new Coord(20, 120), tab, "New tempers") {
 				@Override
 				public void changed(boolean val) {
-					HConfig.cl_use_new_tempers = val;
+					XConfig.cl_use_new_tempers = val;
 					GameUI gui = getparent(GameUI.class);
 					if (gui != null) gui.updateTempersToConfig();
-					HConfig.saveConfig();
+					XMLConfigProvider.save();
 				}
 			};
-			checkb.set(HConfig.cl_use_new_tempers);
+			checkb.set(XConfig.cl_use_new_tempers);
 
 			new Label(new Coord(20, 160), tab, "Windows header align:");
 			final CheckBox[] aligns = new CheckBox[3];
 			aligns[0] = new CheckBox(new Coord(20, 170), tab, "Left") {
 				@Override
 				public void changed(boolean val) {
-					HConfig.cl_swindow_header_align = SWindow.HEADER_ALIGN_LEFT;
+					XConfig.cl_swindow_header_align = SWindow.HEADER_ALIGN_LEFT;
 					aligns[1].a = false;
 					aligns[2].a = false;
 					GameUI ui = getparent(GameUI.class);
 					if (ui != null) ui.updateWindowStyle();
-					HConfig.saveConfig();
+					XMLConfigProvider.save();
 				}
 			};
 
 			aligns[1] = new CheckBox(new Coord(80, 170), tab, "Center") {
 				@Override
 				public void changed(boolean val) {
-					HConfig.cl_swindow_header_align = SWindow.HEADER_ALIGN_CENTER;
+					XConfig.cl_swindow_header_align = SWindow.HEADER_ALIGN_CENTER;
 					aligns[0].a = false;
 					aligns[2].a = false;
 					GameUI ui = getparent(GameUI.class);
 					if (ui != null) ui.updateWindowStyle();
-					HConfig.saveConfig();
+					XMLConfigProvider.save();
 				}
 			};
 
 			aligns[2] = new CheckBox(new Coord(140, 170), tab, "Right") {
 				@Override
 				public void changed(boolean val) {
-					HConfig.cl_swindow_header_align = SWindow.HEADER_ALIGN_RIGHT;
+					XConfig.cl_swindow_header_align = SWindow.HEADER_ALIGN_RIGHT;
 					aligns[0].a = false;
 					aligns[1].a = false;
 					GameUI ui = getparent(GameUI.class);
 					if (ui != null) ui.updateWindowStyle();
-					HConfig.saveConfig();
+					XMLConfigProvider.save();
 				}
 			};
-			aligns[HConfig.cl_swindow_header_align].a = true;
+			aligns[XConfig.cl_swindow_header_align].a = true;
 
 			checkb = new CheckBox(new Coord(20, 210), tab, "Use Free Camera") {
 				@Override
 				public void changed(boolean val) {
-					HConfig.cl_use_free_cam = val;
-					HConfig.saveConfig();
+					XConfig.cl_use_free_cam = val;
+					XMLConfigProvider.save();
 					GameUI ui = getparent(GameUI.class);
 					if (ui != null && ui.map != null) ui.map.setupCamera();
 				}
 			};
-			checkb.set(HConfig.cl_use_free_cam);
+			checkb.set(XConfig.cl_use_free_cam);
 
 			checkb = new CheckBox(new Coord(20, 250), tab, "Use New Chat") {
 				@Override
 				public void changed(boolean val) {
-					HConfig.cl_use_new_chat = val;
-					HConfig.saveConfig();
+					XConfig.cl_use_new_chat = val;
+					XMLConfigProvider.save();
 					GameUI ui = getparent(GameUI.class);
 					if (ui.bdsChat != null) {
-						if (HConfig.cl_use_new_chat) {
+						if (XConfig.cl_use_new_chat) {
 							ui.bdsChat.show();
 						} else {
 							ui.bdsChat.hide();
@@ -365,17 +367,17 @@ public class SWidgetOptions extends Hidewnd {
 					}
 				}
 			};
-			checkb.set(HConfig.cl_use_new_chat);
+			checkb.set(XConfig.cl_use_new_chat);
 
 			checkb = new CheckBox(new Coord(120, 250), tab, "Use New Toolbars") {
 				@Override
 				public void changed(boolean val) {
-					HConfig.cl_use_new_toolbars = val;
-					HConfig.saveConfig();
+					XConfig.cl_use_new_toolbars = val;
+					XMLConfigProvider.save();
 					SToolbarConfig.updateToolbars(parent.ui.root);
 				}
 			};
-			checkb.set(HConfig.cl_use_new_toolbars);
+			checkb.set(XConfig.cl_use_new_toolbars);
 		}
 		body.showtab(ftab);
 	}

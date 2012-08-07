@@ -37,7 +37,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SChatWindow;
 import org.apxeolog.salem.SGobble;
 import org.apxeolog.salem.SInterfaces.IGobble;
@@ -48,6 +47,7 @@ import org.apxeolog.salem.SToolbar;
 import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.SWidgetOptions;
 import org.apxeolog.salem.SWindow;
+import org.apxeolog.salem.config.XConfig;
 
 public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 Console.Directory {
@@ -94,10 +94,10 @@ Console.Directory {
 	}
 
 	public void toggleGrid() {
-		if (HConfig.cl_grid_mode == MapView.GRID_MODE_NONE) {
-			HConfig.cl_grid_mode = MapView.GRID_MODE_HEIGHTMAP;
+		if (XConfig.cl_grid_mode == MapView.GRID_MODE_NONE) {
+			XConfig.cl_grid_mode = MapView.GRID_MODE_HEIGHTMAP;
 		} else {
-			HConfig.cl_grid_mode = MapView.GRID_MODE_NONE;
+			XConfig.cl_grid_mode = MapView.GRID_MODE_NONE;
 		}
 		updateGrid();
 	}
@@ -105,7 +105,7 @@ Console.Directory {
 	public void updateGrid() {
 		if (map == null)
 			return;
-		if (HConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
+		if (XConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
 			if (!map.haveol(MapView.MAP_GRID_OVERLAY_ID))
 				map.enol(MapView.MAP_GRID_OVERLAY_ID);
 		} else {
@@ -117,16 +117,16 @@ Console.Directory {
 	public void updateTilify() {
 		if (map == null)
 			return;
-		if (map.haveol(MapView.MAP_POINTER_OVERLAY_ID) && !HConfig.cl_tilify) {
+		if (map.haveol(MapView.MAP_POINTER_OVERLAY_ID) && !XConfig.cl_tilify) {
 			map.disol(MapView.MAP_POINTER_OVERLAY_ID);
 		} else if (!map.haveol(MapView.MAP_POINTER_OVERLAY_ID)
-				&& HConfig.cl_tilify) {
+				&& XConfig.cl_tilify) {
 			map.enol(MapView.MAP_POINTER_OVERLAY_ID);
 		}
 	}
 
 	public void toggleTilify() {
-		HConfig.cl_tilify = !HConfig.cl_tilify;
+		XConfig.cl_tilify = !XConfig.cl_tilify;
 		updateTilify();
 	}
 
@@ -134,7 +134,7 @@ Console.Directory {
 		if (bdsTempers != null) {
 			boolean vs = bdsTempers.visible;
 			ui.destroy(bdsTempers);
-			if (HConfig.cl_use_new_tempers) {
+			if (XConfig.cl_use_new_tempers) {
 				bdsTempers = new STempers(Coord.z, this);
 			} else {
 				bdsTempers = new Tempers(Coord.z, this);
@@ -144,7 +144,7 @@ Console.Directory {
 		}
 		if (bdsGobble != null) {
 			ui.destroy(bdsGobble);
-			if (HConfig.cl_use_new_tempers) {
+			if (XConfig.cl_use_new_tempers) {
 				bdsGobble = new SGobble(Coord.z, bdsTempers.sz, this);
 			} else {
 				bdsGobble = new Gobble(Coord.z, this);
@@ -224,7 +224,7 @@ Console.Directory {
 		bdsOptions = new SWidgetOptions(sz.div(2).sub(150, 150), this);
 		bdsOptions.hide();
 
-		if (HConfig.cl_use_new_tempers) {
+		if (XConfig.cl_use_new_tempers) {
 			bdsTempers = new STempers(Coord.z, this);
 		} else {
 			bdsTempers = new Tempers(Coord.z, this);
@@ -234,7 +234,7 @@ Console.Directory {
 				this);
 		bdsChat.setResizable(true);
 		bdsChat.setClosable(false);
-		if (!HConfig.cl_use_new_chat)
+		if (!XConfig.cl_use_new_chat)
 			bdsChat.hide();
 
 		syslog = new ChatUI.Log(chat, "System");
@@ -353,7 +353,7 @@ Console.Directory {
 							mmap.resetScale();
 						}
 					} else if (msg.equals("mmap_grid")) {
-						HConfig.cl_minimap_show_grid = !HConfig.cl_minimap_show_grid;
+						XConfig.cl_minimap_show_grid = !XConfig.cl_minimap_show_grid;
 					} else
 						super.wdgmsg(sender, msg, args);
 				};
@@ -529,7 +529,7 @@ Console.Directory {
 	}
 
 	private boolean showbeltp() {
-		return (!chat.expanded && !HConfig.cl_use_new_toolbars);
+		return (!chat.expanded && !XConfig.cl_use_new_toolbars);
 	}
 
 	static Text.Foundry progf = new Text.Foundry(new java.awt.Font("serif",
@@ -619,7 +619,7 @@ Console.Directory {
 			boolean g = (Integer) args[0] != 0;
 			if (g && (bdsGobble == null)) {
 				bdsTempers.hide();
-				if (HConfig.cl_use_new_tempers) {
+				if (XConfig.cl_use_new_tempers) {
 					bdsGobble = new SGobble(Coord.z, bdsTempers.sz, this);
 				} else {
 					bdsGobble = new Gobble(Coord.z, this);
@@ -965,7 +965,7 @@ Console.Directory {
 			dwalkdown(ukey, ev);
 			return (true);
 		}
-		if ((key == 0) && beltwdg.key(ev) && !HConfig.cl_use_new_toolbars)
+		if ((key == 0) && beltwdg.key(ev) && !XConfig.cl_use_new_toolbars)
 			return (true);
 		return (super.globtype(key, ev));
 	}

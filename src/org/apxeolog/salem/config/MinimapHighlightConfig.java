@@ -11,13 +11,15 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import org.apxeolog.salem.SUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 
 public class MinimapHighlightConfig implements IConfigExport {
+	public static Coord minimapIconSize = new Coord(24, 24);
+	public static Coord minimapDotSize = new Coord(5, 5);
+
 	static {
 		XMLConfigProvider.registerConfig("minimap", new IConfigFactory() {
 			@Override
@@ -28,14 +30,22 @@ public class MinimapHighlightConfig implements IConfigExport {
 		});
 	}
 
-	public static abstract class HighlightInfo {
+	public enum HighlightType { ICON, DOT, PLAYER };
+
+	public static class HighlightInfo {
 		protected boolean highlight = true;
-		protected Tex resIcon = null;
 		protected String strIcon = null;
-		protected String hTooltip = null;
+		protected String strTooltip = null;
 
-		public HighlightInfo() {
+		protected boolean allowClick = true;
+		protected boolean allowMapTooltip = false;
 
+		protected HighlightType type = HighlightType.ICON;
+		protected Tex resIcon = null;
+		protected Color drawColor = null;
+
+		public HighlightInfo(HighlightType htype) {
+			type = htype;
 		}
 
 		public void setBool(boolean val) {
@@ -61,108 +71,85 @@ public class MinimapHighlightConfig implements IConfigExport {
 		}
 
 		public void setTooltip(String tooltip) {
-			hTooltip = tooltip;
+			strTooltip = tooltip;
 		}
 
 		public String getTooltip() {
-			return hTooltip;
+			return strTooltip;
 		}
 
-		public abstract void draw(GOut g, Coord ul, Gob gob);
-
-		public abstract void getElement(Element rootElement, Document document);
-	}
-
-	public static class InvobjsHighlightInfo extends HighlightInfo {
-		public InvobjsHighlightInfo() {
-
-		}
-
-		@Override
-		public void setIcon(String icon) {
-			Resource base = Resource.load(icon);
-			base.loadwait();
-			strIcon = icon;
-			resIcon = base.layer(Resource.imgc).tex();
-			hTooltip = base.layer(Resource.tooltip).t;
-		}
-
-		@Override
-		public void draw(GOut g, Coord ul, Gob gob) {
-			g.chcolor(Color.BLACK);
-			g.fellipse(ul, SUtils.minimapIconSize.div(2));
-			g.chcolor();
-			g.image(getTex(), ul.sub(SUtils.minimapIconSize.div(2)), SUtils.minimapIconSize);
-		}
-
-		@Override
-		public void getElement(Element rootElement, Document document) {
-
-		}
-	}
-
-	public static class CompositeHighlightInfo extends HighlightInfo {
-		public CompositeHighlightInfo() {
-
-		}
-
-		@Override
-		public void draw(GOut g, Coord ul, Gob gob) {
-			g.chcolor(Color.BLACK);
-			g.fellipse(ul, SUtils.minimapIconSize.div(2));
-			g.chcolor();
-			g.image(getTex(), ul.sub(SUtils.minimapIconSize.div(2)), SUtils.minimapIconSize);
-		}
-
-		@Override
-		public void getElement(Element rootElement, Document document) {
-			rootElement.setAttribute("tooltip", hTooltip);
-		}
-	}
-
-	public static class DotHighlightInfo extends CompositeHighlightInfo {
-		protected Color hlColor = new Color(150, 75, 0);
-
-		public DotHighlightInfo(Color clr) {
-			hlColor = clr;
-		}
-
-		public Color getColor() {
-			return hlColor;
-		}
-
-		@Override
-		public void draw(GOut g, Coord ul, Gob gob) {
-			g.chcolor(Color.BLACK);
-			g.fellipse(ul, new Coord(5, 5));
-			g.chcolor(hlColor);
-			g.fellipse(ul, new Coord(4 ,4));
-		}
-
-		@Override
-		public void getElement(Element rootElement, Document document) {
-			super.getElement(rootElement, document);
-			rootElement.setAttribute("color", "0x" + Integer.toHexString(hlColor.getRGB()).substring(2).toUpperCase());
-		}
-	}
-
-
-	public static class PlayerHighlightInfo extends CompositeHighlightInfo {
-		@Override
-		public void draw(GOut g, Coord ul, Gob gob) {
-			int state = 0; // 2 - enemy | 0 - neutral | 1 - friend
-			KinInfo kin = gob.getattr(KinInfo.class);
-			if (kin != null) {
-				state = kin.getGroup();
-				if (kin.inYourVillage() && state == 0) state = 1;
+		public String getTooltip(Gob gob) {
+			if (!allowMapTooltip) return null;
+			if (type == HighlightType.PLAYER) {
+				KinInfo kin = gob.getattr(KinInfo.class);
+				if (kin != null) {
+					return kin.getKinName();
+				}
 			}
+			return strTooltip;
+		}
 
-			if (!gob.glob.party.haveMember(gob.id)) {
+		public void setColor(Color clr) {
+			drawColor = clr;
+		}
+
+		public boolean allowClick() {
+			return allowClick;
+		}
+
+		public void setAllowClick(boolean click) {
+			allowClick = click;
+		}
+
+		public void setAllowMapTooltip(boolean att) {
+			allowMapTooltip = att;
+		}
+
+		public Coord getSize() {
+			switch (type) {
+			case DOT: return minimapDotSize;
+			case ICON: return minimapIconSize;
+			case PLAYER: return minimapDotSize;
+			default: return minimapIconSize;
+			}
+		}
+
+		public void draw(GOut g, Coord ul, Gob gob) {
+			if (type == HighlightType.ICON) {
 				g.chcolor(Color.BLACK);
-				g.fellipse(ul, new Coord(5, 5));
-				g.chcolor(BuddyWnd.gc[state]);
-				g.fellipse(ul, new Coord(4 ,4));
+				g.fellipse(ul.add(minimapIconSize.div(2)), minimapIconSize.div(2));
+				g.chcolor();
+				g.image(getTex(), ul, minimapIconSize);
+			} else if (drawColor != null) {
+				g.chcolor(Color.BLACK);
+				g.fellipse(ul.add(minimapDotSize.div(2)), minimapDotSize);
+				g.chcolor(drawColor);
+				g.fellipse(ul.add(minimapDotSize.div(2)), minimapDotSize.sub(1, 1));
+			} else if (type == HighlightType.PLAYER && gob != null) {
+				int state = 0; // 2 - enemy | 0 - neutral | 1 - friend
+				KinInfo kin = gob.getattr(KinInfo.class);
+				if (kin != null) {
+					state = kin.getGroup();
+					if (kin.inYourVillage() && state == 0) state = 1;
+				}
+
+				if (!gob.glob.party.haveMember(gob.id)) {
+					g.chcolor(Color.BLACK);
+					g.fellipse(ul.add(minimapDotSize.div(2)), minimapDotSize);
+					g.chcolor(BuddyWnd.gc[state]);
+					g.fellipse(ul.add(minimapDotSize.div(2)), minimapDotSize.sub(1, 1));
+				}
 			}
+		}
+
+		public void getElement(Element rootElement, Document document) {
+			if (strTooltip != null) rootElement.setAttribute("tooltip", strTooltip);
+			if (drawColor != null) rootElement.setAttribute("color", "0x" + Integer.toHexString(drawColor.getRGB()).substring(2).toUpperCase());
+			if (strIcon != null) rootElement.setAttribute("icon", strIcon);
+			rootElement.setAttribute("clickable", String.valueOf(allowClick));
+			rootElement.setAttribute("mmap-tooltip", String.valueOf(allowMapTooltip));
+			rootElement.setAttribute("val", String.valueOf(highlight));
+			rootElement.setAttribute("type", type.toString());
 		}
 	}
 
@@ -188,53 +175,59 @@ public class MinimapHighlightConfig implements IConfigExport {
 
 	@Override
 	public void addElement(Element rootElement, Document document) {
+		rootElement.setAttribute("icon-size", minimapIconSize.toString());
+		rootElement.setAttribute("dot-size", minimapDotSize.toString());
 		for (Entry<String, HighlightInfo> entry : highlights.entrySet()) {
 			Element bufElem = (Element) rootElement.appendChild(document.createElement("highlight"));
 			HighlightInfo info = entry.getValue();
 			info.getElement(bufElem, document);
-			bufElem.setAttribute("icon", info.getIcon());
-			bufElem.setAttribute("val", String.valueOf(info.getBool()));
-			bufElem.setAttribute("type", info.getClass().getSimpleName());
 			bufElem.setAttribute("res", entry.getKey());
 		}
 	}
 
 	@Override
-	public void init() {
+	public void init(Element rootElement) {
+		if (rootElement != null) {
+			highlights.clear();
+			cachedElement = rootElement;
+		}
+		if (cachedElement.hasAttribute("icon-size")) {
+			minimapIconSize = Coord.fromString(cachedElement.getAttribute("icon-size"));
+		}
+		if (cachedElement.hasAttribute("dot-size")) {
+			minimapDotSize = Coord.fromString(cachedElement.getAttribute("dot-size"));
+		}
+
 		NodeList list = cachedElement.getElementsByTagName("highlight");
 		Element currentNode = null;
 		for (int i = 0; i < list.getLength(); i++) {
 			currentNode = (Element) list.item(i);
 
-			String hName = currentNode.getAttribute("res");
-			String hType = currentNode.getAttribute("type");
-			Boolean hVal = Boolean.valueOf(currentNode.getAttribute("val"));
-			String hIcon = currentNode.getAttribute("icon");
-			String hTooltip = currentNode.getAttribute("tooltip");
+			String hName = "default", hIcon = "gfx/invobjs/missing", hTooltip = "???";
+			Boolean hVal = true; HighlightType hType = HighlightType.DOT;
 
-			if (hIcon == null || hIcon.isEmpty()) hIcon = "apx/gfx/mmap/icon-bear";
+			if (currentNode.hasAttribute("res"))
+				hName = currentNode.getAttribute("res");
+			if (currentNode.hasAttribute("type"))
+				hType = HighlightType.valueOf(currentNode.getAttribute("type"));
+			if (currentNode.hasAttribute("val"))
+				hVal = Boolean.valueOf(currentNode.getAttribute("val"));
+			if (currentNode.hasAttribute("icon"))
+				hIcon = currentNode.getAttribute("icon");
+			if (currentNode.hasAttribute("tooltip"))
+				hTooltip = currentNode.getAttribute("tooltip");
+			HighlightInfo parsed = new HighlightInfo(hType);
 
-			HighlightInfo parsed = null;
+			if (currentNode.hasAttribute("color"))
+				parsed.setColor(Color.decode(currentNode.getAttribute("color")));
+			if (currentNode.hasAttribute("clickable"))
+				parsed.setAllowClick(Boolean.parseBoolean(currentNode.getAttribute("clickable")));
+			if (currentNode.hasAttribute("mmap-tooltip"))
+				parsed.setAllowMapTooltip(Boolean.parseBoolean(currentNode.getAttribute("mmap-tooltip")));
 
-			if (hType.equals("InvobjsHighlightInfo")) {
-				parsed = new InvobjsHighlightInfo();
-				parsed.setIcon(hIcon);
-			} else if (hType.equals("CompositeHighlightInfo")) {
-				parsed = new CompositeHighlightInfo();
-				parsed.setTooltip(hTooltip);
-				parsed.setIcon(hIcon);
-			} else if (hType.equals("DotHighlightInfo")) {
-				Color color = Color.decode(currentNode.getAttribute("color"));
-				parsed = new DotHighlightInfo(color);
-				parsed.setTooltip(hTooltip);
-				parsed.setIcon(hIcon);
-			} else if (hType.equals("PlayerHighlightInfo")) {
-				parsed = new PlayerHighlightInfo();
-				parsed.setTooltip(hTooltip);
-				parsed.setIcon(hIcon);
-			}
 			parsed.setBool(hVal);
-
+			parsed.setIcon(hIcon);
+			parsed.setTooltip(hTooltip);
 			highlights.put(hName, parsed);
 		}
 		cachedElement = null;

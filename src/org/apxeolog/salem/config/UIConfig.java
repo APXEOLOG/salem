@@ -5,7 +5,6 @@ import haven.Coord;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import org.apxeolog.salem.ALS;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -63,7 +62,7 @@ public class UIConfig implements IConfigExport {
 	}
 
 	@Override
-	public void init() {
+	public void init(Element rootElement) {
 
 	}
 
@@ -73,7 +72,6 @@ public class UIConfig implements IConfigExport {
 
 	public static WidgetState getWidgetState(String rawName) {
 		String cleared = rawName.replaceAll("\\W", "").replaceAll("\\s+", " ");
-		ALS.alDebugPrint(cleared);
 		return storedTokens.get(cleared);
 	}
 

@@ -1,5 +1,7 @@
 package org.apxeolog.salem.config;
 
+import haven.Resource;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -10,6 +12,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+/**
+ * I want to add some pretty nice things from OOP here ^_^
+ * @author APXEOLOG
+ *
+ */
 public class XMLConfigProvider {
 	private static Class<?>[] initalizer = { MinimapHighlightConfig.class, XConfig.class, UIConfig.class };
 
@@ -21,7 +28,7 @@ public class XMLConfigProvider {
 			for (Class<?> cl : initalizer)
 				Class.forName(cl.getName(), true, cl.getClassLoader());
 		} catch (ClassNotFoundException e) {
-			throw (new Error(e));
+			// Whoops O_o
 		}
 	}
 
@@ -43,7 +50,7 @@ public class XMLConfigProvider {
 	public static void save() {
 		long currentTime = System.currentTimeMillis();
 		if (firstTimeSaveWasRequested > 0 && currentTime - firstTimeSaveWasRequested > SAVE_TIMEOUT) {
-			save(false);
+			save(true);
 			firstTimeSaveWasRequested = -1;
 		} else {
 			firstTimeSaveWasRequested = currentTime;
@@ -51,8 +58,10 @@ public class XMLConfigProvider {
 	}
 
 	public static void save(boolean ignoreTiming) {
-		ALS.alDebugPrint("save", System.currentTimeMillis() / 1000);
-		saveConfigToFile(new File("salem.xml"));
+		if (ignoreTiming) {
+			ALS.alDebugPrint("save", System.currentTimeMillis());
+			saveConfigToFile(new File("salem.xml"));
+		}
 	}
 
 	public static void load() {
@@ -60,11 +69,14 @@ public class XMLConfigProvider {
 	}
 
 	public static void init() {
-		for (IConfigExport exporter : loadedConfigs.values()) {
+		for (Entry<String, IConfigExport> entry : loadedConfigs.entrySet()) {
 			try {
-				exporter.init();
+				entry.getValue().init(null);
 			} catch (Exception ex) {
-				ALS.alDebugPrint(ex);
+				ALS.alError("XMLConfigProvider: [ERROR_INIT_CONFIG]", ex);
+				// Try init from default
+				Element rootElement = getDefaultSection(entry.getKey());
+				if (rootElement != null) entry.getValue().init(rootElement);
 			}
 		}
 	}
@@ -73,6 +85,21 @@ public class XMLConfigProvider {
 		IConfigFactory factory = registeredConfigTypes.get(name);
 		if (factory != null) {
 			loadedConfigs.put(name, factory.create(root));
+		}
+	}
+
+	private static Element getDefaultSection(String name) {
+		try {
+			Document loadedDocument = HXml.readXMLFile(Resource.class.getResourceAsStream("/res/config_default.xml"));
+			NodeList list = loadedDocument.getElementsByTagName(name);
+			if (list.getLength() > 0) return (Element) list.item(0);
+			else {
+				ALS.alError("XMLConfigProvider: [ERROR_NO_SECTION]", name);
+				return null;
+			}
+		} catch (Exception e) {
+			ALS.alError("XMLConfigProvider: [ERROR_DEFAULT_READ]", e);
+			return null;
 		}
 	}
 
@@ -87,12 +114,11 @@ public class XMLConfigProvider {
 					if (list.getLength() > 0) loadConfig(exporter.getKey(), (Element) list.item(0));
 					else loadConfig(exporter.getKey(), null);
 				} catch (Exception ex) {
-					ex.printStackTrace();
-					ALS.alDebugPrint(1, ex);
+					ALS.alError("XMLConfigProvider: [ERROR_LOAD_CONFIG]", ex);
 				}
 			}
 		} catch (Exception ex) {
-			ALS.alDebugPrint(2, ex);
+			ALS.alError("XMLConfigProvider: [ERROR_LOAD_CONFIGS]", ex);
 		}
 	}
 
@@ -105,7 +131,7 @@ public class XMLConfigProvider {
 				bufElem = (Element) rootElement.appendChild(saveDocument.createElement(exporter.getKey()));
 				exporter.getValue().addElement(bufElem, saveDocument);
 			} catch (Exception ex) {
-				ALS.alDebugPrint(ex);
+				ALS.alError("XMLConfigProvider: [ERROR_SAVE_CONFIG]", ex);
 			}
 		}
 		HXml.saveXML(saveDocument, file);

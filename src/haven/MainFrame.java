@@ -50,7 +50,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
 
-import org.apxeolog.salem.HConfig;
+import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.XMLConfigProvider;
 
 @SuppressWarnings("serial")
@@ -412,8 +412,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 	}
 
 	private static void main2(String[] args) {
-		HConfig.loadConfig();
-		Audio.setvolume((double) HConfig.cl_sfx_volume / 100.);
+		Audio.setvolume((double) XConfig.cl_sfx_volume / 100.);
 		Config.cmdline(args);
 		try {
 			javabughack();
@@ -469,7 +468,7 @@ public class MainFrame extends Frame implements Runnable, Console.Directory {
 		ThreadGroup g = new ThreadGroup("Haven main group");
 		try {
 			final haven.error.ErrorHandler hg = new haven.error.ErrorHandler(
-					new java.net.URL(HConfig.mp_error_url));
+					new java.net.URL(XConfig.mp_error_url));
 			hg.sethandler(new haven.error.ErrorGui(null) {
 				@Override
 				public void errorsent() {

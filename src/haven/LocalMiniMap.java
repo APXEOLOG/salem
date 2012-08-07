@@ -33,15 +33,15 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-import org.apxeolog.salem.HConfig;
 import org.apxeolog.salem.SMapper;
 import org.apxeolog.salem.SUtils;
+import org.apxeolog.salem.config.XConfig;
 
 public class LocalMiniMap extends Widget {
 	public final MapView mv;
-	
+
 	public static Tex gridImage = null;
-	
+
 	static {
 		BufferedImage img = TexI.mkbuf(cmaps);
 		Graphics2D g = img.createGraphics();
@@ -51,19 +51,19 @@ public class LocalMiniMap extends Widget {
 		g.drawRect(0, 0, img.getWidth(), img.getHeight());
 		gridImage = new TexI(img);
 	}
-	
+
 	protected boolean isPressed = false;
 	public boolean requestedMarkerSet = false;
 	protected boolean dragMode = false;
 	protected boolean waitingForDrag = false;
-	
+
 	protected Coord mapCenterTranslation = Coord.z;
 	protected Coord dragOffset = c;
 	protected Coord sizeBuffer = sz;
 	protected Coord transBuffer = Coord.z;
-	
+
 	protected double scale = 1.0;
-	
+
 	public static class MapTile {
 		public final Tex img;
 		public final Coord ul, c;
@@ -83,7 +83,7 @@ public class LocalMiniMap extends Widget {
 	public void resetScale() {
 		scale = 1.0D;
 	}
-	
+
 	public void resetOffset() {
 		mapCenterTranslation = Coord.z;
 		transBuffer = mapCenterTranslation;
@@ -91,18 +91,19 @@ public class LocalMiniMap extends Widget {
 		//fixes dragging bug, when u starts drag and
 		//minimap focus moved to last 'mouseup' position
 	}
-	
+
+	@Override
 	public void draw(GOut og) {
 		Gob pl = ui.sess.glob.oc.getgob(mv.plgob);
 		if (pl == null) return;
-		
+
 		SMapper.getInstance().checkMapperSession(pl.rc, ui.sess.glob.map);
-		
+
 		Coord scaledSize = sz.div(scale);
-		
+
 		Coord translatedTile = pl.rc.div(tilesz).sub(mapCenterTranslation); // Center
 		final Coord centralGrid = translatedTile.div(cmaps);
-		
+
 		int startGridX = - (int) Math.ceil((double)(scaledSize.div(2).x) / cmaps.x);
 		int startGridY = - (int) Math.ceil((double)(scaledSize.div(2).y) / cmaps.y);
 		int numGridsX = (int) Math.ceil((double)(scaledSize.x) / cmaps.x) + 1;
@@ -118,7 +119,7 @@ public class LocalMiniMap extends Widget {
 				if ((tile = SMapper.getInstance().getCachedTile(curGrid)) != null) {
 					Coord c = tile.ul.mul(cmaps).sub(translatedTile).add(scaledSize.div(2));
 					g.image(tile.img, c);
-					if (HConfig.cl_minimap_show_grid) {
+					if (XConfig.cl_minimap_show_grid) {
 						g.image(gridImage, c);
 					}
 				} else {
@@ -127,9 +128,12 @@ public class LocalMiniMap extends Widget {
 			}
 		}
 		g.gl.glPopMatrix();
-		
+
+		SUtils.drawMinimapGob(og, mv, this);
+		super.draw(og);
+
 		try {
-			SUtils.drawMinimapGob(og, mv, this);
+
 			synchronized (ui.sess.glob.party.memb) {
 				for (Party.Member m : ui.sess.glob.party.memb.values()) {
 					Coord ptc;
@@ -150,11 +154,11 @@ public class LocalMiniMap extends Widget {
 			}
 		} catch (Loading l) {
 		}
-		super.draw(og);
 	}
-	
 
-	
+
+
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		parent.setfocus(this);
 		raise();
@@ -163,7 +167,7 @@ public class LocalMiniMap extends Widget {
 			return true;
 
 		isPressed = true;
-		
+
 		if (button == 1) {
 			ui.grabmouse(this);
 			waitingForDrag = true;
@@ -173,6 +177,7 @@ public class LocalMiniMap extends Widget {
 		return true;
 	}
 
+	@Override
 	public boolean mouseup(Coord c, int button) {
 		waitingForDrag = false;
 		ui.grabmouse(null);
@@ -188,7 +193,8 @@ public class LocalMiniMap extends Widget {
 		}
 		return true;
 	}
-	
+
+	@Override
 	public void mousemove(Coord c) {
 		if (c.dist(dragOffset) > 10 && waitingForDrag) {
 			waitingForDrag = false;
@@ -201,20 +207,20 @@ public class LocalMiniMap extends Widget {
 			super.mousemove(c);
 		}
 	}
-	
+
 	@Override
 	public boolean mousewheel(Coord c, int amount) {
 		scale = Math.max(Math.min(scale - ((double)amount / 3), 2.0), 1.0);
 		return true;
 	}
-	
+
 	public Coord localToReal(Coord local) {
 		Gob pl = ui.sess.glob.oc.getgob(mv.plgob);
 		if (pl == null) return Coord.z;
 		// MAGIC!~
 		return local.sub(sz.div(2)).div(scale).add(pl.rc.div(tilesz).sub(mapCenterTranslation)).mul(tilesz);
 	}
-	
+
 	public Coord realToLocal(Coord real) {
 		Gob pl = ui.sess.glob.oc.getgob(mv.plgob);
 		if (pl == null) return Coord.z;

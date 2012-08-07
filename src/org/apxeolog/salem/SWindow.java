@@ -15,6 +15,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import org.apxeolog.salem.config.UIConfig;
+import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.XMLConfigProvider;
 import org.apxeolog.salem.config.UIConfig.WidgetState;
 
@@ -310,6 +311,9 @@ public class SWindow extends Widget {
 	protected boolean dragMode = false;
 	protected Coord doff = Coord.z;
 
+	protected boolean hasBorder = true;
+	protected boolean hasBackground = true;
+
 	public SWindow(Coord c, Coord sz, Widget parent, String cap, boolean closeable, boolean minimizable) {
 		this(c, sz, parent, cap, closeable, minimizable, false);
 	}
@@ -360,6 +364,12 @@ public class SWindow extends Widget {
 			if (state != null) {
 				c = state.wPos;
 				resize(state.wSize);
+				if (state.getToken("hasBackground") != null) {
+					hasBackground = Boolean.parseBoolean(state.getToken("hasBackground"));
+				}
+				if (state.getToken("hasBorder") != null) {
+					hasBorder = Boolean.parseBoolean(state.getToken("hasBorder"));
+				}
 			}
 		} catch (Exception ex) {
 
@@ -372,6 +382,12 @@ public class SWindow extends Widget {
 			WidgetState state = UIConfig.getNewWidgetState(windowHeader.headerText.text);
 			state.wPos = c;
 			state.wSize = windowBox.getContentSize();
+			if (!hasBackground) {
+				state.setToken("hasBackground", String.valueOf(hasBackground));
+			}
+			if (!hasBorder) {
+				state.setToken("hasBorder", String.valueOf(hasBorder));
+			}
 			XMLConfigProvider.save();
 		} catch (Exception ex) {
 
@@ -391,9 +407,9 @@ public class SWindow extends Widget {
 	}
 
 	public void resize() {
-		if (HConfig.cl_swindow_header_align == HEADER_ALIGN_CENTER) {
+		if (XConfig.cl_swindow_header_align == HEADER_ALIGN_CENTER) {
 			windowHeader.c = xlate(new Coord(sz.div(2).sub(windowHeader.sz.div(2)).x, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
-		} else if (HConfig.cl_swindow_header_align == HEADER_ALIGN_LEFT) {
+		} else if (XConfig.cl_swindow_header_align == HEADER_ALIGN_LEFT) {
 			windowHeader.c = xlate(new Coord(0, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
 		} else {
 			windowHeader.c = xlate(new Coord(sz.sub(windowHeader.sz).x, windowBox.getBorderPosition().y - windowHeader.sz.y + 2), false);
@@ -408,7 +424,6 @@ public class SWindow extends Widget {
 
 	@Override
 	public void resize(Coord newSize) {
-		ALS.alDebugPrint("resize", newSize, this.getClass().getSimpleName());
 		windowBox.contentSize = newSize;
 		sz = windowBox.getBoxSize();
 		resize();
@@ -419,9 +434,11 @@ public class SWindow extends Widget {
 	@Override
 	public void draw(GOut initialGL) {
 		if (!isMinimized) {
-			initialGL.chcolor(0, 0, 0, 128);
-			initialGL.frect(windowBox.getBorderPosition(), windowBox.getBorderSize().add(3, 3));
-			if (windowBox.borderWidth != 0) {
+			if (hasBackground) {
+				initialGL.chcolor(0, 0, 0, 128);
+				initialGL.frect(windowBox.getBorderPosition(), windowBox.getBorderSize().add(3, 3));
+			}
+			if (windowBox.borderWidth != 0 && hasBorder) {
 				initialGL.chcolor(255, 255, 255, 255);
 				initialGL.rect(windowBox.getBorderPosition(), windowBox.getBorderSize().add(3, 3));
 			}
