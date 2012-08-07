@@ -371,9 +371,9 @@ Console.Directory {
 			mmapWindow.setResizable(true);
 			mmapWindow.setClosable(false);
 			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-r"),
-					"mmap_reset");
+					"mmap_reset", "Return to player");
 			mmapWindow.createPictButton(Resource.loadimg("apx/gfx/hud/pict-g"),
-					"mmap_grid");
+					"mmap_grid", "Toggle grid");
 
 			mmap = new LocalMiniMap(Coord.z, new Coord(250, 250), mmapWindow,
 					map);
@@ -425,7 +425,7 @@ Console.Directory {
 				}
 			};
 			new MenuButton(new Coord(72, 0), mapmenu, "chat", -1,
-					"Chat (Ctrl+C)") {
+					"Chat") {
 				@Override
 				public void click() {
 					chat.toggle();
@@ -448,7 +448,7 @@ Console.Directory {
 				}
 			};
 			invwnd.createPictButton(Resource.loadimg("apx/gfx/hud/pict-b"),
-					"inv_openbp");
+					"inv_openbp", "Open Backpack");
 
 			Widget inv = gettype(type).create(Coord.z, invwnd, cargs);
 			invwnd.pack();

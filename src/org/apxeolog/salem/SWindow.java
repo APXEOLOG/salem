@@ -48,6 +48,11 @@ public class SWindow extends Widget {
 		public void click() {
 			wdgmsg("swindow_close");
 		}
+
+		@Override
+		public Object tooltip(Coord c, boolean again) {
+			return "Close this window";
+		}
 	}
 
 	public static class SPictButtonSingle extends SPictButton {
@@ -107,6 +112,15 @@ public class SWindow extends Widget {
 				wdgmsg("swindow_maximize");
 			}
 			stateNormal = !stateNormal;
+		}
+
+		@Override
+		public Object tooltip(Coord c, boolean again) {
+			if (stateNormal) {
+				return "Minimize window";
+			} else {
+				return "Maximize window";
+			}
 		}
 	}
 
@@ -188,8 +202,13 @@ public class SWindow extends Widget {
 			else return minimalHeaderSize;
 		}
 
-		public SPictButton createPictButton(BufferedImage img, String action) {
-			SPictButtonSingle single = new SPictButtonSingle(this, img, action);
+		public SPictButton createPictButton(BufferedImage img, String action, final String tltip) {
+			SPictButtonSingle single = new SPictButtonSingle(this, img, action) {
+				@Override
+				public Object tooltip(Coord c, boolean again) {
+					return tltip;
+				}
+			};
 			addPictControl(single);
 			return single;
 		}
@@ -583,8 +602,12 @@ public class SWindow extends Widget {
 		windowHeader.addPictControl(btn);
 	}
 
+	public SPictButton createPictButton(BufferedImage img, String action, String tooltip) {
+		return windowHeader.createPictButton(img, action, tooltip);
+	}
+
 	public SPictButton createPictButton(BufferedImage img, String action) {
-		return windowHeader.createPictButton(img, action);
+		return createPictButton(img, action, null);
 	}
 
 	@Override

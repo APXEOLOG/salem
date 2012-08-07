@@ -133,6 +133,16 @@ public class SUtils {
 		}
 	}
 
+	public static class CustomMinimapMarker extends Widget {
+
+		public CustomMinimapMarker(Coord c, Coord sz, Widget parent) {
+			super(c, sz, parent);
+			// TODO Auto-generated constructor stub
+		}
+
+
+	}
+
 	public static Coord minimapMarkerRealCoords = null;
 	public static Coord lastMinimapClickCoord = null;
 
