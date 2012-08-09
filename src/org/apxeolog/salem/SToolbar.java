@@ -42,7 +42,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	public final static RichText.Foundry ttFoundry = new RichText.Foundry(
 			TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 10);
 	private static final Properties tbConfig = new Properties();
-	
+
 	public SToolbar(Coord c, Widget w, String name, int slots) {
 		super(c, new Coord(10, 10), w, name);
 		barName = name;
@@ -52,7 +52,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		loadBar();
 		fillBar();
 	}
-	
+
 	public SToolbar(Coord c, Widget w, ToolbarsConfig cfg) {
 		this(c, w, cfg.tbName, cfg.slotList.size());
 		getparent(GameUI.class).bdsToolbars.add(this);
@@ -61,7 +61,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			slotConfig[slot] = cfg.slotList.get(slot);
 		}
 	}
-	
+
 	public boolean hotkey(KeyEvent ev) {
 		for (int slot = 0; slot < slotCount; slot++) {
 			if (slotConfig[slot].sKey == ev.getKeyCode() && slotConfig[slot].sMode == ev.getModifiersEx()) {
@@ -87,7 +87,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		setBarSlot(slotIndex(cc), ((Resource)thing).name);
 		return false;
 	}
-	
+
 	private int slotIndex(Coord c) {
 		if(isMinimized) return -1;
 		if(isVert) {
@@ -103,7 +103,8 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 		return -1;
 	}
-	
+
+	@Override
 	public void draw(GOut initGL){
 		super.draw(initGL);
 		if(isMinimized) return;
@@ -136,13 +137,14 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		if (dragPag != null) {
 			final Tex dt = dragPag.img.tex();
 			ui.drawafter(new UI.AfterDraw() {
+				@Override
 				public void draw(GOut g) {
 					g.image(dt, ui.mc.add(dt.sz().div(2).inv()));
 				}
 			});
 		}
 	}
-	
+
 	private void calcBarSize() {
 		Coord newSize;
 		if(isVert) {
@@ -158,7 +160,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 		resize(newSize);
 	}
-	
+
 	private void initBar(int slotsCount) {
 		if(slotsCount < 1) slotsCount = 1;
 		if(isVert)
@@ -169,7 +171,8 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		calcBarSize();
 		slotList = new Slot[slotsCount];
 	}
-	
+
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		if(slotIndex(c) < 0 || slotIndex(c) > slotCount) {
 			return super.mousedown(c, button);
@@ -193,13 +196,14 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 		return true;
 	}
-	
+
+	@Override
 	public void mousemove(Coord c) {
-		if ((dragPag == null) && (pressPag != null)) {
+		if ((dragPag == null) && (pressPag != null) && slotIndex(c) < 0) {
 			//moving items on toolbar
 			//removing old one
 			Pagina p = null;
-			if(slotIndex(c) > 0 && slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
+			if(slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
 			if (p != pressPag) {
 				dragPag = pressPag;
 			}
@@ -208,7 +212,8 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 		else super.mousemove(c);
 	}
-	
+
+	@Override
 	public boolean mouseup(Coord c, int button) {
 		if(button == 1) {
 			if(dragPag != null) {
@@ -221,7 +226,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 				Pagina p = null;
 				if(slotIndex(c) > -1 && slotIndex(c) < slotCount) {
 					if(slotList[slotIndex(c)] != null) p = slotList[slotIndex(c)].getSlotPagina();
-				} 
+				}
 				//������� ���
 				if(pressPag == p) {
 					//activating slot
@@ -235,12 +240,12 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 		return super.mouseup(c, button);
 	}
-	
+
 	private Resource curttr = null;
 	private boolean curttl = false;
 	private Text curtt = null;
 	private long hoverstart;
-	
+
 	private static Text renderTip(Resource res, boolean withpg) {
 		Resource.AButton ad = res.layer(Resource.action);
 		Resource.Pagina pg = res.layer(Resource.pagina);
@@ -255,7 +260,8 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 		return (ttFoundry.render(tt, 0));
 	}
-	
+
+	@Override
 	public Object tooltip(Coord c, boolean again) {
 		if(slotIndex(c) < 0 || slotIndex(c) > slotCount) return null;
 		Slot slot = slotList[slotIndex(c)];
@@ -278,7 +284,8 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			return null;
 		}
 	}
-	
+
+	@Override
 	public boolean keydown(KeyEvent ev) {
 		if(ev.getKeyCode() == 70 && ui.modctrl) {
 			isVert = !isVert;
@@ -288,14 +295,14 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		}
 		return super.keydown(ev);
 	}
-	
+
 	private void setBarSlot(int slot, String value) {
 		synchronized (tbConfig) {
 			tbConfig.setProperty(barName + "_slot_" + slot, value);
 		}
 		saveBar();
 	}
-	
+
 	private void loadBar() {
 		tbConfig.clear();
 		String configFileName = "tbar_"
@@ -309,7 +316,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		} catch (IOException e) {
 		}
 	}
-	
+
 	private void fillBar() {
 		synchronized (tbConfig) {
 			for (int slot = 0; slot < slotCount; slot++) {
@@ -327,7 +334,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			}//for
 		}//sync
 	}
-	
+
 	private void saveBar() {
 		synchronized (tbConfig) {
 			ALS.alDebugPrint("saving for", barName);
@@ -342,7 +349,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			}
 		}
 	}
-	
+
 	//�� ���� ��� ��� ������� � �������� ����� ��� ��������
 	public static class Slot {
 		private Resource resSlot;
@@ -354,15 +361,15 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			action = r.name;
 			slotPagina = new Pagina(r);
 		}
-		
+
 		public Resource getRes() {
 			return resSlot;
 		}
-		
+
 		public Pagina getSlotPagina() {
 			return slotPagina;
 		}
-		
+
 		public String getAction() {
 			return action;
 		}

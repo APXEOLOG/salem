@@ -773,7 +773,7 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		public void removeCurrent() {
-			if (size() <= 0) return;
+			if (size() <= 0 || selectedIndex < 0) return;
 			assocedToolbar.slotList.remove(selectedIndex);
 			scrollbar.max = size() - iCannotRememberWhyDoINeedThisVariable;
 			selectedIndex = -1;
