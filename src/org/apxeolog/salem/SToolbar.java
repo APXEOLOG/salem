@@ -199,7 +199,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 
 	@Override
 	public void mousemove(Coord c) {
-		if ((dragPag == null) && (pressPag != null) && slotIndex(c) < 0) {
+		if ((dragPag == null) && (pressPag != null) && slotIndex(c) >= 0) {
 			//moving items on toolbar
 			//removing old one
 			Pagina p = null;

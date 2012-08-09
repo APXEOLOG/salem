@@ -112,9 +112,9 @@ public class LoginScreen extends Widget {
 
 		//new SVerticalTextButton(Coord.z, Coord.z, this, "Game");
 		//new SVerticalTextButton(new Coord(40, 40), Coord.z, this, "IRC");
-		//SChatWindowB cw = new SChatWindowB(Coord.z, new Coord(100, 100), this, "New chat");
-		/*cw.addString("Hey [c=233,12,32]Joe![/c] I [b]wanna[/b] give you this [s]focking cool link[/s] https://www.google.ru/search?sugexp=chrome,mod=5&sourceid=chrome&ie=UTF-8&q=java+BB+code+parser man:[b] http://ru20.voyna-plemyon.ru/game.php?village=12178&screen=overview .[/b] How r u? [u]PEWPEWPE[/u]WPEW!");
-		cw.addString("tat was too big message bro!");*/
+		/*SChatWindowB cw = new SChatWindowB(Coord.z, new Coord(100, 100), this, "New chat");
+		cw.addString("Hey [c=233,12,32]Joe![/c] I [b]wanna[/b] give you this [s]focking cool link[/s] https://www.google.ru/search?sugexp=chrome,mod=5&sourceid=chrome&ie=UTF-8&q=java+BB+code+parser man:[b] http://ru20.voyna-plemyon.ru/game.php?village=12178&screen=overview .[/b] How r u? [u]PEWPEWPE[/u]WPEW!", ChannelTypes.AREA);
+		cw.addString("tat was too big message bro!", ChannelTypes.AREA);*/
 	}
 
 	private static abstract class Login extends Widget {

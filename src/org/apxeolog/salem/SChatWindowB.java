@@ -24,7 +24,7 @@ public class SChatWindowB extends SWindow {
 			SVerticalTextButton btn = new SVerticalTextButton(new Coord(0, y), Coord.z, this, tab.getName()) {
 				@Override
 				public void click() {
-					ALS.alDebugPrint(rendered.text);
+					wdgmsg("show_area");
 				}
 			};
 			y += btn.sz.y + 1; x = btn.sz.x;
@@ -40,10 +40,27 @@ public class SChatWindowB extends SWindow {
 	}
 
 	@Override
+	public void wdgmsg(Widget sender, String msg, Object... args) {
+		if (msg.equals("show_area")) {
+			if (chatWidgets != null) {
+				for (Pair<SVerticalTextButton, STextArea> pair : chatWidgets.values()) {
+					if (pair.getFirst() == sender) {
+						pair.getSecond().show();
+					} else {
+						pair.getSecond().hide();
+					}
+				}
+			}
+		} else super.wdgmsg(sender, msg, args);
+	}
+
+	@Override
 	public void resize(Coord newSize) {
 		super.resize(newSize);
-		for (Pair<SVerticalTextButton, STextArea> pair : chatWidgets.values()) {
-			pair.getSecond().resize(windowBox.getContentSize());
+		if (chatWidgets != null) {
+			for (Pair<SVerticalTextButton, STextArea> pair : chatWidgets.values()) {
+				pair.getSecond().resize(windowBox.getContentSize());
+			}
 		}
 	}
 
