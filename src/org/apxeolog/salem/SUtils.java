@@ -182,7 +182,7 @@ public class SUtils {
 	 */
 	public static void drawMinimapGob(GOut g, MapView mv, LocalMiniMap mmap) {
 		String resname; Composite comp = null; HighlightInfo info = null;
-		MinimapMarker bufMarker = null; boolean aa = false;
+		MinimapMarker bufMarker = null;
 		synchronized (mv.ui.sess.glob.oc) {
 			for (Gob gob : mv.ui.sess.glob.oc) {
 				if (gob.id == mv.plgob) continue;

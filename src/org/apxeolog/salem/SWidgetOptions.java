@@ -748,6 +748,7 @@ public class SWidgetOptions extends Hidewnd {
 
 		public void setupToolbar(ToolbarsConfig tb) {
 			assocedToolbar = tb;
+			scrollbar.max = size() - iCannotRememberWhyDoINeedThisVariable;
 		}
 
 		public int size() {
