@@ -421,7 +421,7 @@ Console.Directory {
 					"Remove marker from minimap") {
 				@Override
 				public void click() {
-					SUtils.minimapMarkerRealCoords = null;
+					SUtils.removeCustomMarkers();
 				}
 			};
 			new MenuButton(new Coord(72, 0), mapmenu, "chat", -1,

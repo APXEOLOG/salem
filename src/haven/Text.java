@@ -27,6 +27,7 @@
 package haven;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.*;
 
@@ -96,11 +97,11 @@ public class Text {
 		public Font getFont() {
 			return font;
 		}
-		
+
 		public FontMetrics getFontMetrics() {
 			return m;
 		}
-		
+
 		public Foundry(Font f, Color defcol) {
 			font = f;
 			this.defcol = defcol;
@@ -109,7 +110,7 @@ public class Text {
 			tmpl.setFont(f);
 			m = tmpl.getFontMetrics();
 		}
-		
+
 		public Foundry(Font f) {
 			this(f, Color.WHITE);
 		}
@@ -145,6 +146,29 @@ public class Text {
 			return (renderwrap(text, null, width));
 		}
 
+		public Line renderRotated(String text, Color c) {
+			Line temp = new Line(text);
+			Coord sz = strsize(text);
+			if (sz.x < 1) sz = sz.add(1, 0);
+			temp.img = TexI.mkbuf(new Coord(sz.y, sz.x));
+			Graphics2D g2D = temp.img.createGraphics();
+			if (aa) Utils.AA(g2D);
+			g2D.setColor(c);
+			g2D.setFont(font);
+			temp.m = g2D.getFontMetrics();
+			// Create a rotation transformation for the font.
+			AffineTransform fontAT = new AffineTransform();
+			// Derive a new font using a rotatation transform
+			fontAT.rotate(-Math.PI/2.0);
+			Font theDerivedFont = font.deriveFont(fontAT);
+			// set the derived font in the Graphics2D context
+			g2D.setFont(theDerivedFont);
+			// Render a string using the derived font
+			g2D.drawString(text, temp.m.getAscent(), sz.x);
+			g2D.dispose();
+			return (temp);
+		}
+
 		public Line render(String text, Color c) {
 			Line t = new Line(text);
 			Coord sz = strsize(text);
@@ -161,7 +185,7 @@ public class Text {
 			g.dispose();
 			return (t);
 		}
-		
+
 		public Line renderOutlined(String text, Color textColor, Color outlineColor, int outW) {
 			Line t = new Line(text);
 			Coord sz = strsize(text);
@@ -172,12 +196,12 @@ public class Text {
 			Graphics g = t.img.createGraphics();
 			if (aa)
 				Utils.AA(g);
-			
+
 			if (aa)
 				Utils.AA(g);
 			g.setFont(font);
 			t.m = g.getFontMetrics();
-			
+
 			g.setColor(outlineColor);
 			for (int i = 1; i <= outW; i++) {
 				g.drawString(text, outW - i, t.m.getAscent());
@@ -185,11 +209,11 @@ public class Text {
 				g.drawString(text, outW, t.m.getAscent() - i);
 				g.drawString(text, outW, t.m.getAscent() + i);
 			}
-			
+
 			g.setColor(textColor);
 			g.drawString(text, outW, t.m.getAscent());
 			g.dispose();
-			
+
 			return t;
 		}
 
@@ -217,7 +241,11 @@ public class Text {
 	public static Line renderOutlined(String text, Color c, Color oc, int w) {
 		return (std.renderOutlined(text, c, oc, w));
 	}
-	
+
+	public static Line renderRotated(String text, Color c) {
+		return (std.renderRotated(text, c));
+	}
+
 	public static Line renderf(Color c, String text, Object... args) {
 		return (std.render(String.format(text, args), c));
 	}

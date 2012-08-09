@@ -229,14 +229,11 @@ public class LocalMiniMap extends Widget {
 	}
 
 	public void click(Coord c, int button) {
-		if (button == 3) {
-			// Activate curio click
-			SUtils.lastMinimapClickCoord = c;
-		} else if (button == 1) {
+		if (button == 1) {
 			if (requestedMarkerSet) {
 				// Add marker
 				requestedMarkerSet = false;
-				SUtils.minimapMarkerRealCoords = localToReal(c);
+				SUtils.addCustomMarker(this, localToReal(c));
 			} else {
 				// Minimap movement
 				SUtils.moveToRealCoords(mv, localToReal(c));

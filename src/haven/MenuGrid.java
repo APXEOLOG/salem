@@ -33,7 +33,7 @@ import haven.Resource.AButton;
 import haven.Glob.Pagina;
 import java.util.*;
 
-import org.apxeolog.salem.SToolbarConfig;
+import org.apxeolog.salem.config.ToolbarsConfig;
 
 public class MenuGrid extends Widget {
 	public final static Tex bg = Resource.loadtex("gfx/hud/invsq");
@@ -100,7 +100,7 @@ public class MenuGrid extends Widget {
 
 	public MenuGrid(Coord c, Widget parent) {
 		super(c, bgsz.mul(gsz).add(1, 1), parent);
-		SToolbarConfig.updateToolbars(ui.root);
+		ToolbarsConfig.updateToolbars(ui.root);
 	}
 
 	private static Comparator<Pagina> sorter = new Comparator<Pagina>() {

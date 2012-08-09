@@ -3,10 +3,12 @@ package org.apxeolog.salem.config;
 import haven.Resource;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.FileUtils;
 import org.apxeolog.salem.HXml;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -18,7 +20,9 @@ import org.w3c.dom.NodeList;
  *
  */
 public class XMLConfigProvider {
-	private static Class<?>[] initalizer = { MinimapHighlightConfig.class, XConfig.class, UIConfig.class };
+	private static Class<?>[] initalizer = {
+		MinimapHighlightConfig.class, XConfig.class, UIConfig.class,
+		ChatConfig.class, ToolbarsConfig.class };
 
 	static {
 		registeredConfigTypes = new HashMap<String, IConfigFactory>();
@@ -45,13 +49,13 @@ public class XMLConfigProvider {
 	}
 
 	private static final int SAVE_TIMEOUT = 5000;
-	private static long firstTimeSaveWasRequested = -1;
+	private static long firstTimeSaveWasRequested = Long.MAX_VALUE;
 
 	public static void save() {
 		long currentTime = System.currentTimeMillis();
-		if (firstTimeSaveWasRequested > 0 && currentTime - firstTimeSaveWasRequested > SAVE_TIMEOUT) {
+		if (currentTime - firstTimeSaveWasRequested > SAVE_TIMEOUT) {
 			save(true);
-			firstTimeSaveWasRequested = -1;
+			firstTimeSaveWasRequested = Long.MAX_VALUE;
 		} else {
 			firstTimeSaveWasRequested = currentTime;
 		}
@@ -59,7 +63,6 @@ public class XMLConfigProvider {
 
 	public static void save(boolean ignoreTiming) {
 		if (ignoreTiming) {
-			ALS.alDebugPrint("save", System.currentTimeMillis());
 			saveConfigToFile(new File("salem.xml"));
 		}
 	}
@@ -104,6 +107,14 @@ public class XMLConfigProvider {
 	}
 
 	private static void loadConfigFromFile(File file) {
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+				FileUtils.copyStream(Resource.class.getResourceAsStream("/res/salem_default.xml"), file);
+			} catch (IOException e) {
+				ALS.alError("XMLConfigProvider: [ERROR_DEFAULT_WRITE]");
+			}
+		}
 		Document loadedDocument = HXml.readXMLFile(file);
 		if (loadedDocument == null) return;
 		try {

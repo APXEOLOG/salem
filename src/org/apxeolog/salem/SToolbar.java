@@ -9,7 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apxeolog.salem.SToolbarConfig.SToolbarConfigSlot;
+import org.apxeolog.salem.config.ToolbarsConfig;
+import org.apxeolog.salem.config.ToolbarsConfig.SToolbarConfigSlot;
 
 import haven.Config;
 import haven.Coord;
@@ -52,7 +53,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		fillBar();
 	}
 	
-	public SToolbar(Coord c, Widget w, SToolbarConfig cfg) {
+	public SToolbar(Coord c, Widget w, ToolbarsConfig cfg) {
 		this(c, w, cfg.tbName, cfg.slotList.size());
 		getparent(GameUI.class).bdsToolbars.add(this);
 		slotConfig = new SToolbarConfigSlot[slotCount];

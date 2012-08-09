@@ -51,9 +51,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import org.apxeolog.salem.SToolbarConfig.SToolbarConfigSlot;
 import org.apxeolog.salem.config.MinimapHighlightConfig;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
+import org.apxeolog.salem.config.ToolbarsConfig.SToolbarConfigSlot;
+import org.apxeolog.salem.config.ToolbarsConfig;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.XMLConfigProvider;
 
@@ -65,8 +66,7 @@ public class SWidgetOptions extends Hidewnd {
 	@Override
 	public void unlink() {
 		XMLConfigProvider.save();
-		SToolbarConfig.save();
-		SToolbarConfig.updateToolbars(ui.root);
+		ToolbarsConfig.updateToolbars(ui.root);
 		super.unlink();
 	}
 
@@ -159,7 +159,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 
-			final ToolbarsList toolbarsList = new ToolbarsList(new Coord(20, 60),	new Coord(150, 120), tab, SToolbarConfig.definedToolbars) {
+			final ToolbarsList toolbarsList = new ToolbarsList(new Coord(20, 60),	new Coord(150, 120), tab, ToolbarsConfig.definedToolbars) {
 				@Override
 				protected void changed(int index) {
 					if (index == -1) return;
@@ -172,7 +172,7 @@ public class SWidgetOptions extends Hidewnd {
 			new Button(new Coord(120, 190), 50, tab, "Add") {
 				@Override
 				public void click() {
-					if (!SToolbarConfig.definedToolbars.containsKey(toolbarName.text)) {
+					if (!ToolbarsConfig.definedToolbars.containsKey(toolbarName.text)) {
 						toolbarsList.addToolbar(toolbarName.text);
 					}
 				};
@@ -374,7 +374,7 @@ public class SWidgetOptions extends Hidewnd {
 				public void changed(boolean val) {
 					XConfig.cl_use_new_toolbars = val;
 					XMLConfigProvider.save();
-					SToolbarConfig.updateToolbars(parent.ui.root);
+					ToolbarsConfig.updateToolbars(parent.ui.root);
 				}
 			};
 			checkb.set(XConfig.cl_use_new_toolbars);
@@ -615,9 +615,9 @@ public class SWidgetOptions extends Hidewnd {
 		private Scrollbar scrollbar;
 		private int selectedIndex;
 		private ArrayList<String> textListBuf;
-		private HashMap<String, SToolbarConfig> toolbarsMap;
+		private HashMap<String, ToolbarsConfig> toolbarsMap;
 
-		public ToolbarsList(Coord c, Coord sz, Widget parent, HashMap<String, SToolbarConfig> tbMap) {
+		public ToolbarsList(Coord c, Coord sz, Widget parent, HashMap<String, ToolbarsConfig> tbMap) {
 			super(c, sz, parent);
 
 			iCannotRememberWhyDoINeedThisVariable = sz.y / 20;
@@ -634,13 +634,13 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		public void addToolbar(String text) {
-			SToolbarConfig newtb = new SToolbarConfig(text);
+			ToolbarsConfig newtb = new ToolbarsConfig(text);
 			toolbarsMap.put(text, newtb);
 			textListBuf.add(text);
 			scrollbar.max = textListBuf.size() - iCannotRememberWhyDoINeedThisVariable;
 		}
 
-		public SToolbarConfig getSelectedToolbar() {
+		public ToolbarsConfig getSelectedToolbar() {
 			if (selectedIndex >= 0 && selectedIndex < textListBuf.size()) return toolbarsMap.get(textListBuf.get(selectedIndex));
 			return null;
 		}
@@ -657,7 +657,7 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		public void toggleCurrent() {
-			SToolbarConfig tbcfg = getSelectedToolbar();
+			ToolbarsConfig tbcfg = getSelectedToolbar();
 			if (tbcfg != null) {
 				tbcfg.toggle();
 			}
@@ -674,7 +674,7 @@ public class SWidgetOptions extends Hidewnd {
 			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
 				if (i + scrollbar.val >= textListBuf.size()) continue;
 				String hl = textListBuf.get(i + scrollbar.val);
-				SToolbarConfig tbc = toolbarsMap.get(hl);
+				ToolbarsConfig tbc = toolbarsMap.get(hl);
 				if (i + scrollbar.val == selectedIndex) {
 					g.chcolor(255, 255, 0, 128);
 					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));
@@ -724,7 +724,7 @@ public class SWidgetOptions extends Hidewnd {
 		private int iCannotRememberWhyDoINeedThisVariable;
 		private Scrollbar scrollbar;
 		private int selectedIndex;
-		private SToolbarConfig assocedToolbar;
+		private ToolbarsConfig assocedToolbar;
 
 		public SlotsList(Coord c, Coord sz, Widget parent) {
 			super(c, sz, parent);
@@ -746,7 +746,7 @@ public class SWidgetOptions extends Hidewnd {
 			}
 		}
 
-		public void setupToolbar(SToolbarConfig tb) {
+		public void setupToolbar(ToolbarsConfig tb) {
 			assocedToolbar = tb;
 		}
 

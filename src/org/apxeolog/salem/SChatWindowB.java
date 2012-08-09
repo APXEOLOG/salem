@@ -1,68 +1,64 @@
 package org.apxeolog.salem;
 
+import java.util.HashMap;
+import java.util.Map.Entry;
+
+import org.apxeolog.salem.config.ChatConfig;
+import org.apxeolog.salem.config.ChatConfig.ChannelTypes;
+import org.apxeolog.salem.config.ChatConfig.ChatTabConfig;
 import org.apxeolog.salem.widgets.STextArea;
+import org.apxeolog.salem.widgets.SVerticalTextButton;
 
 import haven.Coord;
-import haven.Text;
 import haven.Widget;
 
 public class SChatWindowB extends SWindow {
-	static class SChatWindowHeader extends SWindowHeader {
-		protected boolean pressed = false;
-		protected Text gameChatPart;
-		protected Text ircChatPart;
-		
-		public SChatWindowHeader(Coord c, Coord sz, Widget parent, String caption, boolean min, boolean clo) {
-			super(c, sz, parent, null, min, clo);
-		}
-		
-		public void click(Coord c) {
-			ALS.alDebugPrint(c);
-		}
-		
-		@Override
-		public boolean mousedown(Coord c, int button) {
-			if (button == 1 && ui.modctrl) click(c);
-			return super.mousedown(c, button);
-		}
-	}
-	
-	protected STextArea gameTextArea;
-	protected STextArea ircTextArea;
-	
+	protected HashMap<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> chatWidgets;
+
 	public SChatWindowB(Coord c, Coord sz, Widget parent, String cap) {
 		super(c, sz, parent, cap);
-		windowHeader.unlink();
-		windowHeader = new SChatWindowHeader(Coord.z, Coord.z, this, "Game Chat | IRC Chat", true, false);
-		resize();
-		
-		gameTextArea = new STextArea(Coord.z, windowBox.getContentSize(), this);
-		ircTextArea = new STextArea(Coord.z, windowBox.getContentSize(), this);
-		ircTextArea.hide();
-		/*STextPictButton pb = new STextPictButton(Coord.z, new Coord(50, 0), windowHeader);
-		pb.setText("IRC Chat");
-		windowHeader.addPictControl(pb);*/
+		chatWidgets = new HashMap<ChatConfig.ChatTabConfig, Pair<SVerticalTextButton,STextArea>>();
+		// Load tabs
+		int x = 0, y = 0;
+		for (ChatTabConfig tab : ChatConfig.chatTabs) {
+			SVerticalTextButton btn = new SVerticalTextButton(new Coord(0, y), Coord.z, this, tab.getName()) {
+				@Override
+				public void click() {
+					ALS.alDebugPrint(rendered.text);
+				}
+			};
+			y += btn.sz.y + 1; x = btn.sz.x;
+			btn.c.x = -btn.sz.x - 4;
+			STextArea area = new STextArea(Coord.z, Coord.z, this);
+			area.hide();
+			chatWidgets.put(tab, new Pair<SVerticalTextButton, STextArea>(btn, area));
+		}
+		// Resize
+		windowBox.marginLeft = x;
+		resize(windowBox.getContentSize());
 		setResizable(true);
 	}
-	
+
 	@Override
 	public void resize(Coord newSize) {
 		super.resize(newSize);
-		if (gameTextArea != null)
-			gameTextArea.resize(windowBox.getContentSize());
-		if (ircTextArea != null)
-			ircTextArea.resize(windowBox.getContentSize());
+		for (Pair<SVerticalTextButton, STextArea> pair : chatWidgets.values()) {
+			pair.getSecond().resize(windowBox.getContentSize());
+		}
 	}
-	
+
 	@Override
 	public void resizeFinish() {
-		if (gameTextArea != null)
-			gameTextArea.resizeFinish();
-		if (ircTextArea != null)
-			ircTextArea.resizeFinish();
+		for (Pair<SVerticalTextButton, STextArea> pair : chatWidgets.values()) {
+			pair.getSecond().resizeFinish();
+		}
 	}
-	
-	public void addString(String str) {
-		gameTextArea.addString(str);
+
+	public void addString(String str, ChannelTypes type) {
+		for (Entry<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> entry : chatWidgets.entrySet()) {
+			if (entry.getKey().containsChannel(type)) {
+				entry.getValue().getSecond().addString(str);
+			}
+		}
 	}
 }

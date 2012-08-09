@@ -47,11 +47,11 @@ public class LoginScreen extends Widget {
 		textfs = new Text.Foundry(new java.awt.Font("Sans",
 				java.awt.Font.PLAIN, 14));
 	}
-	
+
 	public ArrayList<Button> login_btns = new ArrayList<Button>();
 	public ArrayList<Button> del_btns = new ArrayList<Button>();
 
-	
+
 	public void spawnLoginButtons() {
 		SUtils._sa_load_data();
 		for (Button btn : login_btns) {
@@ -85,8 +85,9 @@ public class LoginScreen extends Widget {
 			};
 			btn.additionalInfo = info;
 			login_btns.add(btn);
-			
+
 			Button btn_del = new Button(Coord.z.add(105 + 140 * (i/20), j * 30), 15, this, "X") {
+				@Override
 				@SuppressWarnings("unchecked")
 				public void click() {
 					Pair<String, String> info = (Pair<String, String>) additionalInfo;
@@ -101,16 +102,18 @@ public class LoginScreen extends Widget {
 			j++;
 		}
 	}
-	
+
 	public LoginScreen(Widget parent) {
 		super(parent.sz.div(2).sub(bg.sz().div(2)), bg.sz(), parent);
 		setfocustab(true);
 		parent.setfocus(this);
 		new Img(Coord.z, bg, this);
 		spawnLoginButtons();
-		
-		/*SChatWindowB cw = new SChatWindowB(Coord.z, new Coord(100, 100), this, "New chat");
-		cw.addString("Hey [c=233,12,32]Joe![/c] I [b]wanna[/b] give you this [s]focking cool link[/s] https://www.google.ru/search?sugexp=chrome,mod=5&sourceid=chrome&ie=UTF-8&q=java+BB+code+parser man:[b] http://ru20.voyna-plemyon.ru/game.php?village=12178&screen=overview .[/b] How r u? [u]PEWPEWPE[/u]WPEW!");
+
+		//new SVerticalTextButton(Coord.z, Coord.z, this, "Game");
+		//new SVerticalTextButton(new Coord(40, 40), Coord.z, this, "IRC");
+		//SChatWindowB cw = new SChatWindowB(Coord.z, new Coord(100, 100), this, "New chat");
+		/*cw.addString("Hey [c=233,12,32]Joe![/c] I [b]wanna[/b] give you this [s]focking cool link[/s] https://www.google.ru/search?sugexp=chrome,mod=5&sourceid=chrome&ie=UTF-8&q=java+BB+code+parser man:[b] http://ru20.voyna-plemyon.ru/game.php?village=12178&screen=overview .[/b] How r u? [u]PEWPEWPE[/u]WPEW!");
 		cw.addString("tat was too big message bro!");*/
 	}
 
@@ -145,13 +148,16 @@ public class LoginScreen extends Widget {
 				setfocus(pass);
 		}
 
+		@Override
 		public void wdgmsg(Widget sender, String name, Object... args) {
 		}
 
+		@Override
 		Object[] data() {
 			return (new Object[] { new AuthClient.NativeCred(user.text, pass.text), savepass.a });
 		}
 
+		@Override
 		boolean enter() {
 			if (user.text.equals("")) {
 				setfocus(user);
@@ -164,6 +170,7 @@ public class LoginScreen extends Widget {
 			}
 		}
 
+		@Override
 		public boolean globtype(char k, KeyEvent ev) {
 			if ((k == 'r')
 					&& ((ev.getModifiersEx() & (KeyEvent.META_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) != 0)) {
@@ -195,15 +202,18 @@ public class LoginScreen extends Widget {
 				setfocus(pass);
 		}
 
+		@Override
 		public void wdgmsg(Widget sender, String name, Object... args) {
 		}
 
+		@Override
 		Object[] data() {
 			SUtils._sa_add_data(user.text, pass.text);
 			return (new Object[] { new ParadoxCreds(user.text, pass.text),
 					savepass.a });
 		}
 
+		@Override
 		boolean enter() {
 			if (user.text.equals("")) {
 				setfocus(user);
@@ -216,6 +226,7 @@ public class LoginScreen extends Widget {
 			}
 		}
 
+		@Override
 		public boolean globtype(char k, KeyEvent ev) {
 			if ((k == 'r')
 					&& ((ev.getModifiersEx() & (KeyEvent.META_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) != 0)) {
@@ -237,14 +248,17 @@ public class LoginScreen extends Widget {
 			btn = new Button(new Coord(75, 30), 100, this, "Forget me");
 		}
 
+		@Override
 		Object[] data() {
 			return (new Object[0]);
 		}
 
+		@Override
 		boolean enter() {
 			return (true);
 		}
 
+		@Override
 		public void wdgmsg(Widget sender, String name, Object... args) {
 			if (sender == btn) {
 				LoginScreen.this.wdgmsg("forget");
@@ -253,11 +267,13 @@ public class LoginScreen extends Widget {
 			super.wdgmsg(sender, name, args);
 		}
 
+		@Override
 		public void draw(GOut g) {
 			g.image(label.tex(), new Coord((sz.x / 2) - (label.sz().x / 2), 0));
 			super.draw(g);
 		}
 
+		@Override
 		public boolean globtype(char k, KeyEvent ev) {
 			if ((k == 'f')
 					&& ((ev.getModifiersEx() & (KeyEvent.META_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) != 0)) {
@@ -305,6 +321,7 @@ public class LoginScreen extends Widget {
 		progress(null);
 	}
 
+	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (sender == btn) {
 			if (cur.enter())
@@ -314,6 +331,7 @@ public class LoginScreen extends Widget {
 		super.wdgmsg(sender, msg, args);
 	}
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		synchronized (ui) {
 			if (msg == "passwd") {
@@ -341,10 +359,12 @@ public class LoginScreen extends Widget {
 		}
 	}
 
+	@Override
 	public void presize() {
 		c = parent.sz.div(2).sub(sz.div(2));
 	}
 
+	@Override
 	public void draw(GOut g) {
 		super.draw(g);
 		if (error != null)
@@ -353,6 +373,7 @@ public class LoginScreen extends Widget {
 			g.image(progress.tex(), new Coord(420 - (progress.sz().x / 2), 350));
 	}
 
+	@Override
 	public boolean type(char k, KeyEvent ev) {
 		if (k == 10) {
 			if ((cur != null) && cur.enter())
