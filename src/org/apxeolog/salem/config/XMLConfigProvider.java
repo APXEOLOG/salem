@@ -76,7 +76,7 @@ public class XMLConfigProvider {
 			try {
 				entry.getValue().init(null);
 			} catch (Exception ex) {
-				ALS.alError("XMLConfigProvider: [ERROR_INIT_CONFIG]", ex);
+				ALS.alError("XMLConfigProvider: [ERROR_INIT_CONFIG]", entry.getKey(), ex);
 				// Try init from default
 				Element rootElement = getDefaultSection(entry.getKey());
 				if (rootElement != null) entry.getValue().init(rootElement);
@@ -93,7 +93,7 @@ public class XMLConfigProvider {
 
 	private static Element getDefaultSection(String name) {
 		try {
-			Document loadedDocument = HXml.readXMLFile(Resource.class.getResourceAsStream("/res/config_default.xml"));
+			Document loadedDocument = HXml.readXMLFile(Resource.class.getResourceAsStream("/res/default_config.xml"));
 			NodeList list = loadedDocument.getElementsByTagName(name);
 			if (list.getLength() > 0) return (Element) list.item(0);
 			else {
@@ -110,7 +110,7 @@ public class XMLConfigProvider {
 		if (!file.exists()) {
 			try {
 				file.createNewFile();
-				FileUtils.copyStream(Resource.class.getResourceAsStream("/res/salem_default.xml"), file);
+				FileUtils.copyStream(Resource.class.getResourceAsStream("/res/default_config.xml"), file);
 			} catch (IOException e) {
 				ALS.alError("XMLConfigProvider: [ERROR_DEFAULT_WRITE]");
 			}
@@ -125,7 +125,7 @@ public class XMLConfigProvider {
 					if (list.getLength() > 0) loadConfig(exporter.getKey(), (Element) list.item(0));
 					else loadConfig(exporter.getKey(), null);
 				} catch (Exception ex) {
-					ALS.alError("XMLConfigProvider: [ERROR_LOAD_CONFIG]", ex);
+					ALS.alError("XMLConfigProvider: [ERROR_LOAD_CONFIG]", exporter.getKey(), ex);
 				}
 			}
 		} catch (Exception ex) {

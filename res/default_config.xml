@@ -1,0 +1,101 @@
+<config>
+    <code>
+        <property name="cl_no_minimap_chache_limit">true</property>
+        <property name="cl_dump_minimaps">true</property>
+        <property name="cl_minimap_show_grid">false</property>
+        <property name="cl_render_on">true</property>
+        <property name="cl_tilify">false</property>
+        <property name="cl_use_new_tempers">true</property>
+        <property name="cl_sfx_volume">0</property>
+        <property name="cl_swindow_header_align">1</property>
+        <property name="cl_use_new_chat">true</property>
+        <property name="cl_use_free_cam">false</property>
+        <property name="cl_use_new_toolbars">true</property>
+        <property name="mp_error_url">http://unionclient.ru/salem/error/</property>
+        <property name="cl_grid_mode">0</property>
+        <property name="cl_debug_mode">false</property>
+    </code>
+    <minimap dot-size="(5, 5)" icon-size="(24, 24)">
+        <highlight clickable="true" icon="gfx/invobjs/herbs/lobstermushroom" mmap-tooltip="false" res="gfx/terobjs/herbs/lobstermushroom" tooltip="Lobster Mushroom" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/milkweed" mmap-tooltip="false" res="gfx/terobjs/herbs/milkweed" tooltip="Milkweed Roots" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/wildgarlic" mmap-tooltip="false" res="gfx/terobjs/herbs/wildgarlic" tooltip="Wild Garlic" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/lilypad" mmap-tooltip="false" res="gfx/terobjs/herbs/lilypad" tooltip="Lilypad Bulb" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/honeysucklekudzu" mmap-tooltip="false" res="gfx/terobjs/herbs/honeysucklekudzu" tooltip="Honeysuckle Kudzu" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/devilwort" mmap-tooltip="false" res="gfx/terobjs/herbs/devilwort" tooltip="Devil's Wort" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/lime" mmap-tooltip="false" res="gfx/terobjs/herbs/lime" tooltip="Lime" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/huckleberry" mmap-tooltip="false" res="gfx/terobjs/herbs/huckleberry" tooltip="Huckleberries" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/oakworth" mmap-tooltip="false" res="gfx/terobjs/herbs/oakworth" tooltip="Oakworth" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/newworldgourd" mmap-tooltip="false" res="gfx/terobjs/herbs/newworldgourd" tooltip="New World Gourd" type="ICON" val="true"/>
+        <highlight clickable="false" color="0xCC00CC" icon="gfx/invobjs/missing" mmap-tooltip="true" res="gfx/kritter/rattler/rattler" tooltip="Snake" type="DOT" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/sugarcap" mmap-tooltip="false" res="gfx/terobjs/herbs/sugarcap" tooltip="Sugar Caps" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/seaweed" mmap-tooltip="false" res="gfx/terobjs/herbs/seaweed" tooltip="Seaweed" type="ICON" val="false"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/waxingtoadstool" mmap-tooltip="false" res="gfx/terobjs/herbs/waxingtoadstool" tooltip="Waxing Toadstool" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/granite" mmap-tooltip="false" res="gfx/terobjs/herbs/granite" tooltip="Granite" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/arrowhead" mmap-tooltip="false" res="gfx/terobjs/herbs/arrowhead" tooltip="Indian Arrowhead" type="ICON" val="true"/>
+        <highlight clickable="false" icon="apx/gfx/mmap/icon-deer" mmap-tooltip="true" res="gfx/kritter/deer/deer" tooltip="Deer" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/smoothstone" mmap-tooltip="false" res="gfx/terobjs/herbs/smoothstone" tooltip="Smooth Stone" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/lavenderblewit" mmap-tooltip="false" res="gfx/terobjs/herbs/lavenderblewit" tooltip="Lavender Blewit" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/tumbleweed" mmap-tooltip="false" res="gfx/terobjs/tumbleweed" tooltip="Tumbleweed" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/flint" mmap-tooltip="false" res="gfx/terobjs/herbs/flint" tooltip="Flint" type="ICON" val="true"/>
+        <highlight clickable="false" color="0x333333" icon="gfx/invobjs/missing" mmap-tooltip="true" res="gfx/kritter/rabbit/rabbit" tooltip="Rabbit" type="DOT" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/blackberry" mmap-tooltip="false" res="gfx/terobjs/herbs/blackberry" tooltip="Blackberries" type="ICON" val="true"/>
+        <highlight clickable="false" icon="apx/gfx/mmap/icon-bear" mmap-tooltip="true" res="gfx/kritter/bear/bear" tooltip="Bear" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/driftwood" mmap-tooltip="false" res="gfx/terobjs/herbs/driftwood" tooltip="Aged Driftwood" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/coarsesalt" mmap-tooltip="false" res="gfx/terobjs/herbs/coarsesalt" tooltip="Coarse Salt" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/crowberry" mmap-tooltip="false" res="gfx/terobjs/herbs/crowberry" tooltip="Crowberry Stalk" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/virginiasnail" mmap-tooltip="false" res="gfx/terobjs/herbs/virginiasnail" tooltip="Virginia Snail" type="ICON" val="true"/>
+        <highlight clickable="false" icon="gfx/invobjs/missing" mmap-tooltip="true" res="gfx/borka/body" tooltip="Players" type="PLAYER" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/oldlog" mmap-tooltip="false" res="gfx/terobjs/herbs/oldlog" tooltip="Singing Old Log" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/chestnut" mmap-tooltip="false" res="gfx/terobjs/herbs/chestnut" tooltip="Stray Chestnut" type="ICON" val="true"/>
+        <highlight clickable="false" icon="apx/gfx/mmap/icon-beaver" mmap-tooltip="true" res="gfx/kritter/beaver/beaver" tooltip="Beaver" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/witchshroom" mmap-tooltip="false" res="gfx/terobjs/herbs/witchshroom" tooltip="Witch's Hat" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/autumngrass" mmap-tooltip="false" res="gfx/terobjs/herbs/autumngrass" tooltip="Autumn Grass" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/seashell" mmap-tooltip="false" res="gfx/terobjs/herbs/seashell" tooltip="Beautiful Seashell" type="ICON" val="true"/>
+        <highlight clickable="true" icon="gfx/invobjs/herbs/indianfeather" mmap-tooltip="false" res="gfx/terobjs/herbs/indianfeather" tooltip="Indian Feather" type="ICON" val="true"/>
+        <highlight clickable="true" icon="apx/gfx/mmap/icon-woodheap" mmap-tooltip="true" res="gfx/terobjs/woodheap" tooltip="Wood Heap" type="ICON" val="true"/>
+        <highlight clickable="false" color="0x996600" icon="gfx/invobjs/missing" mmap-tooltip="true" res="gfx/kritter/cricket/cricket" tooltip="Cricket" type="DOT" val="true"/>
+		<highlight clickable="true" icon="apx/gfx/mmap/icon-myrtleoak" mmap-tooltip="true" res="gfx/terobjs/myrtleoak" tooltip="Myrtle Oak" type="ICON" val="true"/>
+		<highlight clickable="true" icon="apx/gfx/mmap/icon-blackberrybush" mmap-tooltip="true" res="gfx/terobjs/blackberrybush" tooltip="Blackberry Bush" type="ICON" val="true"/>
+		<highlight clickable="true" icon="apx/gfx/mmap/icon-bumling-granite" mmap-tooltip="true" res="gfx/terobjs/bumling/bumling-granite" tooltip="Granite Rock" type="ICON" val="true"/>
+    </minimap>
+	<toolbars>
+        <toolbar enabled="true" name="Numerical">
+            <slot key="49" mode="0"/>
+            <slot key="50" mode="0"/>
+            <slot key="51" mode="0"/>
+            <slot key="52" mode="0"/>
+            <slot key="53" mode="0"/>
+            <slot key="54" mode="0"/>
+            <slot key="55" mode="0"/>
+            <slot key="56" mode="0"/>
+            <slot key="57" mode="0"/>
+            <slot key="48" mode="0"/>
+        </toolbar>
+        <toolbar enabled="true" name="AltNum">
+            <slot key="49" mode="512"/>
+            <slot key="50" mode="512"/>
+            <slot key="51" mode="512"/>
+            <slot key="52" mode="512"/>
+            <slot key="53" mode="512"/>
+            <slot key="54" mode="512"/>
+            <slot key="55" mode="512"/>
+            <slot key="56" mode="512"/>
+            <slot key="57" mode="512"/>
+            <slot key="48" mode="512"/>
+        </toolbar>
+        <toolbar enabled="true" name="Functional">
+            <slot key="112" mode="0"/>
+            <slot key="113" mode="0"/>
+            <slot key="114" mode="0"/>
+            <slot key="115" mode="0"/>
+            <slot key="116" mode="0"/>
+            <slot key="117" mode="0"/>
+            <slot key="118" mode="0"/>
+            <slot key="119" mode="0"/>
+            <slot key="120" mode="0"/>
+            <slot key="121" mode="0"/>
+            <slot key="122" mode="0"/>
+            <slot key="123" mode="0"/>
+        </toolbar>
+    </toolbars>
+</config>
