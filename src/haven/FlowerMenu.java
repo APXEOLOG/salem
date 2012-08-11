@@ -45,6 +45,7 @@ public class FlowerMenu extends Widget {
 
 	static {
 		Widget.addtype("sm", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				if ((c.x == -1) && (c.y == -1))
 					c = parent.ui.lcc;
@@ -79,6 +80,7 @@ public class FlowerMenu extends Widget {
 			move(Coord.sc(a, r));
 		}
 
+		@Override
 		public void draw(GOut g) {
 			g.chcolor(new Color(255, 255, 255, (int) (255 * a)));
 			g.image(pbg, new Coord(3, 3), new Coord(3, 3),
@@ -87,6 +89,7 @@ public class FlowerMenu extends Widget {
 			g.image(text, sz.div(2).add(text.sz().div(2).inv()));
 		}
 
+		@Override
 		public boolean mousedown(Coord c, int button) {
 			choose(this);
 			return (true);
@@ -117,6 +120,7 @@ public class FlowerMenu extends Widget {
 	}
 
 	public class Opening extends Anim {
+		@Override
 		public void tick2() {
 			for (Petal p : opts) {
 				p.move(p.ta, p.tr * (2 - s));
@@ -133,6 +137,7 @@ public class FlowerMenu extends Widget {
 			chosen = c;
 		}
 
+		@Override
 		public void tick2() {
 			for (Petal p : opts) {
 				if (p == chosen) {
@@ -153,12 +158,14 @@ public class FlowerMenu extends Widget {
 			}
 		}
 
+		@Override
 		public void end() {
 			ui.destroy(FlowerMenu.this);
 		}
 	}
 
 	public class Cancel extends Anim {
+		@Override
 		public void tick2() {
 			for (Petal p : opts) {
 				p.move(p.ta, p.tr * (1 + s));
@@ -166,6 +173,7 @@ public class FlowerMenu extends Widget {
 			}
 		}
 
+		@Override
 		public void end() {
 			ui.destroy(FlowerMenu.this);
 		}
@@ -202,6 +210,7 @@ public class FlowerMenu extends Widget {
 		anim = new Opening();
 	}
 
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		if (anim != null)
 			return (true);
@@ -210,6 +219,7 @@ public class FlowerMenu extends Widget {
 		return (true);
 	}
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "cancel") {
 			anim = new Cancel();
@@ -222,12 +232,14 @@ public class FlowerMenu extends Widget {
 		}
 	}
 
+	@Override
 	public void draw(GOut g) {
 		if (anim != null)
 			anim.tick();
 		super.draw(g, false);
 	}
 
+	@Override
 	public boolean type(char key, java.awt.event.KeyEvent ev) {
 		if ((key >= '0') && (key <= '9')) {
 			int opt = (key == '0') ? 10 : (key - '1');
@@ -250,7 +262,7 @@ public class FlowerMenu extends Widget {
 			// GOD I HATE THIS HACK
 			if (option.name.equals("Chat")) {
 				SChatWindow chatWnd = ui.root.findchild(SChatWindow.class);
-				if (chatWnd != null) chatWnd.setWaitingForChat();
+				//if (chatWnd != null) chatWnd.setWaitingForChat();
 			}
 			wdgmsg("cl", option.num, ui.modflags());
 		}

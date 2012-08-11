@@ -166,6 +166,14 @@ public class UI {
 		return rwidgets.containsKey(wdg);
 	}
 
+	public Integer getWidgetId(Widget wdg) {
+		return rwidgets.get(wdg);
+	}
+
+	public Widget getWidget(int id) {
+		return widgets.get(id);
+	}
+
 	private void removeid(Widget wdg) {
 		if (rwidgets.containsKey(wdg)) {
 			int id = rwidgets.get(wdg);

@@ -37,7 +37,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apxeolog.salem.SChatWindow;
+import org.apxeolog.salem.SChatWindowB;
 import org.apxeolog.salem.SGobble;
 import org.apxeolog.salem.SInterfaces.IGobble;
 import org.apxeolog.salem.SInterfaces.ITempers;
@@ -83,11 +83,12 @@ Console.Directory {
 	public String polowner;
 
 	/* APXEOLOG */
-	public SChatWindow bdsChat;
+	//public SChatWindow bdsChat;
 	public SWidgetOptions bdsOptions;
 	public ITempers bdsTempers;
 	public IGobble bdsGobble;
 	public ArrayList<SToolbar> bdsToolbars = new ArrayList<SToolbar>();
+	public SChatWindowB bdsChatB;
 
 	public void updateWindowStyle() {
 		ui.root.resize(ui.root.sz);
@@ -230,13 +231,19 @@ Console.Directory {
 			bdsTempers = new Tempers(Coord.z, this);
 		}
 
-		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
+
+		bdsChatB = new SChatWindowB(new Coord(100, 100), new Coord(300, 200), this, "Chat");
+		bdsChatB.setResizable(true);
+		bdsChatB.setClosable(false);
+		if (!XConfig.cl_use_new_chat)
+			bdsChatB.hide();
+		/*bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
 				this);
 		bdsChat.setResizable(true);
 		bdsChat.setClosable(false);
 		if (!XConfig.cl_use_new_chat)
 			bdsChat.hide();
-
+		 */
 		syslog = new ChatUI.Log(chat, "System");
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {
 			StringBuilder buf = new StringBuilder();

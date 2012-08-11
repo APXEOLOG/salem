@@ -44,17 +44,18 @@ public class Widget {
 	private Widget prevtt;
 	static Map<String, WidgetFactory> types = new TreeMap<String, WidgetFactory>();
 	static Class<?>[] barda = { Img.class, TextEntry.class, MapView.class,
-			FlowerMenu.class, Window.class, Button.class, Inventory.class,
-			GItem.class, Listbox.class, Makewindow.class, Chatwindow.class,
-			Textlog.class, Equipory.class, IButton.class, Avaview.class,
-			NpcChat.class, CharWnd.class, Label.class, Progress.class,
-			VMeter.class, Partyview.class, MenuGrid.class, CheckBox.class,
-			ISBox.class, Fightview.class, IMeter.class, MapMod.class,
-			GiveButton.class, Charlist.class, BuddyWnd.class, Polity.class,
-			Speedget.class, Bufflist.class, GameUI.class, Scrollport.class };
+		FlowerMenu.class, Window.class, Button.class, Inventory.class,
+		GItem.class, Listbox.class, Makewindow.class, Chatwindow.class,
+		Textlog.class, Equipory.class, IButton.class, Avaview.class,
+		NpcChat.class, CharWnd.class, Label.class, Progress.class,
+		VMeter.class, Partyview.class, MenuGrid.class, CheckBox.class,
+		ISBox.class, Fightview.class, IMeter.class, MapMod.class,
+		GiveButton.class, Charlist.class, BuddyWnd.class, Polity.class,
+		Speedget.class, Bufflist.class, GameUI.class, Scrollport.class };
 
 	static {
 		addtype("cnt", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				return (new Widget(c, (Coord) args[0], parent));
 			}
@@ -172,7 +173,7 @@ public class Widget {
 				st.push(((Widget) st.pop()).sz);
 			} else if (op == 'w') {
 				synchronized (ui) {
-					st.push(ui.widgets.get((Integer) st.pop()));
+					st.push(ui.widgets.get(st.pop()));
 				}
 			} else if (op == 'x') {
 				st.push(((Coord) st.pop()).x);
@@ -264,7 +265,7 @@ public class Widget {
 	public Coord xlate(Coord c, boolean in) {
 		return (c);
 	}
-	
+
 	public Coord rootxlate(Coord c) {
 		return(c.sub(rootpos()));
 	}
@@ -393,7 +394,7 @@ public class Widget {
 		} else if (msg == "autofocus") {
 			autofocus = (Integer) args[0] != 0;
 		} else if (msg == "focus") {
-			Widget w = ui.widgets.get((Integer) args[0]);
+			Widget w = ui.widgets.get(args[0]);
 			if (w != null) {
 				if (w.canfocus)
 					setfocus(w);
@@ -671,6 +672,7 @@ public class Widget {
 
 	public <T extends Widget> Set<T> children(final Class<T> cl) {
 		return (new AbstractSet<T>() {
+			@Override
 			@SuppressWarnings("unused")
 			public int size() {
 				int i = 0;
@@ -679,6 +681,7 @@ public class Widget {
 				return (i);
 			}
 
+			@Override
 			public Iterator<T> iterator() {
 				return (new Iterator<T>() {
 					T cur = n(Widget.this);
@@ -702,16 +705,19 @@ public class Widget {
 							return (n(n));
 					}
 
+					@Override
 					public T next() {
 						T ret = cur;
 						cur = n(ret);
 						return (ret);
 					}
 
+					@Override
 					public boolean hasNext() {
 						return (cur != null);
 					}
 
+					@Override
 					public void remove() {
 						throw (new UnsupportedOperationException());
 					}
@@ -770,7 +776,7 @@ public class Widget {
 		if (canfocus)
 			parent.delfocusable(this);
 	}
-	
+
 	public void show() {
 		visible = true;
 		if (canfocus)

@@ -45,18 +45,20 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 	public static final Tex online = Resource.loadtex("gfx/hud/online");
 	public static final Tex offline = Resource.loadtex("gfx/hud/offline");
 	public static final Color[] gc = new Color[] { new Color(255, 255, 255),
-			new Color(0, 255, 0), new Color(255, 0, 0), new Color(0, 0, 255),
-			new Color(0, 255, 255), new Color(255, 255, 0),
-			new Color(255, 0, 255), new Color(255, 0, 128), };
+		new Color(0, 255, 0), new Color(255, 0, 0), new Color(0, 0, 255),
+		new Color(0, 255, 255), new Color(255, 255, 0),
+		new Color(255, 0, 255), new Color(255, 0, 128), };
 	private Comparator<Buddy> bcmp;
 	private Comparator<Buddy> alphacmp = new Comparator<Buddy>() {
 		private Collator c = Collator.getInstance();
 
+		@Override
 		public int compare(Buddy a, Buddy b) {
 			return (c.compare(a.name, b.name));
 		}
 	};
 	private Comparator<Buddy> groupcmp = new Comparator<Buddy>() {
+		@Override
 		public int compare(Buddy a, Buddy b) {
 			if (a.group == b.group)
 				return (alphacmp.compare(a, b));
@@ -65,6 +67,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		}
 	};
 	private Comparator<Buddy> statuscmp = new Comparator<Buddy>() {
+		@Override
 		public int compare(Buddy a, Buddy b) {
 			if (a.online == b.online)
 				return (alphacmp.compare(a, b));
@@ -75,6 +78,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 
 	static {
 		Widget.addtype("buddy", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				return (new BuddyWnd(c, parent));
 			}
@@ -86,7 +90,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		public String name;
 		Text rname = null;
 		int online;
-		int group;
+		public int group;
 		boolean seen;
 
 		public Buddy(int id, String name, int online, int group, boolean seen) {
@@ -108,7 +112,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		public void chat() {
 			wdgmsg("chat", id);
 			// GOD I HATE THIS HACK
-			getparent(GameUI.class).bdsChat.setWaitingForChat();
+			//getparent(GameUI.class).bdsChat.setWaitingForChat();
 		}
 
 		public void invite() {
@@ -130,6 +134,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		}
 	}
 
+	@Override
 	public Iterator<Buddy> iterator() {
 		synchronized (buddies) {
 			return (new ArrayList<Buddy>(buddies).iterator());
@@ -141,7 +146,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 			return (idmap.get(id));
 		}
 	}
-	
+
 	public Buddy find(String name) {
 		synchronized (buddies) {
 			for (Buddy b : idmap.values()) {
@@ -159,6 +164,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 			this.group = group;
 		}
 
+		@Override
 		public void draw(GOut g) {
 			for (int i = 0; i < gc.length; i++) {
 				if (i == group) {
@@ -171,6 +177,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 			g.chcolor();
 		}
 
+		@Override
 		public boolean mousedown(Coord c, int button) {
 			if ((c.y >= 2) && (c.y < 17)) {
 				int g = (c.x - 2) / 20;
@@ -200,6 +207,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 			sb = new Scrollbar(new Coord(sz.x, 0), sz.y, this, 0, 4);
 		}
 
+		@Override
 		public void draw(GOut g) {
 			g.chcolor(Color.BLACK);
 			g.frect(Coord.z, sz);
@@ -238,6 +246,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 			}
 		}
 
+		@Override
 		public boolean mousewheel(Coord c, int amount) {
 			sb.ch(amount);
 			return (true);
@@ -260,10 +269,12 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 			}
 			if (menu == null) {
 				menu = new FlowerMenu(c, ui.root, opts.toArray(new String[0])) {
+					@Override
 					public void destroy() {
 						menu = null;
 					}
 
+					@Override
 					public void choose(Petal opt) {
 						if (opt != null) {
 							if (opt.name.equals("End kinship")) {
@@ -284,6 +295,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 			}
 		}
 
+		@Override
 		public boolean mousedown(Coord c, int button) {
 			if (super.mousedown(c, button))
 				return (true);
@@ -313,12 +325,14 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 				if (editing == null) {
 					nicksel = new TextEntry(new Coord(10, 165), new Coord(180,
 							20), BuddyWnd.this, "") {
+						@Override
 						public void activate(String text) {
 							editing.chname(text);
 						}
 					};
 					grpsel = new GroupSelector(new Coord(10, 190),
 							BuddyWnd.this, 0) {
+						@Override
 						public void changed(int group) {
 							editing.chgrp(group);
 						}
@@ -338,16 +352,19 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		bl = new BuddyList(new Coord(10, 5), new Coord(180, 140), this);
 		new Label(new Coord(5, 215), this, "Sort by:");
 		new Button(new Coord(10, 230), 50, this, "Status") {
+			@Override
 			public void click() {
 				setcmp(statuscmp);
 			}
 		};
 		new Button(new Coord(75, 230), 50, this, "Group") {
+			@Override
 			public void click() {
 				setcmp(groupcmp);
 			}
 		};
 		new Button(new Coord(140, 230), 50, this, "Name") {
+			@Override
 			public void click() {
 				setcmp(alphacmp);
 			}
@@ -366,33 +383,39 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		new Label(new Coord(0, 250), this, "My homestead secret:");
 		charpass = new TextEntry(new Coord(0, 265), new Coord(190, 20), this,
 				"") {
+			@Override
 			public void activate(String text) {
 				BuddyWnd.this.wdgmsg("pwd", text);
 			}
 		};
 		new Button(new Coord(0, 290), 50, this, "Set") {
+			@Override
 			public void click() {
 				sendpwd(charpass.text);
 			}
 		};
 		new Button(new Coord(60, 290), 50, this, "Clear") {
+			@Override
 			public void click() {
 				sendpwd("");
 			}
 		};
 		new Button(new Coord(120, 290), 50, this, "Random") {
+			@Override
 			public void click() {
 				sendpwd(randpwd());
 			}
 		};
 		new Label(new Coord(0, 310), this, "Make kin by homestead secret:");
 		opass = new TextEntry(new Coord(0, 325), new Coord(190, 20), this, "") {
+			@Override
 			public void activate(String text) {
 				BuddyWnd.this.wdgmsg("bypwd", text);
 				settext("");
 			}
 		};
 		new Button(new Coord(0, 350), 50, this, "Add kin") {
+			@Override
 			public void click() {
 				BuddyWnd.this.wdgmsg("bypwd", opass.text);
 				opass.settext("");
@@ -429,6 +452,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		}
 	}
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "add") {
 			int id = (Integer) args[0];
@@ -495,6 +519,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		}
 	}
 
+	@Override
 	public void hide() {
 		if (menu != null) {
 			ui.destroy(menu);
@@ -503,6 +528,7 @@ public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 		super.hide();
 	}
 
+	@Override
 	public void destroy() {
 		if (menu != null) {
 			ui.destroy(menu);

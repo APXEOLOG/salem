@@ -1,23 +1,15 @@
 package org.apxeolog.salem;
 
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-
-import org.apxeolog.salem.config.XConfig;
-
-import haven.BuddyWnd.Buddy;
-import haven.ChatUI;
-import haven.ChatUI.EntryChannel;
-import haven.ChatUI.PrivChat;
 import haven.Coord;
-import haven.GameUI;
-import haven.Text;
 import haven.Widget;
 
 public class SChatWindow extends SWindow {
-	public static final int CHAT_BUFFER_SIZE = 150;
+
+	public SChatWindow(Coord c, Coord sz, Widget parent, String cap) {
+		super(c, sz, parent, cap);
+		// TODO Auto-generated constructor stub
+	}
+	/*	public static final int CHAT_BUFFER_SIZE = 150;
 
 	public static final int MODE_AREA = 0;
 	public static final int MODE_VILLAGE = 1;
@@ -182,7 +174,7 @@ public class SChatWindow extends SWindow {
 		}
 	}
 
-	/* GOD I HATE THIS UGLY CODE */
+	 GOD I HATE THIS UGLY CODE
 	protected boolean waitingForChat = false;
 
 	public boolean isWaitingForChat() {
@@ -240,5 +232,5 @@ public class SChatWindow extends SWindow {
 			ui.grabkeys(null);
 			lineEdit.hide();
 		} else super.wdgmsg(sender, msg, args);
-	}
+	}*/
 }

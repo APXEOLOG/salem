@@ -358,11 +358,11 @@ public class SWidgetOptions extends Hidewnd {
 					XConfig.cl_use_new_chat = val;
 					XMLConfigProvider.save();
 					GameUI ui = getparent(GameUI.class);
-					if (ui.bdsChat != null) {
+					if (ui.bdsChatB != null) {
 						if (XConfig.cl_use_new_chat) {
-							ui.bdsChat.show();
+							ui.bdsChatB.show();
 						} else {
-							ui.bdsChat.hide();
+							ui.bdsChatB.hide();
 						}
 					}
 				}

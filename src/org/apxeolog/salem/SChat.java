@@ -1,63 +1,54 @@
 package org.apxeolog.salem;
 
 import haven.Coord;
-import haven.GOut;
-import haven.RichText;
-import haven.Text;
 import haven.Widget;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.font.TextAttribute;
-import java.awt.geom.Rectangle2D;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-
-import org.apxeolog.salem.SChatWindow.MessageBuf;
-
 public class SChat extends Widget {
-	public final static Font chatFont = new Font("Serif", Font.BOLD, 14);
+
+	public SChat(Coord c, Coord sz, Widget parent) {
+		super(c, sz, parent);
+		// TODO Auto-generated constructor stub
+	}
+	/*	public final static Font chatFont = new Font("Serif", Font.BOLD, 14);
 	public final static FontRenderContext chatFontContext = new FontRenderContext(null, true, true);
 	public final static Rectangle2D chatLineBound = chatFont.getStringBounds("TEST", chatFontContext);
 	public final static Text.Foundry textFoundry = new Text.Foundry(chatFont);
 	public final static RichText.Foundry richTextFoundry = new RichText.Foundry(TextAttribute.FONT, chatFont);
-	
+
 	public final static Text villageHeader = textFoundry.render("[Village]: ", Color.GREEN);
 	public final static Text areaHeader = textFoundry.render("[Area]: ", Color.WHITE);
 	public final static Text partyHeader = textFoundry.render("[Party]: ", Color.CYAN);
-	
+
 	protected static class Header {
 		public static final String headerMask = "[%s]: ";
 		public static final String headerRichMask = "[$col[%d,%d,%d]{%s}]: ";
-		
+
 		public String pureName;
 		public Text cachedHeader;
 		public WeakReference<Widget> linkedChat;
 		public Color headerColor;
-		
+
 		public Header(MessageBuf bufMsg) {
 			pureName = bufMsg.bHName;
 			headerColor = bufMsg.bHColor;
 			linkedChat = bufMsg.bSender;
-			cachedHeader = richTextFoundry.render(String.format(headerRichMask, 
+			cachedHeader = richTextFoundry.render(String.format(headerRichMask,
 							headerColor.getRed(), headerColor.getGreen(), headerColor.getBlue(), pureName));
 		}
-		
+
 		public int getSizeX() {
 			return cachedHeader.sz().x;
 		}
-		
+
 		public String getFullHeader() {
 			return String.format(headerMask, pureName);
 		}
 	}
-	
+
 	protected static class ChatLine {
 		public Text cachedLine = null;
 		public Header lineHeader = null;
-		
+
 		public ChatLine(String text, Color tColor, Header header) {
 			lineHeader = header;
 			if (lineHeader != null) {
@@ -66,11 +57,11 @@ public class SChat extends Widget {
 				cachedLine = textFoundry.render(text, tColor);
 			}
 		}
-		
+
 		public Header getHeader() {
 			return lineHeader;
 		}
-		
+
 		public void render(GOut g, Coord c) {
 			if (lineHeader != null) {
 				g.image(lineHeader.cachedHeader.img, c);
@@ -78,16 +69,16 @@ public class SChat extends Widget {
 			} else g.image(cachedLine.img, c);
 		}
 	}
-	
+
 	protected ArrayList<ChatLine> chatLines;
 	protected int firstLineIndex = 0;
 	protected boolean appendMode = true;
-	
+
 	public SChat(Coord c, Coord sz, Widget parent) {
 		super(c, sz, parent);
 		chatLines = new ArrayList<ChatLine>();
 	}
-	
+
 	public void addMessage(MessageBuf mBuf) {
 		// Header
 		Header msgHeader = new Header(mBuf);
@@ -123,30 +114,30 @@ public class SChat extends Widget {
 			if (isHeader) isHeader = false;
 		}
 	}
-	
+
 	public void clear() {
 		chatLines.clear();
 		firstLineIndex = 0;
 	}
-	
+
 	public int getLinesCount() {
 		return Math.min((int)(sz.y / chatLineBound.getHeight()), chatLines.size());
 	}
-	
+
 	@Override
 	public void draw(GOut initialGL) {
 		super.draw(initialGL);
-		
+
 		int first = appendMode ? chatLines.size() - getLinesCount() : firstLineIndex;
 		int last = Math.min(first + getLinesCount(), chatLines.size() - 1);
-		
+
 		for (int i = firstLineIndex; i <= last; i++) {
 			chatLines.get(i).render(initialGL, new Coord(0, (int)((i - first) * chatLineBound.getHeight())));
 		}
 	}
-	
+
 	protected boolean pressed = false;
-	
+
 	@Override
 	public boolean mousedown(Coord c, int button) {
 		if (button != 1) return false;
@@ -154,7 +145,7 @@ public class SChat extends Widget {
 		ui.grabmouse(this);
 		return true;
 	}
-	
+
 	@Override
 	public boolean mouseup(Coord c, int button) {
 		if (pressed && button == 1) {
@@ -165,7 +156,7 @@ public class SChat extends Widget {
 		}
 		return false;
 	}
-	
+
 	public boolean click(Coord c) {
 		int index = appendMode ? chatLines.size() - getLinesCount() + 1 : firstLineIndex + (int)((double)c.y / (double)chatLineBound.getHeight());
 		if (index < chatLines.size()) {
@@ -182,7 +173,7 @@ public class SChat extends Widget {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public boolean mousewheel(Coord c, int amount) {
 		if (c.isect(Coord.z, sz)) {
@@ -197,5 +188,5 @@ public class SChat extends Widget {
 			}
 			return true;
 		} return false;
-	}
+	}*/
 }
