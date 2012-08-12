@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apxeolog.salem.SChatWindowB;
+import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.SGobble;
 import org.apxeolog.salem.SInterfaces.IGobble;
 import org.apxeolog.salem.SInterfaces.ITempers;
@@ -207,6 +208,7 @@ Console.Directory {
 
 	public GameUI(Widget parent, String chrid, long plid) {
 		super(Coord.z, parent.sz, parent);
+		SChatWrapper.bindGameUI(this);
 		this.chrid = chrid;
 		this.plid = plid;
 		setcanfocus(true);
@@ -237,13 +239,7 @@ Console.Directory {
 		bdsChatB.setClosable(false);
 		if (!XConfig.cl_use_new_chat)
 			bdsChatB.hide();
-		/*bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
-				this);
-		bdsChat.setResizable(true);
-		bdsChat.setClosable(false);
-		if (!XConfig.cl_use_new_chat)
-			bdsChat.hide();
-		 */
+
 		syslog = new ChatUI.Log(chat, "System");
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {
 			StringBuilder buf = new StringBuilder();
@@ -535,6 +531,12 @@ Console.Directory {
 		}
 	}
 
+	@Override
+	public void destroy() {
+		super.destroy();
+		SChatWrapper.unbindGameUI();
+	}
+
 	private boolean showbeltp() {
 		return (!chat.expanded && !XConfig.cl_use_new_toolbars);
 	}
@@ -694,6 +696,9 @@ Console.Directory {
 		} else if ((sender == help) && (msg == "close")) {
 			ui.destroy(help);
 			help = null;
+			return;
+		} else if (msg.equals("sle_activate")) {
+			bdsChatB.wdgmsg(sender, "sle_activate", args);
 			return;
 		}
 		super.wdgmsg(sender, msg, args);

@@ -780,10 +780,11 @@ public class MapView extends PView implements DTarget {
 				FastText.aprint(g, ui.mc.sub(0, 5), 0.5, 0.5, String.valueOf(cz));
 			}
 			if (ui.modctrl && XConfig.cl_debug_mode && hoveredGob != null) {
-				FastText.aprint(g, ui.mc.add(0, 16), 0.5, 0.5, hoveredGob.resname());
+				FastText.aprint(g, ui.mc.add(0, 24), 0.5, 0.5, "ID: " + String.valueOf(hoveredGob.id));
+				FastText.aprint(g, ui.mc.add(0, 34), 0.5, 0.5, "Resource: " + hoveredGob.resname());
 				Composite comp = hoveredGob.getattr(Composite.class);
 				if (comp != null) {
-					FastText.aprint(g, ui.mc.add(0, 24), 0.5, 0.5, "Composite: " + comp.resname());
+					FastText.aprint(g, ui.mc.add(0, 44), 0.5, 0.5, "Composite: " + comp.resname());
 				}
 			}
 		} catch(Loading e) {

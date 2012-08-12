@@ -73,7 +73,7 @@ public class STextProcessor {
 
 		public abstract Color getColor();
 
-		public abstract void act(int button);
+		public abstract void act(int button, boolean ctrl, boolean shft);
 	}
 
 	public static String getGroupData(Matcher matcher) {
@@ -116,7 +116,7 @@ public class STextProcessor {
 		}
 
 		@Override
-		public void act(int button) {
+		public void act(int button, boolean ctrl, boolean shft) {
 			if (button == 1) {
 				if (Desktop.isDesktopSupported()) {
 					try {
@@ -167,7 +167,7 @@ public class STextProcessor {
 		}
 
 		@Override
-		public void act(int button) {
+		public void act(int button, boolean ctrl, boolean shft) {
 			// TODO Auto-generated method stub
 
 		}
@@ -200,7 +200,7 @@ public class STextProcessor {
 		}
 
 		@Override
-		public void act(int button) {
+		public void act(int button, boolean ctrl, boolean shft) {
 			// TODO Auto-generated method stub
 
 		}
@@ -233,7 +233,7 @@ public class STextProcessor {
 		}
 
 		@Override
-		public void act(int button) {
+		public void act(int button, boolean ctrl, boolean shft) {
 			// TODO Auto-generated method stub
 
 		}
@@ -266,7 +266,7 @@ public class STextProcessor {
 		}
 
 		@Override
-		public void act(int button) {
+		public void act(int button, boolean ctrl, boolean shft) {
 			// TODO Auto-generated method stub
 
 		}
@@ -286,9 +286,9 @@ public class STextProcessor {
 			return rawString;
 		}
 
-		public void act(int button) {
+		public void act(int button, boolean ctrl, boolean shft) {
 			for (NodeAttribute attr : attributes) {
-				attr.act(button);
+				attr.act(button, ctrl, shft);
 			}
 		}
 

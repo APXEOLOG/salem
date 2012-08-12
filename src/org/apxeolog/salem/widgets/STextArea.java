@@ -31,7 +31,7 @@ public class STextArea extends Widget {
 		ProcessedText txt = STextProcessor.fromString(str);
 		txt.pack(sz);
 		textBuffer.add(txt);
-		if (appendMode) scrollAmount = getMaxScrollAmount();
+		if (appendMode) scrollAmount = getMaxScrollAmount() + 10;
 	}
 
 	public void clear() {
@@ -67,7 +67,7 @@ public class STextArea extends Widget {
 						if (clickCoord != null) {
 							nodeSize = new Coord((int)node.getNodeWidth(), (int)node.getNodeHeight());
 							if (clickCoord.isect(nodeStart, nodeSize)) {
-								node.act(clickButton);
+								node.act(clickButton, ui.modctrl, ui.modshift);
 								clickCoord = null;
 							}
 						}

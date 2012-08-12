@@ -24,11 +24,11 @@ import haven.Widget;
 public class SChatWrapper {
 	public static class TextBackLink extends NodeAttribute {
 		protected int widgetId;
-		protected GameUI gameUI;
+		protected String name;
 
-		public TextBackLink(int wid, GameUI gui) {
+		public TextBackLink(int wid, String nm) {
 			widgetId = wid;
-			gameUI = gui;
+			name = nm;
 		}
 
 		@Override
@@ -48,9 +48,19 @@ public class SChatWrapper {
 		}
 
 		@Override
-		public void act(int button) {
-			onHeaderAct(widgetId, gameUI);
+		public void act(int button, boolean ctrl, boolean shft) {
+			onHeaderAct(widgetId, button, ctrl, shft, name);
 		}
+	}
+
+	protected static GameUI gameUI = null;
+
+	public static void bindGameUI(GameUI gui) {
+		gameUI = gui;
+	}
+
+	public static void unbindGameUI() {
+		gameUI = null;
 	}
 
 	public static ChannelTypes getChatType(int wdgId, Widget gui) {
@@ -72,10 +82,9 @@ public class SChatWrapper {
 		return ChannelTypes.NONE;
 	}
 
-	public static String getOpponentName(int wdgId, Widget gui) {
-		if (gui != null) {
-			GameUI gameUI = gui.getparent(GameUI.class);
-			Widget wdg = gui.ui.getWidget(wdgId);
+	public static String getOpponentName(int wdgId) {
+		if (gameUI != null) {
+			Widget wdg = gameUI.ui.getWidget(wdgId);
 			if (wdg instanceof PrivChat) {
 				Buddy messager = gameUI.buddies.find(((PrivChat)wdg).getOpponent());
 				return (messager == null) ? "???" : (messager.name);
@@ -96,16 +105,54 @@ public class SChatWrapper {
 		return ChatConfig.getModeInfo(type);
 	}
 
-	public static void onHeaderAct(int wdgId, GameUI gameUI) {
+	public static void onHeaderAct(int wdgId,int button, boolean ctrl, boolean shft, String name) {
 		if (gameUI != null) {
-			gameUI.bdsChatB.showLine(wdgId);
+			if (!ctrl)
+				gameUI.bdsChatB.showLine(wdgId);
+			else {
+				Buddy bud = gameUI.buddies.find(name);
+				if (bud != null) bud.chat();
+			}
 		}
 	}
 
-	public static void sendMessage(int wdgId, String text, Widget wdg) {
-		GameUI gameUI = wdg.getparent(GameUI.class);
+	protected static boolean waitingForChat = false;
+
+	public static void waitChat() {
+		waitingForChat = true;
+	}
+
+	public static void tryStartChat(int bid) {
+		if (gameUI != null) {
+			int privChat = gameUI.chat.getPrivChat(bid);
+			if (privChat != -1) {
+				gameUI.bdsChatB.showLine(privChat, ChannelTypes.PM);
+			} else {
+				waitChat();
+			}
+		}
+	}
+
+	public static boolean isWaitingForChat() {
+		if (waitingForChat) {
+			waitingForChat = false;
+			return true;
+		}
+		return waitingForChat;
+	}
+
+	protected static int lastPMWdgId = -1;
+
+	public static int getLastPMWidget() {
+		return lastPMWdgId;
+	}
+
+	public static void sendMessage(int wdgId, String text) {
 		if (gameUI != null) {
 			Widget chat = gameUI.ui.getWidget(wdgId);
+			if (chat instanceof PrivChat) {
+				lastPMWdgId = wdgId;
+			}
 			if (chat instanceof EntryChannel) {
 				((EntryChannel) chat).send(text);
 			}
@@ -127,58 +174,55 @@ public class SChatWrapper {
 		} else if (wdg.getName().equals("Village")) {
 			messageType = ChannelTypes.VILLAGE;
 		}
-		GameUI gui = wdg.getparent(GameUI.class);
-		if (gui != null) {
+		if (gameUI != null) {
 			String name = Config.currentCharName;
 			Color color = getColor(messageType);
 			if (from != null) {
 				// Other
-				Buddy messager = gui.buddies.find(from.intValue());
+				Buddy messager = gameUI.buddies.find(from.intValue());
 				name = (messager == null) ? "???" : (messager.name);
 				color = (messager == null) ? Color.WHITE : (BuddyWnd.gc[messager.group]);
 			}
 			Integer wdgId = wdg.ui.getWidgetId(wdg);
 			ProcessedText header = getLineHeader(messageType, name, color);
-			header.addAttribute(new TextBackLink(wdgId.intValue(), gui));
+			header.addAttribute(new TextBackLink(wdgId.intValue(), name));
 
 			ProcessedText text = STextProcessor.fromString(STextProcessor.getColoredText(str, getColor(messageType)));
 			header.append(text);
-			gui.bdsChatB.addPText(header, messageType);
+			gameUI.bdsChatB.addPText(header, messageType);
 		}
 	}
 
 	public static void wrapPartyChat(PartyChat wdg, Integer from, String str, Color memberColor) {
 		ChannelTypes messageType = ChannelTypes.PARTY;
-		GameUI gui = wdg.getparent(GameUI.class);
-		if (gui != null) {
+		if (gameUI != null) {
 			String name = Config.currentCharName;
 			Color color = memberColor;
 			if (from != null) {
 				// Other
-				Buddy messager = gui.buddies.find(from.intValue());
+				Buddy messager = gameUI.buddies.find(from.intValue());
 				name = (messager == null) ? "???" : (messager.name);
 			}
 			Integer wdgId = wdg.ui.getWidgetId(wdg);
 			ProcessedText header = getLineHeader(messageType, name, color);
-			header.addAttribute(new TextBackLink(wdgId.intValue(), gui));
+			header.addAttribute(new TextBackLink(wdgId.intValue(), name));
 
 			ProcessedText text = STextProcessor.fromString(STextProcessor.getColoredText(str, getColor(messageType)));
 			header.append(text);
-			gui.bdsChatB.addPText(header, messageType);
+			gameUI.bdsChatB.addPText(header, messageType);
 		}
 	}
 
 	public static void wrapPMChat(PrivChat wdg, int from, String str, String mode) {
 		ChannelTypes messageType = ChannelTypes.PM;
-		GameUI gui = wdg.getparent(GameUI.class);
-		if (gui != null) {
+		if (gameUI != null) {
 			StringBuilder builder = new StringBuilder();
 			if (mode.equals("in")) {
 				builder.append(STextProcessor.getColoredText(getPrefix(messageType) + "[", getColor(messageType)));
 			} else {
 				builder.append(STextProcessor.getColoredText(getPrefix(messageType) + " To [", getColor(messageType)));
 			}
-			Buddy messager = gui.buddies.find(from);
+			Buddy messager = gameUI.buddies.find(from);
 			String name = (messager == null) ? "???" : (messager.name);
 			Color color = (messager == null) ? getColor(messageType) : (BuddyWnd.gc[messager.group]);
 			if (mode.equals("in")) {
@@ -190,33 +234,28 @@ public class SChatWrapper {
 
 			Integer wdgId = wdg.ui.getWidgetId(wdg);
 			ProcessedText header = STextProcessor.fromString(builder.toString());
-			header.addAttribute(new TextBackLink(wdgId.intValue(), gui));
+			header.addAttribute(new TextBackLink(wdgId.intValue(), name));
 
 			ProcessedText text = STextProcessor.fromString(STextProcessor.getColoredText(str, getColor(messageType)));
 			header.append(text);
-			gui.bdsChatB.addPText(header, messageType);
+			gameUI.bdsChatB.addPText(header, messageType);
 		}
 	}
 
 	public static void wrapPMChatError(PrivChat wdg, Integer from, String str) {
 		ChannelTypes messageType = ChannelTypes.PM;
-		GameUI gui = wdg.getparent(GameUI.class);
-		if (gui != null) {
-			StringBuilder builder = new StringBuilder();
-			builder.append(STextProcessor.getColoredText(getPrefix(messageType) + "[", Color.RED));
-			Buddy messager = gui.buddies.find(from);
+		if (gameUI != null) {
+			Buddy messager = gameUI.buddies.find(from);
 			String name = (messager == null) ? "???" : (messager.name);
 			Color color = (messager == null) ? Color.WHITE : (BuddyWnd.gc[messager.group]);
-			builder.append(STextProcessor.getColoredText(name, color));
-			builder.append(STextProcessor.getColoredText("]: ", Color.RED));
 
 			Integer wdgId = wdg.ui.getWidgetId(wdg);
-			ProcessedText header = STextProcessor.fromString(builder.toString());
-			header.addAttribute(new TextBackLink(wdgId.intValue(), gui));
+			ProcessedText header = getLineHeader(messageType, name, color);
+			header.addAttribute(new TextBackLink(wdgId.intValue(), name));
 
 			ProcessedText text = STextProcessor.fromString(STextProcessor.getColoredText(str, Color.RED));
 			header.append(text);
-			gui.bdsChatB.addPText(header, messageType);
+			gameUI.bdsChatB.addPText(header, messageType);
 		}
 	}
 }

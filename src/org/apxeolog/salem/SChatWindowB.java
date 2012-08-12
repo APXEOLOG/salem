@@ -41,11 +41,12 @@ public class SChatWindowB extends SWindow {
 			area.hide();
 			chatWidgets.put(tab, new Pair<SVerticalTextButton, STextArea>(btn, area));
 		}
+		if (chatWidgets.size() > 0) chatWidgets.entrySet().iterator().next().getValue().getFirst().click();
 		// Resize
 		windowBox.marginLeft = x;
-		lineEdit = new SLineEdit(new Coord(0, sz.y - 40), new Coord(sz.x, 20), this, "", STextProcessor.FOUNDRY);
+		lineEdit = new SLineEdit(Coord.z, Coord.z, parent, "", STextProcessor.FOUNDRY);
 		lineEdit.hide();
-		windowBox.marginBottom += 20;
+		windowBox.marginBottom += 30;
 
 		resize(windowBox.getContentSize());
 	}
@@ -57,7 +58,7 @@ public class SChatWindowB extends SWindow {
 	public void showLine(int wdgId, ChannelTypes type) {
 		ChatModeInfo info = SChatWrapper.getModeInfo(type);
 		if (type == ChannelTypes.PM) {
-			String name = SChatWrapper.getOpponentName(wdgId, this);
+			String name = SChatWrapper.getOpponentName(wdgId);
 			if (name != null) {
 				showLine(wdgId, type, STextProcessor.FOUNDRY.render("[" + name + "]: ", info.getColor()));
 			} else showLine(wdgId, type, info.getLongText());
@@ -100,10 +101,11 @@ public class SChatWindowB extends SWindow {
 				showLine(wdgId, ChannelTypes.PARTY);
 			}
 		} else if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && alt && !shift) {
-			//showLine();
+			int wdgId = SChatWrapper.getLastPMWidget();
+			if (wdgId != -1) {
+				showLine(wdgId, ChannelTypes.PM);
+			}
 		} else return super.globtype(key, ev);
-
-
 		return true;
 	}
 
@@ -130,7 +132,7 @@ public class SChatWindowB extends SWindow {
 				lineEdit.hide();
 
 				if (!text.equals(""))
-					SChatWrapper.sendMessage(wdgId, text, this);
+					SChatWrapper.sendMessage(wdgId, text);
 			}
 		} else super.wdgmsg(sender, msg, args);
 	}
@@ -144,9 +146,14 @@ public class SChatWindowB extends SWindow {
 			}
 		}
 		if (lineEdit != null) {
-			lineEdit.c = new Coord(windowBox.getBorderPosition().x, sz.y - 30);
+			lineEdit.c = new Coord(c.add(windowBox.getContentPosition()).x, c.add(windowBox.getContentPosition()).add(windowBox.getContentSize()).y + 5);
 			lineEdit.sz = new Coord(windowBox.getContentSize().x, 20);
 		}
+	}
+
+	@Override
+	public void drag() {
+		lineEdit.c = new Coord(c.add(windowBox.getContentPosition()).x, c.add(windowBox.getContentPosition()).add(windowBox.getContentSize()).y + 5);
 	}
 
 	@Override

@@ -579,10 +579,15 @@ public class SWindow extends Widget {
 		return true;
 	}
 
+	public void drag() {
+
+	}
+
 	@Override
 	public void mousemove(Coord c) {
 		if (dragMode) {
 			this.c = this.c.add(c.add(doff.inv()));
+			drag();
 		} else if (resizeMode) {
 			Coord newSz = windowBox.getContentSize().add(c.add(szOff.inv()));
 			if (newSz.x < windowHeader.headerBox.getBoxSize().x) {

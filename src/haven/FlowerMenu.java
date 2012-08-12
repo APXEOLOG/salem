@@ -29,7 +29,7 @@ package haven;
 import java.awt.Color;
 import java.awt.Font;
 
-import org.apxeolog.salem.SChatWindow;
+import org.apxeolog.salem.SChatWrapper;
 
 import static java.lang.Math.PI;
 
@@ -261,8 +261,7 @@ public class FlowerMenu extends Widget {
 		} else {
 			// GOD I HATE THIS HACK
 			if (option.name.equals("Chat")) {
-				SChatWindow chatWnd = ui.root.findchild(SChatWindow.class);
-				//if (chatWnd != null) chatWnd.setWaitingForChat();
+				SChatWrapper.waitChat();
 			}
 			wdgmsg("cl", option.num, ui.modflags());
 		}
