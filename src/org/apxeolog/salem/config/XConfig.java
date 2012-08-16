@@ -35,6 +35,11 @@ public class XConfig implements IConfigExport {
 	public static Integer	cl_grid_mode = MapView.GRID_MODE_NONE;
 	public static String	mp_guid = UUID.randomUUID().toString();
 	public static Boolean 	cl_debug_mode = true;
+	public static String	mp_irc_server = "irc.synirc.net";
+	public static Integer	mp_irc_port = 6667;
+	public static String	mp_irc_username = "";
+	public static String	mp_irc_password = "";
+	public static Boolean	mp_irc_autoconnect = false;
 
 	@SuppressWarnings("unchecked")
 	private static <T, V> T castToType(V classType, Object value) {

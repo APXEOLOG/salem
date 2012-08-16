@@ -214,6 +214,12 @@ public class UI {
 		}
 		if (rcvr != null)
 			rcvr.rcvmsg(id, msg, args);
+		//ALS.alDebugPrint("MSG", sender, msg, args);
+		/*if (sender instanceof SWindow) {
+			if (((SWindow)sender).getTitle().equals("Fishing")) {
+				ALS.alDebugPrint("fishing msg", msg, args);
+			}
+		}*/
 	}
 
 	public void uimsg(int id, String msg, Object... args) {

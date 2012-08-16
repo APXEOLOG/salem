@@ -57,7 +57,10 @@ public class STextProcessor {
 	}
 
 	public static Rectangle2D getStringBounds(String str, Font fnt) {
-		STANDALONE.setFont(fnt);
+		if (STANDALONE.getFont() != fnt) {
+			ALS.alDebugPrint("set fnt");
+			STANDALONE.setFont(fnt);
+		}
 		return STANDALONE.getFontMetrics().getStringBounds(str, STANDALONE);
 	}
 
@@ -276,6 +279,7 @@ public class STextProcessor {
 		protected String rawString;
 		protected ArrayList<NodeAttribute> attributes;
 		protected Font currentStateFont;
+		protected double widthCache = -1, heightCache = -1;
 
 		public Node(String str) {
 			rawString = str;
@@ -319,15 +323,17 @@ public class STextProcessor {
 		}
 
 		public double getNodeWidth() {
-			return getStringBounds(rawString, getAttribFont()).getWidth();
+			if (widthCache < 0) widthCache = getStringBounds(rawString, getAttribFont()).getWidth();
+			return widthCache;
 		}
 
 		public double getNodeHeight() {
-			return getStringBounds(rawString, getAttribFont()).getHeight();
+			if (heightCache < 0) heightCache = getStringBounds(rawString, getAttribFont()).getHeight();
+			return heightCache;
 		}
 
 		public Node addAttributes(NodeAttribute... attr) {
-			currentStateFont = null;
+			currentStateFont = null; heightCache = -1; widthCache = -1;
 			for (NodeAttribute atr : attr)
 				attributes.add(atr);
 			return this;

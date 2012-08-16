@@ -21,6 +21,7 @@ import haven.Widget;
 
 public class SChatWindowB extends SWindow {
 	protected HashMap<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> chatWidgets;
+	protected Pair<SVerticalTextButton, STextArea> currentTab = null;
 	protected SLineEdit lineEdit = null;
 
 	public SChatWindowB(Coord c, Coord sz, Widget parent, String cap) {
@@ -32,16 +33,17 @@ public class SChatWindowB extends SWindow {
 			SVerticalTextButton btn = new SVerticalTextButton(new Coord(0, y), Coord.z, this, tab.getName()) {
 				@Override
 				public void click() {
-					wdgmsg("show_area");
+					wdgmsg("show_area", this.rendered.text);
 				}
 			};
 			y += btn.sz.y + 1; x = btn.sz.x;
 			btn.c.x = -btn.sz.x - 4;
+			btn.setData(tab);
 			STextArea area = new STextArea(Coord.z, Coord.z, this);
 			area.hide();
+
 			chatWidgets.put(tab, new Pair<SVerticalTextButton, STextArea>(btn, area));
 		}
-		if (chatWidgets.size() > 0) chatWidgets.entrySet().iterator().next().getValue().getFirst().click();
 		// Resize
 		windowBox.marginLeft = x;
 		lineEdit = new SLineEdit(Coord.z, Coord.z, parent, "", STextProcessor.FOUNDRY);
@@ -49,6 +51,22 @@ public class SChatWindowB extends SWindow {
 		windowBox.marginBottom += 30;
 
 		resize(windowBox.getContentSize());
+
+		showTab(ChatConfig.getDefaultChannel());
+	}
+
+	public void showTab(String tabName) {
+		if (chatWidgets == null) return;
+		for (Entry<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> entry : chatWidgets.entrySet()) {
+			if (entry.getKey().getName().equals(tabName)) {
+				currentTab = entry.getValue();
+				currentTab.getSecond().show();
+				currentTab.getFirst().select();
+			} else {
+				entry.getValue().getFirst().unselect();
+				entry.getValue().getSecond().hide();
+			}
+		}
 	}
 
 	public void showLine(int wdgId) {
@@ -101,10 +119,11 @@ public class SChatWindowB extends SWindow {
 				showLine(wdgId, ChannelTypes.PARTY);
 			}
 		} else if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && alt && !shift) {
-			int wdgId = SChatWrapper.getLastPMWidget();
+			showLine(-255, ChannelTypes.IRC);
+			/*int wdgId = SChatWrapper.getLastPMWidget();
 			if (wdgId != -1) {
 				showLine(wdgId, ChannelTypes.PM);
-			}
+			}*/
 		} else return super.globtype(key, ev);
 		return true;
 	}
@@ -112,15 +131,7 @@ public class SChatWindowB extends SWindow {
 	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (msg.equals("show_area")) {
-			if (chatWidgets != null) {
-				for (Pair<SVerticalTextButton, STextArea> pair : chatWidgets.values()) {
-					if (pair.getFirst() == sender) {
-						pair.getSecond().show();
-					} else {
-						pair.getSecond().hide();
-					}
-				}
-			}
+			showTab((String) args[0]);
 		} else if (msg.equals("sle_activate")) {
 			if (args.length > 1) {
 				String text = (String) args[0];
@@ -131,8 +142,12 @@ public class SChatWindowB extends SWindow {
 				ui.grabkeys(null);
 				lineEdit.hide();
 
-				if (!text.equals(""))
-					SChatWrapper.sendMessage(wdgId, text);
+				if (!text.equals("")) {
+					if (wdgId == -255) {
+						// IRC
+						SChatWrapper.sendIRCMessage(text, ((ChatTabConfig)currentTab.getFirst().getData()).getIRCChannel());
+					} else SChatWrapper.sendMessage(wdgId, text);
+				}
 			}
 		} else super.wdgmsg(sender, msg, args);
 	}
@@ -145,6 +160,10 @@ public class SChatWindowB extends SWindow {
 				pair.getSecond().resize(windowBox.getContentSize());
 			}
 		}
+		updateLine();
+	}
+
+	public void updateLine() {
 		if (lineEdit != null) {
 			lineEdit.c = new Coord(c.add(windowBox.getContentPosition()).x, c.add(windowBox.getContentPosition()).add(windowBox.getContentSize()).y + 5);
 			lineEdit.sz = new Coord(windowBox.getContentSize().x, 20);
@@ -153,7 +172,7 @@ public class SChatWindowB extends SWindow {
 
 	@Override
 	public void drag() {
-		lineEdit.c = new Coord(c.add(windowBox.getContentPosition()).x, c.add(windowBox.getContentPosition()).add(windowBox.getContentSize()).y + 5);
+		updateLine();
 	}
 
 	@Override
@@ -167,14 +186,25 @@ public class SChatWindowB extends SWindow {
 		for (Entry<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> entry : chatWidgets.entrySet()) {
 			if (entry.getKey().containsChannel(type)) {
 				entry.getValue().getSecond().addPText(str);
+				entry.getValue().getFirst().setnotify();
 			}
 		}
 	}
 
-	public void addString(String str, ChannelTypes type) {
+	public void addString(String str, ChannelTypes type, Object...objects) {
 		for (Entry<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> entry : chatWidgets.entrySet()) {
 			if (entry.getKey().containsChannel(type)) {
-				entry.getValue().getSecond().addString(str);
+				if (type == ChannelTypes.IRC && objects.length > 0) {
+					String channel = (String) objects[0];
+					ALS.alDebugPrint("got channel msg", channel);
+					if (entry.getKey().getIRCChannel().equals(channel)) {
+						entry.getValue().getSecond().addString(str);
+						entry.getValue().getFirst().setnotify();
+					}
+				} else {
+					entry.getValue().getSecond().addString(str);
+					entry.getValue().getFirst().setnotify();
+				}
 			}
 		}
 	}

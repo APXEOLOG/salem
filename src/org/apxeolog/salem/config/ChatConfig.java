@@ -6,7 +6,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
+import org.apxeolog.salem.Pair;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -28,10 +30,21 @@ public class ChatConfig implements IConfigExport {
 	public static class ChatTabConfig {
 		protected String tabName;
 		protected ArrayList<ChannelTypes> tabChannels;
+		protected String ircChannel = null;
+		protected String ircKey = null;
+		protected Boolean isDefault = null;
 
 		public ChatTabConfig(String name) {
 			tabChannels = new ArrayList<ChatConfig.ChannelTypes>();
 			tabName = name;
+		}
+
+		public void setDefault(boolean def) {
+			isDefault = def;
+		}
+
+		public boolean isDefault() {
+			return isDefault != null ? isDefault : false;
 		}
 
 		public String getName() {
@@ -46,6 +59,22 @@ public class ChatConfig implements IConfigExport {
 			return tabChannels.contains(type);
 		}
 
+		public void setIRCChannel(String chan) {
+			ircChannel = chan;
+		}
+
+		public String getIRCChannel() {
+			return ircChannel;
+		}
+
+		public void setIRCKey(String key) {
+			ircKey = key;
+		}
+
+		public String getIRCKey() {
+			return ircKey;
+		}
+
 		public void addElement(Element root) {
 			root.setAttribute("name", tabName);
 			StringBuilder sb = new StringBuilder();
@@ -54,6 +83,9 @@ public class ChatConfig implements IConfigExport {
 				sb.append(";");
 			}
 			root.setAttribute("channels", sb.substring(0, sb.length() - 1));
+			if (ircChannel != null) root.setAttribute("irc-channel", ircChannel);
+			if (ircKey != null) root.setAttribute("irc-key", ircKey);
+			if (isDefault != null) root.setAttribute("default", String.valueOf(isDefault.booleanValue()));
 		}
 	}
 
@@ -132,6 +164,23 @@ public class ChatConfig implements IConfigExport {
 
 	public static Font CHAT_FONT = new Font("Serif", Font.BOLD, 14);
 
+	public String getDefaultLocaleChannel() {
+		String local = Locale.getDefault().getLanguage();
+		if (local.equals("ru")) {
+			return "#salem";
+		} else return "#salem";
+	}
+
+	public static ArrayList<Pair<String, String>> getIRCChannels() {
+		ArrayList<Pair<String, String>> ret = new ArrayList<Pair<String,String>>();
+		for (ChatTabConfig tab : chatTabs) {
+			if (tab.containsChannel(ChannelTypes.IRC)) {
+				ret.add(new Pair<String, String>(tab.getIRCChannel(), tab.getIRCKey()));
+			}
+		}
+		return ret;
+	}
+
 	@Override
 	public void init(Element rootElement) {
 		if (rootElement != null) {
@@ -167,6 +216,20 @@ public class ChatConfig implements IConfigExport {
 				}
 			}
 
+			if (tab.containsChannel(ChannelTypes.IRC)){
+				if (currentNode.hasAttribute("irc-channel")) {
+					tab.setIRCChannel(currentNode.getAttribute("irc-channel"));
+				} else {
+					tab.setIRCChannel(getDefaultLocaleChannel());
+				}
+				if (currentNode.hasAttribute("irc-key")) {
+					tab.setIRCKey(currentNode.getAttribute("irc-key"));
+				}
+				if (currentNode.hasAttribute("default")) {
+					tab.setDefault(Boolean.valueOf(currentNode.getAttribute("default")));
+				}
+			}
+
 			chatTabs.add(tab);
 		}
 		list = cachedElement.getElementsByTagName("mode");
@@ -179,6 +242,14 @@ public class ChatConfig implements IConfigExport {
 
 			chatModes.put(type, info);
 		}
+	}
+
+	public static String getDefaultChannel() {
+		if (chatTabs.size() <= 0) return "";
+		for (ChatTabConfig cfg : chatTabs) {
+			if (cfg.isDefault()) return cfg.getName();
+		}
+		return chatTabs.get(0).getName();
 	}
 
 	public ChatConfig() {

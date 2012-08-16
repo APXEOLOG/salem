@@ -37,9 +37,9 @@ import f00f.net.irc.martyr.errors.UnknownError;
 import f00f.net.irc.martyr.replies.UnknownReply;
 
 // TODO:
-// 
+//
 // Add synchronous disconnect.
-// 
+//
 /**
  * <p><code>IRCConnection</code> is the core class for Martyr.
  * <code>IRCConnection</code> manages the socket, giving commands to the server
@@ -187,998 +187,999 @@ import f00f.net.irc.martyr.replies.UnknownReply;
  */
 public class IRCConnection {
 
-    public IRCConnection()
-    {
-        this( new ClientState() );
-    }
-
-    public IRCConnection( ClientState clientState )
-    {
-        // State observers are notified of state changes.
-        // Command observers are sent a copy of each message that arrives.
-        stateObservers = new StateObserver();
-        commandObservers = new CommandObserver();
-        this.clientState = clientState;
-        stateQueue = new LinkedList<State>();
-
-        commandRegister = new CommandRegister();
-        commandSender = new DefaultCommandSender();
-
-        setState( State.UNCONNECTED );
-
-        new ClientStateMonitor( this );
-
-        localEventQueue = new LinkedList<String>();
-
-        eventThread = new EventThread();
-        eventThread.setDaemon( true );
-        startEventThread();
-    }
-
-    /**
-     * This method exists so that subclasses may perform operations before
-     * the event thread starts, but overriding this method.
-     * */
-    protected void startEventThread()
-    {
-        eventThread.start();
-    }
-
-    /**
-     * In the event you want to stop martyr, call this.  This asks the
-     * event thread to finish the current event, then die.
-     * */
-    public void stop()
-    {
-        eventThread.doStop();
-    }
-
-    /**
-     * Performs a standard connection to the server and port. If we are already
-     * connected, this just returns.
-     *
-     * @param server Server to connect to
-     * @param port Port to connect to
-     * @throws IOException if we could not connect
-     */
-    public void connect( String server, int port )
-        throws IOException
-    {
-        synchronized( connectMonitor )
-        {
-            ALS.alDebugPrint("IRCConnection: Connecting to " + server + ":" + port);
-            if( connected )
-            {
-                ALS.alDebugPrint("IRCConnection: Connect requested, but we are already connected!");
-                return;
-            }
-
-            connectUnsafe( new Socket( server, port ), server );
-        }
-    }
-
-    /**
-     * This allows the developer to provide a pre-connected socket, ready for use.
-     * This is so that any options that the developer wants to set on the socket
-     * can be set.  The server parameter is passed in, rather than using the
-     * customSocket.getInetAddr() because a DNS lookup may be undesirable.  Thus,
-     * the canonical server name, whatever that is, should be provided.  This is
-     * then passed on to the client state.
-     *
-     * @param customSocket Custom socket that we will connect over
-     * @param server Server to connect to
-     * @throws IOException if we could not connect
-     * @throws IllegalStateException if we are already connected.
-     */
-    public void connect( Socket customSocket, String server )
-        throws IOException, IllegalStateException
-    {
-        synchronized( connectMonitor )
-        {
-            if( connected )
-            {
-                throw new IllegalStateException( "Connect requested, but we are already connected!" );
-            }
-
-            connectUnsafe( customSocket, server );
-        }
-
-    }
-
-    /**
-     * <p>Orders the socket to disconnect.  This doesn't actually disconnect, it
-     * merely schedules an event to disconnect.  This way, pending incoming
-     * messages may be processed before a disconnect actually occurs.</p>
-     * <p>No errors are possible from the disconnect.  If you try to disconnect an
-     * unconnected socket, your disconnect request will be silently ignored.</p>
-     */
-    public void disconnect()
-    {
-        synchronized( eventMonitor )
-        {
-            disconnectPending = true;
-            eventMonitor.notifyAll();
-        }
-    }
-
-    /**
-     * Sets the daemon status on the threads that <code>IRCConnection</code>
-     * creates.  Default is true, that is, new InputHandler threads are
-     * daemon threads, although the event thread is always a daemon.  The
-     * result is that as long as there is an active connection, the
-     * program will keep running.
-     *
-     * @param daemon Set if we are to be treated like a daemon
-     */
-    public void setDaemon( boolean daemon )
-    {
-        this.daemon = daemon;
-    }
-
-    /**
-     * Signal threads to stop, and wait for them to do so.
-     * @param timeout *2 msec to wait at most for stop.
-     *
-     * */
-    public void shutdown(long timeout)
-    {
-        // Note: UNTESTED!
-        try
-        {
-            // 1) shut down the input thread.
-            synchronized( inputHandlerMonitor )
-            {
-                if( inputHandler != null )
-                {
-                    inputHandler.signalShutdown();
-                }
-                synchronized( socketMonitor )
-                {
-                    if( socket != null )
-                    {
-                        try
-                        {
-                            socket.close();
-                        }
-                        catch (IOException e)
-                        {
-                            // surprising?
-                        }
-                    }
-                }
-                if( inputHandler != null )
-                {
-                    inputHandler.join(timeout);
-                }
-            }
-
-            // 2) shut down the event thread.
-            eventThread.shutdown();
-            eventThread.join(timeout);
-        }
-        catch( InterruptedException ie )
-        {
-            // We got interrupted - while waiting for death.
-            // Shame that.
-        }
-    }
-
-    public String toString()
-    {
-        return "IRCConnection";
-    }
-
-    public void addStateObserver( Observer observer )
-    {
-        ALS.alDebugPrint("IRCConnection: Added state observer " + observer);
-        stateObservers.addObserver( observer );
-    }
-
-    public void removeStateObserver( Observer observer )
-    {
-        ALS.alDebugPrint("IRCConnection: Removed state observer " + observer);
-        stateObservers.deleteObserver( observer );
-    }
-
-    public void addCommandObserver( Observer observer )
-    {
-        ALS.alDebugPrint("IRCConnection: Added command observer " + observer);
-        commandObservers.addObserver( observer );
-    }
-
-    public void removeCommandObserver( Observer observer )
-    {
-        ALS.alDebugPrint("IRCConnection: Removed command observer " + observer);
-        commandObservers.deleteObserver( observer );
-    }
-
-
-    public State getState()
-    {
-        return state;
-    }
-
-    public ClientState getClientState()
-    {
-        return clientState;
-    }
-
-    /**
-     * @param command Command we will send
-     * @deprecated Use <code>sendCommand( OutCommand cmd )</code> instead.
-     * @throws ClassCastException if command is not an OutCommand.
-     * */
-    public void sendCommand( Command command )
-    {
-        sendCommand( (OutCommand)command );
-    }
-
-    /**
-     * Accepts a command to be sent.  Sends the command to the
-     * CommandSender.
-     *
-     * @param command Command we will send
-     * */
-    public void sendCommand( OutCommand command )
-    {
-        commandSender.sendCommand( command );
-    }
-
-    /**
-     * @return the first class in a chain of OutCommandProcessors.
-     * */
-    public CommandSender getCommandSender()
-    {
-        return commandSender;
-    }
-
-    /**
-     * @param sender sets the class that is responsible for sending commands.
-     * */
-    public void setCommandSender( CommandSender sender )
-    {
-        this.commandSender = sender;
-    }
-
-    /**
-     * @return "localhost"
-     *
-     * @deprecated Pending removal due to unspecified behaviour, use
-     * getLocalAddress instead.
-     *
-     * */
-    public String getLocalhost()
-    {
-        return "localhost";
-    }
-
-    /**
-     * @return the local address to which the socket is bound.
-     * */
-    public InetAddress getLocalAddress()
-    {
-        return socket.getLocalAddress();
-    }
-
-    public String getRemotehost()
-    {
-        return clientState.getServer();
-    }
-
-    /**
-     * Sets the time in milliseconds we wait after each command is sent.
-     *
-     * @param sleepTime Length of time to sleep between commands
-     * */
-    public void setSendDelay( int sleepTime )
-    {
-        this.sendDelay = sleepTime;
-    }
-
-    /**
-     * @since 0.3.2
-     * @return a class that can schedule timer tasks.
-     * */
-    public CronManager getCronManager()
-    {
-        if( cronManager == null )
-            cronManager = new CronManager();
-        return cronManager;
-    }
-
-    /**
-     * Inserts into the event queue a command that was not directly
-     * received from the server.
-     *
-     * @param fakeCommand Fake command to inject into incoming queue
-     * */
-    public void injectCommand( String fakeCommand )
-    {
-        synchronized( eventMonitor )
-        {
-            localEventQueue.add( fakeCommand );
-            eventMonitor.notifyAll();
-        }
-    }
-
-    // ===== package methods =============================================
-
-    void socketError( IOException ioe )
-    {
-        ALS.alDebugPrint("Socket error called.");
-        //ALS.alDebugPrint("IRCConnection: The stack of the exception:", ioe);
-
-        ALS.alDebugPrint("Socket error", ioe);
-        disconnect();
-    }
-
-    /**
-     * Splits a raw IRC command into three parts, the prefix, identifier,
-     * and parameters.
-     * @param wholeString String to be parsed
-     * @return a String array with 3 components, {prefix,ident,params}.
-     * */
-    public static String[] parseRawString( String wholeString )
-    {
-        String prefix = "";
-        String identifier;
-        String params = "";
-
-        StringTokenizer tokens = new StringTokenizer( wholeString, " " );
-
-        if( wholeString.charAt(0) == ':' )
-        {
-            prefix = tokens.nextToken();
-            prefix = prefix.substring( 1, prefix.length() );
-        }
-
-        identifier = tokens.nextToken();
-
-        if( tokens.hasMoreTokens() )
-        {
-            // The rest of the string
-            params = tokens.nextToken("");
-        }
-
-        String[] result = new String[3];
-        result[0] = prefix;
-        result[1] = identifier;
-        result[2] = params;
-
-        return result;
-    }
-
-    /**
-     * Given the three parts of an IRC command, generates an object to
-     * represent that command.
-     *
-     * @param prefix Prefix of command object
-     * @param identifier ID of command
-     * @param params Params of command
-     * @return An InCommand object for the given command object
-     * */
-    protected InCommand getCommandObject( String prefix, String identifier, String params )
-    {
-        InCommand command;
-
-        // Remember that commands are also factories.
-        InCommand commandFactory = commandRegister.getCommand( identifier );
-        if( commandFactory == null )
-        {
-            if( UnknownError.isError( identifier ) )
-            {
-                command = new UnknownError( identifier );
-                ALS.alDebugPrint("IRCConnection: Using " + command);
-            }
-            else if( UnknownReply.isReply( identifier ) )
-            {
-                command = new UnknownReply( identifier );
-                ALS.alDebugPrint("IRCConnection: Using " + command);
-            }
-            else
-            {
-                // The identifier doesn't map to a command.
-                ALS.alDebugPrint("IRCConnection: Unknown command");
-                command = new UnknownCommand();
-            }
-        }
-        else
-        {
-            command = commandFactory.parse( prefix, identifier, params);
-
-            if( command == null )
-            {
-                ALS.alDebugPrint("IRCConnection: CommandFactory[" + commandFactory + "] returned NULL");
-                return null;
-            }
-            ALS.alDebugPrint("IRCConnection: Using " + command);
-        }
-
-        return command;
-    }
-
-
-
-    /**
-     * Executed by the event thread.
-     *
-     * @param wholeString String to be parsed and handled
-     * */
-    void incomingCommand( String wholeString )
-    {
-        ALS.alDebugPrint("IRCConnection: RCV = " + wholeString);
-
-        // 1) Parse out the command
-        String cmdBits[];
-
-        try
-        {
-            cmdBits = parseRawString( wholeString );
-        }
-        catch( Exception e )
-        {
-            // So.. we can't process the command.
-            // So we call the error handler.
-            handleUnparsableCommand( wholeString, e );
-            return;
-        }
-
-        String prefix = cmdBits[0];
-        String identifier = cmdBits[1];
-        String params = cmdBits[2];
-
-        // 2) Fetch command from factory
-        InCommand command = getCommandObject( prefix, identifier, params );
-        command.setSourceString( wholeString );
-
-        // Update the state and send out to commandObservers
-        localCommandUpdate( command );
-    }
-
-    protected void handleUnparsableCommand( String wholeString, Exception e )
-    {
-        ALS.alDebugPrint( "Unable to parse server message.", e );
-    }
-
-    /**
-     * Called only in the event thread.
-     *
-     * @param command Command to update
-     * */
-    private void localCommandUpdate( InCommand command )
-    {
-        // 3) Change the connection state if required
-        // This allows us to change from UNREGISTERED to REGISTERED and
-        // possibly back.
-        State cmdState = command.getState();
-        if( cmdState != State.UNKNOWN && cmdState != getState() )
-            setState( cmdState );
-
-    // TODO: Bug here?
-
-        // 4) Notify command observers
-        try
-        {
-            commandObservers.setChanged();
-            commandObservers.notifyObservers( command );
-        }
-        catch( Throwable e )
-        {
-            ALS.alDebugPrint("IRCConnection: Command notify failed.", e);
-        }
-
-    }
-
-    // ===== private variables ===========================================
-
-    /** Object used to send commands. */
-    private CommandSender commandSender;
-
-    private CronManager cronManager;
-
-    /** State of the session. */
-    private State state;
-
-    /**
-     * Client state (our name, nick, groups, etc). Stored here mainly
-     * because there isn't anywhere else to stick it.
-     */
-    private ClientState clientState;
-
-    /**
-     * Maintains a list of classes observing the state and notifies them
-     * when it changes.
-     */
-    private StateObserver stateObservers;
-
-    /**
-     * Maintains a list of classes observing commands when they come in.
-     */
-    private CommandObserver commandObservers;
-
-    /**
-     * The actual socket used for communication.
-     */
-    private Socket socket;
-
-    /**
-     * Monitor access to socket.
-     * */
-    private final Object socketMonitor = new Object();
-
-    /**
-     * We want to prevent connecting and disconnecting at the same time.
-     */
-    private final Object connectMonitor = new Object();
-
-    /**
-     * This object should be notified if we want the main thread to check for
-     * events.  An event is either an incoming message or a disconnect request.
-     * Sending commands to the server is synchronized by the eventMonitor.
-     */
-    private final Object eventMonitor = new Object();
-
-    /**
-     * This tells the processEvents() method to check if we should disconnect
-     * after processing all incoming messages.
-     */
-    // Protected by:
-    // inputHandlerMonitor
-    // eventMonitor
-    // connectMonitor
-    private boolean disconnectPending = false;
-
-    /**
-     * The writer to use for output.
-     */
-    private BufferedWriter socketWriter;
-
-    /**
-     * Command register, contains a list of commands that can be received
-     * by the server and have matching Command objects.
-     */
-    private CommandRegister commandRegister;
-
-    /**
-     * Maintains a handle on the input handler.
-     */
-    private InputHandler inputHandler;
-
-    /**
-     * Access control for the input handler.
-     */
-    private final Object inputHandlerMonitor = new Object();
-
-    /**
-     * State queue keeps a queue of requests to switch state.
-     */
-    private LinkedList<State> stateQueue;
-
-    /**
-     * localEventQueue allows events not received from the server to be
-     * processed.
-     * */
-    private LinkedList<String> localEventQueue;
-
-    /**
-     * Setting state prevents setState from recursing in an uncontrolled
-     * manner.
-     */
-    private boolean settingState = false;
-
-    /**
-     * Event thread waits for events and executes them.
-     */
-    private EventThread eventThread;
-
-    /**
-     * Determines the time to sleep every time we send a message.  We do this
-     * so that the server doesn't boot us for flooding.
-     */
-    private int sendDelay = 300;
-
-    /**
-     * connected just keeps track of whether we are connected or not.
-     */
-    private boolean connected = false;
-
-    /**
-     * Are we set to be a daemon thread?
-     */
-    private boolean daemon = false;
-
-    // ===== private methods =============================================
-
-    /**
-     * Unsafe, because this method can only be called by a method that has a lock
-     * on connectMonitor.
-     *
-     * @param socket Socket to connect over
-     * @param server Server to connect to
-     * @throws IOException if connection fails
-     */
-    private void connectUnsafe( Socket socket, String server )
-        throws IOException
-    {
-        synchronized(socketMonitor)
-        {
-            this.socket = socket;
-        }
-
-        socketWriter =
-            new BufferedWriter( new OutputStreamWriter(    socket.getOutputStream() ) );
-
-        /**
-         * The reader to use for input.  Managed by the InputHandler.
-         */
-        BufferedReader socketReader =
-            new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
-
-        // A simple thread that waits for input from the server and passes
-        // it off to the IRCConnection class.
-        //if( inputHandler != null )
-        //{
-        //    ALS.alDebugPrint("IRCConnection: Non-null input handler on connect!!");
-        //    return;
-        //}
-
-        synchronized( inputHandlerMonitor )
-        {
-            // Pending events get processed after a disconnect call, and there
-            // shouldn't be any events generated while disconnected, so it makes
-            // sense to test for this condition.
-            if( inputHandler != null && inputHandler.pendingMessages() )
-            {
-                ALS.alDebugPrint("IRCConnection: Tried to connect, but there are pending messages!");
-                return;
-            }
-
-            if( inputHandler != null && inputHandler.isAlive() )
-            {
-                ALS.alDebugPrint("IRCConnection: Tried to connect, but the input handler is still alive!");
-                return;
-            }
-
-            clientState.setServer( server );
-            clientState.setPort( socket.getPort() );
-
-            connected = true;
-
-            inputHandler = new InputHandler( socketReader, this, eventMonitor );
-            inputHandler.setDaemon( daemon );
-            inputHandler.start();
-        }
-        setState( State.UNREGISTERED );
-    }
-
-    private class EventThread extends Thread
-    {
-        private boolean doShutdown = false;
-
-        public EventThread()
-        {
-            super("EventThread");
-        }
-
-        public void run()
-        {
-            handleEvents();
-        }
-
-        public void shutdown()
-        {
-            synchronized(eventMonitor)
-            {
-                this.doShutdown = true;
-                eventMonitor.notifyAll();
-            }
-        }
-
-        private void handleEvents()
-        {
-            try
-            {
-                while( true )
-                {
-                    // Process all events in the event queue.
-                    ALS.alDebugPrint("IRCConnection: Processing events");
-                    while( processEvents() ) { }
-
-                    // We can't process events while synchronized on the
-                    // eventMonitor because we may end up in deadlock.
-                    synchronized( eventMonitor )
-                    {
-                        if( !doShutdown && !pendingEvents() )
-                        {
-                            eventMonitor.wait();
-                        }
-
-                        if( doShutdown )
-                        {
-                            return;
-                        }
-                    }
-                }
-            }
-            catch( InterruptedException ie )
-            {
-                ALS.alDebugPrint( "Interrupted while handling events.", ie );
-                // And we do what?
-                // We die, that's what we do.
-            }
-        }
-
-        public void doStop()
-        {
-            shutdown();
-        }
-
-        public String toString()
-        {
-            return "EventThread";
-        }
-    }
-
-    /**
-     * This method synchronizes on the inputHandlerMonitor.  Note that if
-     * additional event types are processed, they also need to be added to
-     * pendingEvents().
-     * @return true if events were processed, false if there were no events to
-     * process.
-     */
-    private boolean processEvents()
-    {
-        boolean events = false;
-
-        // the inputHandlerMonitor here serves two purposes: To protect
-        // from inputHandler changes and to ensure only one thread is
-        // operating in processEvents.
-        //
-        // Perhaps a different monitor should be used?
-        synchronized( inputHandlerMonitor )
-        {
-            while( inputHandler != null && inputHandler.pendingMessages() )
-            {
-                String msg = inputHandler.getMessage();
-                incomingCommand( msg );
-                events = true;
-            }
-
-            while( localEventQueue != null && !localEventQueue.isEmpty() )
-            {
-                String msg = localEventQueue.removeFirst();
-                incomingCommand( msg );
-                events = true;
-            }
-
-            if( disconnectPending )
-            {
-                ALS.alDebugPrint("IRCConnection: Process events: Disconnect pending.");
-                doDisconnect();
-                events = true;
-            }
-        }
-
-        return events;
-    }
-
-    /**
-     * Does no synchronization on its own.  This does not synchronize on
-     * any of the IRCConnection monitors or objects and returns after making a
-     * minimum of method calls.
-     * @return true if there are pending events that need processing.
-     */
-    private boolean pendingEvents()
-    {
-        if( inputHandler != null && inputHandler.pendingMessages() )
-            return true;
-        if( disconnectPending )
-            return true;
-        if( localEventQueue != null && !localEventQueue.isEmpty() )
-            return true;
-
-        return false;
-    }
-
-    // Synchronized by inputHandlerMonitor, called only from processEvents.
-    private void doDisconnect()
-    {
-        synchronized( connectMonitor )
-        {
-            disconnectPending = false;
-
-            if( !connected )
-            {
-                return;
-            }
-            connected = false;
-
-            try
-            {
-                final long startTime = System.currentTimeMillis();
-                final long sleepTime = 1000;
-                final long stopTime = startTime + sleepTime;
-                ALS.alDebugPrint("IRCConnection: Sleeping for a bit ("
-                    + sleepTime + ")..");
-                // Slow things down a bit so the server doesn't kill us
-                // Also, we want to give a second to let any pending messages
-                // get processed and any pending disconnect() calls to be made.
-                // It is important that we use wait instead of sleep!
-                while( stopTime - System.currentTimeMillis() > 0 )
-                {
-                    connectMonitor.wait( stopTime - System.currentTimeMillis() );
-                }
-            }
-            catch( InterruptedException ie )
-            {
-                // Ignore
-            }
-
-            ALS.alDebugPrint("IRCConnection: Stopping input handler.");
-            // Deprecated?
-            // inputHandler.stop();
-            // inputHandler = null;
-
-            ALS.alDebugPrint("IRCConnection: Closing socket.");
-            try
-            {
-                socket.close();
-            }
-            catch( IOException ioe )
-            {
-                // And we are supposed to do what?
-                // This probably means we've called disconnect on a closed
-                // socket.
-                handleSocketCloseException( ioe );
-                return;
-            }
-            finally
-            {
-                connected = false;
-            }
-        }
-
-        // The input handler should die, because we closed the socket.
-        // We'll wait for it to die.
-        synchronized( inputHandlerMonitor )
-        {
-            ALS.alDebugPrint("IRCConnection: Waiting for the input handler to die..");
-            try
-            {
-                // ALS.alDebugPrint("IRCConnection: Stack:");
-
-                if( inputHandler.isAlive() )
-                    inputHandler.join();
-                else
-                {
-                    ALS.alDebugPrint("IRCConnection: No waiting required, input hander is already dead.");
-                }
-            }
-            catch( InterruptedException ie )
-            {
-                ALS.alDebugPrint("IRCConnection: Error in join(): " + ie);
-            }
-            ALS.alDebugPrint("IRCConnection: Done waiting for the input handler to die.");
-        }
-
-
-        // There may be pending messages that we should process before we
-        // actually notify all the state listeners.
-        processEvents();
-
-        // It is important that the state be switched last.  One of the
-        // state listeners may try to re-connect us.
-        setState( State.UNCONNECTED );
-
-    }
-
-    protected void handleSocketCloseException( IOException ioe )
-    {
-        ALS.alDebugPrint( "Error closing socket.", ioe );
-    }
-
-    /**
-     * Signals to trigger a state change.  Won't actually send a state change
-     * until a previous attempt at changing the state finishes.  This is
-     * important if one of the state listeners affects the state (ie tries to
-     * reconnect if we disconnect, etc).
-     *
-     * @param newState New state to set connection to.
-     */
-    private void setState( State newState )
-    {
-        if( settingState )
-        {
-            // We are already setting the state.  We want to complete changing
-            // to one state before changing to another, so that we don't have
-            // out-of-order state change signals.
-            stateQueue.addLast( newState );
-            return;
-        }
-
-        settingState = true;
-
-        if( state == newState )
-            return;
-
-        while( true )
-        {
-            state = newState;
-
-            ALS.alDebugPrint("IRCConnection: State switch: " + state);
-
-            try
-            {
-                stateObservers.setChanged();
-                stateObservers.notifyObservers( newState );
-            }
-            catch( Throwable e )
-            {
-                ALS.alDebugPrint("IRCConnection: State update failed.", e);
-            }
-
-            if( stateQueue.isEmpty() )
-                break;
-            newState = stateQueue.removeFirst();
-        }
-
-        settingState = false;
-    }
-
-    private class DefaultCommandSender implements CommandSender
-    {
-        public CommandSender getNextCommandSender()
-        {
-            return null;
-        }
-
-        public void sendCommand( OutCommand oc )
-        {
-            finalSendCommand( oc.render() );
-        }
-    }
-
-    /**
-     * Sends the command down the socket, with the required 'CRLF' on the
-     * end.  Waits for a little bit after sending the command so that we don't
-     * accidentally flood the server.
-     *
-     * @param str String to send
-     */
-    private void finalSendCommand( String str )
-    {
-        try
-        {
-            synchronized( eventMonitor )
-            {
-                ALS.alDebugPrint("IRCConnection: SEND= " + str);
-
-                if( disconnectPending )
-                {
-                    ALS.alDebugPrint("IRCConnection: Send cancelled, disconnect pending.");
-                    return;
-                }
-
-                socketWriter.write( str + "\r\n" );
-                socketWriter.flush();
-
-                try
-                {
-                    // Slow things down a bit so the server doesn't kill us
-                    // We do this after the send so that if the send fails the
-                    // exception is handled right away.
-                    Thread.sleep( sendDelay );
-                }
-                catch( InterruptedException ie )
-                {
-                    // Ignore
-                }
-            }
-        }
-        catch( IOException ioe )
-        {
-            socketError( ioe );
-        }
-    }
-    // ----- END IRCConnection -------------------------------------------
+	public IRCConnection()
+	{
+		this( new ClientState() );
+	}
+
+	public IRCConnection( ClientState clientState )
+	{
+		// State observers are notified of state changes.
+		// Command observers are sent a copy of each message that arrives.
+		stateObservers = new StateObserver();
+		commandObservers = new CommandObserver();
+		this.clientState = clientState;
+		stateQueue = new LinkedList<State>();
+
+		commandRegister = new CommandRegister();
+		commandSender = new DefaultCommandSender();
+
+		setState( State.UNCONNECTED );
+
+		new ClientStateMonitor( this );
+
+		localEventQueue = new LinkedList<String>();
+
+		eventThread = new EventThread();
+		eventThread.setDaemon( true );
+		startEventThread();
+	}
+
+	/**
+	 * This method exists so that subclasses may perform operations before
+	 * the event thread starts, but overriding this method.
+	 * */
+	protected void startEventThread()
+	{
+		eventThread.start();
+	}
+
+	/**
+	 * In the event you want to stop martyr, call this.  This asks the
+	 * event thread to finish the current event, then die.
+	 * */
+	public void stop()
+	{
+		eventThread.doStop();
+	}
+
+	/**
+	 * Performs a standard connection to the server and port. If we are already
+	 * connected, this just returns.
+	 *
+	 * @param server Server to connect to
+	 * @param port Port to connect to
+	 * @throws IOException if we could not connect
+	 */
+	public void connect( String server, int port )
+			throws IOException
+			{
+		synchronized( connectMonitor )
+		{
+			ALS.alDebugPrint("IRCConnection: Connecting to " + server + ":" + port);
+			if( connected )
+			{
+				ALS.alDebugPrint("IRCConnection: Connect requested, but we are already connected!");
+				return;
+			}
+
+			connectUnsafe( new Socket( server, port ), server );
+		}
+			}
+
+	/**
+	 * This allows the developer to provide a pre-connected socket, ready for use.
+	 * This is so that any options that the developer wants to set on the socket
+	 * can be set.  The server parameter is passed in, rather than using the
+	 * customSocket.getInetAddr() because a DNS lookup may be undesirable.  Thus,
+	 * the canonical server name, whatever that is, should be provided.  This is
+	 * then passed on to the client state.
+	 *
+	 * @param customSocket Custom socket that we will connect over
+	 * @param server Server to connect to
+	 * @throws IOException if we could not connect
+	 * @throws IllegalStateException if we are already connected.
+	 */
+	public void connect( Socket customSocket, String server )
+			throws IOException, IllegalStateException
+			{
+		synchronized( connectMonitor )
+		{
+			if( connected )
+			{
+				throw new IllegalStateException( "Connect requested, but we are already connected!" );
+			}
+
+			connectUnsafe( customSocket, server );
+		}
+
+			}
+
+	/**
+	 * <p>Orders the socket to disconnect.  This doesn't actually disconnect, it
+	 * merely schedules an event to disconnect.  This way, pending incoming
+	 * messages may be processed before a disconnect actually occurs.</p>
+	 * <p>No errors are possible from the disconnect.  If you try to disconnect an
+	 * unconnected socket, your disconnect request will be silently ignored.</p>
+	 */
+	public void disconnect()
+	{
+		synchronized( eventMonitor )
+		{
+			disconnectPending = true;
+			eventMonitor.notifyAll();
+		}
+	}
+
+	/**
+	 * Sets the daemon status on the threads that <code>IRCConnection</code>
+	 * creates.  Default is true, that is, new InputHandler threads are
+	 * daemon threads, although the event thread is always a daemon.  The
+	 * result is that as long as there is an active connection, the
+	 * program will keep running.
+	 *
+	 * @param daemon Set if we are to be treated like a daemon
+	 */
+	public void setDaemon( boolean daemon )
+	{
+		this.daemon = daemon;
+	}
+
+	/**
+	 * Signal threads to stop, and wait for them to do so.
+	 * @param timeout *2 msec to wait at most for stop.
+	 *
+	 * */
+	public void shutdown(long timeout)
+	{
+		// Note: UNTESTED!
+		try
+		{
+			// 1) shut down the input thread.
+			synchronized( inputHandlerMonitor )
+			{
+				if( inputHandler != null )
+				{
+					inputHandler.signalShutdown();
+				}
+				synchronized( socketMonitor )
+				{
+					if( socket != null )
+					{
+						try
+						{
+							socket.close();
+						}
+						catch (IOException e)
+						{
+							// surprising?
+						}
+					}
+				}
+				if( inputHandler != null )
+				{
+					inputHandler.join(timeout);
+				}
+			}
+
+			// 2) shut down the event thread.
+			eventThread.shutdown();
+			eventThread.join(timeout);
+		}
+		catch( InterruptedException ie )
+		{
+			// We got interrupted - while waiting for death.
+			// Shame that.
+		}
+	}
+
+	@Override
+	public String toString()
+	{
+		return "IRCConnection";
+	}
+
+	public void addStateObserver( Observer observer )
+	{
+		ALS.alDebugPrint("IRCConnection: Added state observer " + observer);
+		stateObservers.addObserver( observer );
+	}
+
+	public void removeStateObserver( Observer observer )
+	{
+		ALS.alDebugPrint("IRCConnection: Removed state observer " + observer);
+		stateObservers.deleteObserver( observer );
+	}
+
+	public void addCommandObserver( Observer observer )
+	{
+		ALS.alDebugPrint("IRCConnection: Added command observer " + observer);
+		commandObservers.addObserver( observer );
+	}
+
+	public void removeCommandObserver( Observer observer )
+	{
+		ALS.alDebugPrint("IRCConnection: Removed command observer " + observer);
+		commandObservers.deleteObserver( observer );
+	}
+
+
+	public State getState()
+	{
+		return state;
+	}
+
+	public ClientState getClientState()
+	{
+		return clientState;
+	}
+
+	/**
+	 * @param command Command we will send
+	 * @deprecated Use <code>sendCommand( OutCommand cmd )</code> instead.
+	 * @throws ClassCastException if command is not an OutCommand.
+	 * */
+	public void sendCommand( Command command )
+	{
+		sendCommand( (OutCommand)command );
+	}
+
+	/**
+	 * Accepts a command to be sent.  Sends the command to the
+	 * CommandSender.
+	 *
+	 * @param command Command we will send
+	 * */
+	public void sendCommand( OutCommand command )
+	{
+		commandSender.sendCommand( command );
+	}
+
+	/**
+	 * @return the first class in a chain of OutCommandProcessors.
+	 * */
+	public CommandSender getCommandSender()
+	{
+		return commandSender;
+	}
+
+	/**
+	 * @param sender sets the class that is responsible for sending commands.
+	 * */
+	public void setCommandSender( CommandSender sender )
+	{
+		this.commandSender = sender;
+	}
+
+	/**
+	 * @return "localhost"
+	 *
+	 * @deprecated Pending removal due to unspecified behaviour, use
+	 * getLocalAddress instead.
+	 *
+	 * */
+	public String getLocalhost()
+	{
+		return "localhost";
+	}
+
+	/**
+	 * @return the local address to which the socket is bound.
+	 * */
+	public InetAddress getLocalAddress()
+	{
+		return socket.getLocalAddress();
+	}
+
+	public String getRemotehost()
+	{
+		return clientState.getServer();
+	}
+
+	/**
+	 * Sets the time in milliseconds we wait after each command is sent.
+	 *
+	 * @param sleepTime Length of time to sleep between commands
+	 * */
+	public void setSendDelay( int sleepTime )
+	{
+		this.sendDelay = sleepTime;
+	}
+
+	/**
+	 * @since 0.3.2
+	 * @return a class that can schedule timer tasks.
+	 * */
+	public CronManager getCronManager()
+	{
+		if( cronManager == null )
+			cronManager = new CronManager();
+		return cronManager;
+	}
+
+	/**
+	 * Inserts into the event queue a command that was not directly
+	 * received from the server.
+	 *
+	 * @param fakeCommand Fake command to inject into incoming queue
+	 * */
+	public void injectCommand( String fakeCommand )
+	{
+		synchronized( eventMonitor )
+		{
+			localEventQueue.add( fakeCommand );
+			eventMonitor.notifyAll();
+		}
+	}
+
+	// ===== package methods =============================================
+
+	void socketError( IOException ioe )
+	{
+		ALS.alDebugPrint("Socket error called.");
+		//ALS.alDebugPrint("IRCConnection: The stack of the exception:", ioe);
+
+		ALS.alDebugPrint("Socket error", ioe);
+		disconnect();
+	}
+
+	/**
+	 * Splits a raw IRC command into three parts, the prefix, identifier,
+	 * and parameters.
+	 * @param wholeString String to be parsed
+	 * @return a String array with 3 components, {prefix,ident,params}.
+	 * */
+	public static String[] parseRawString( String wholeString )
+	{
+		String prefix = "";
+		String identifier;
+		String params = "";
+
+		StringTokenizer tokens = new StringTokenizer( wholeString, " " );
+
+		if( wholeString.charAt(0) == ':' )
+		{
+			prefix = tokens.nextToken();
+			prefix = prefix.substring( 1, prefix.length() );
+		}
+
+		identifier = tokens.nextToken();
+
+		if( tokens.hasMoreTokens() )
+		{
+			// The rest of the string
+			params = tokens.nextToken("");
+		}
+
+		String[] result = new String[3];
+		result[0] = prefix;
+		result[1] = identifier;
+		result[2] = params;
+
+		return result;
+	}
+
+	/**
+	 * Given the three parts of an IRC command, generates an object to
+	 * represent that command.
+	 *
+	 * @param prefix Prefix of command object
+	 * @param identifier ID of command
+	 * @param params Params of command
+	 * @return An InCommand object for the given command object
+	 * */
+	protected InCommand getCommandObject( String prefix, String identifier, String params )
+	{
+		InCommand command;
+
+		// Remember that commands are also factories.
+		InCommand commandFactory = commandRegister.getCommand( identifier );
+		if( commandFactory == null )
+		{
+			if( UnknownError.isError( identifier ) )
+			{
+				command = new UnknownError( identifier );
+				ALS.alDebugPrint("IRCConnection: Using " + command);
+			}
+			else if( UnknownReply.isReply( identifier ) )
+			{
+				command = new UnknownReply( identifier );
+				ALS.alDebugPrint("IRCConnection: Using " + command);
+			}
+			else
+			{
+				// The identifier doesn't map to a command.
+				ALS.alDebugPrint("IRCConnection: Unknown command");
+				command = new UnknownCommand();
+			}
+		}
+		else
+		{
+			command = commandFactory.parse( prefix, identifier, params);
+
+			if( command == null )
+			{
+				ALS.alDebugPrint("IRCConnection: CommandFactory[" + commandFactory + "] returned NULL");
+				return null;
+			}
+			ALS.alDebugPrint("IRCConnection: Using " + command);
+		}
+
+		return command;
+	}
+
+
+
+	/**
+	 * Executed by the event thread.
+	 *
+	 * @param wholeString String to be parsed and handled
+	 * */
+	void incomingCommand( String wholeString )
+	{
+
+		// 1) Parse out the command
+		String cmdBits[];
+
+		try
+		{
+			cmdBits = parseRawString( wholeString );
+		}
+		catch( Exception e )
+		{
+			// So.. we can't process the command.
+			// So we call the error handler.
+			handleUnparsableCommand( wholeString, e );
+			return;
+		}
+
+		String prefix = cmdBits[0];
+		String identifier = cmdBits[1];
+		String params = cmdBits[2];
+
+		// 2) Fetch command from factory
+		InCommand command = getCommandObject( prefix, identifier, params );
+		command.setSourceString( wholeString );
+
+		// Update the state and send out to commandObservers
+		localCommandUpdate( command );
+	}
+
+	protected void handleUnparsableCommand( String wholeString, Exception e )
+	{
+		ALS.alDebugPrint( "Unable to parse server message.", e );
+	}
+
+	/**
+	 * Called only in the event thread.
+	 *
+	 * @param command Command to update
+	 * */
+	private void localCommandUpdate( InCommand command )
+	{
+		// 3) Change the connection state if required
+		// This allows us to change from UNREGISTERED to REGISTERED and
+		// possibly back.
+		State cmdState = command.getState();
+		if( cmdState != State.UNKNOWN && cmdState != getState() )
+			setState( cmdState );
+
+		// TODO: Bug here?
+
+		// 4) Notify command observers
+		try
+		{
+			commandObservers.setChanged();
+			commandObservers.notifyObservers( command );
+		}
+		catch( Throwable e )
+		{
+			ALS.alDebugPrint("IRCConnection: Command notify failed.", e);
+		}
+
+	}
+
+	// ===== private variables ===========================================
+
+	/** Object used to send commands. */
+	private CommandSender commandSender;
+
+	private CronManager cronManager;
+
+	/** State of the session. */
+	private State state;
+
+	/**
+	 * Client state (our name, nick, groups, etc). Stored here mainly
+	 * because there isn't anywhere else to stick it.
+	 */
+	private ClientState clientState;
+
+	/**
+	 * Maintains a list of classes observing the state and notifies them
+	 * when it changes.
+	 */
+	private StateObserver stateObservers;
+
+	/**
+	 * Maintains a list of classes observing commands when they come in.
+	 */
+	private CommandObserver commandObservers;
+
+	/**
+	 * The actual socket used for communication.
+	 */
+	private Socket socket;
+
+	/**
+	 * Monitor access to socket.
+	 * */
+	private final Object socketMonitor = new Object();
+
+	/**
+	 * We want to prevent connecting and disconnecting at the same time.
+	 */
+	private final Object connectMonitor = new Object();
+
+	/**
+	 * This object should be notified if we want the main thread to check for
+	 * events.  An event is either an incoming message or a disconnect request.
+	 * Sending commands to the server is synchronized by the eventMonitor.
+	 */
+	private final Object eventMonitor = new Object();
+
+	/**
+	 * This tells the processEvents() method to check if we should disconnect
+	 * after processing all incoming messages.
+	 */
+	// Protected by:
+	// inputHandlerMonitor
+	// eventMonitor
+	// connectMonitor
+	private boolean disconnectPending = false;
+
+	/**
+	 * The writer to use for output.
+	 */
+	private BufferedWriter socketWriter;
+
+	/**
+	 * Command register, contains a list of commands that can be received
+	 * by the server and have matching Command objects.
+	 */
+	private CommandRegister commandRegister;
+
+	/**
+	 * Maintains a handle on the input handler.
+	 */
+	private InputHandler inputHandler;
+
+	/**
+	 * Access control for the input handler.
+	 */
+	private final Object inputHandlerMonitor = new Object();
+
+	/**
+	 * State queue keeps a queue of requests to switch state.
+	 */
+	private LinkedList<State> stateQueue;
+
+	/**
+	 * localEventQueue allows events not received from the server to be
+	 * processed.
+	 * */
+	private LinkedList<String> localEventQueue;
+
+	/**
+	 * Setting state prevents setState from recursing in an uncontrolled
+	 * manner.
+	 */
+	private boolean settingState = false;
+
+	/**
+	 * Event thread waits for events and executes them.
+	 */
+	private EventThread eventThread;
+
+	/**
+	 * Determines the time to sleep every time we send a message.  We do this
+	 * so that the server doesn't boot us for flooding.
+	 */
+	private int sendDelay = 300;
+
+	/**
+	 * connected just keeps track of whether we are connected or not.
+	 */
+	private boolean connected = false;
+
+	/**
+	 * Are we set to be a daemon thread?
+	 */
+	private boolean daemon = false;
+
+	// ===== private methods =============================================
+
+	/**
+	 * Unsafe, because this method can only be called by a method that has a lock
+	 * on connectMonitor.
+	 *
+	 * @param socket Socket to connect over
+	 * @param server Server to connect to
+	 * @throws IOException if connection fails
+	 */
+	private void connectUnsafe( Socket socket, String server )
+			throws IOException
+			{
+		synchronized(socketMonitor)
+		{
+			this.socket = socket;
+		}
+
+		socketWriter =
+				new BufferedWriter( new OutputStreamWriter(    socket.getOutputStream() ) );
+
+		/**
+		 * The reader to use for input.  Managed by the InputHandler.
+		 */
+		BufferedReader socketReader =
+				new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
+
+		// A simple thread that waits for input from the server and passes
+		// it off to the IRCConnection class.
+		//if( inputHandler != null )
+		//{
+		//    ALS.alDebugPrint("IRCConnection: Non-null input handler on connect!!");
+		//    return;
+		//}
+
+		synchronized( inputHandlerMonitor )
+		{
+			// Pending events get processed after a disconnect call, and there
+			// shouldn't be any events generated while disconnected, so it makes
+			// sense to test for this condition.
+			if( inputHandler != null && inputHandler.pendingMessages() )
+			{
+				ALS.alDebugPrint("IRCConnection: Tried to connect, but there are pending messages!");
+				return;
+			}
+
+			if( inputHandler != null && inputHandler.isAlive() )
+			{
+				ALS.alDebugPrint("IRCConnection: Tried to connect, but the input handler is still alive!");
+				return;
+			}
+
+			clientState.setServer( server );
+			clientState.setPort( socket.getPort() );
+
+			connected = true;
+
+			inputHandler = new InputHandler( socketReader, this, eventMonitor );
+			inputHandler.setDaemon( daemon );
+			inputHandler.start();
+		}
+		setState( State.UNREGISTERED );
+			}
+
+	private class EventThread extends Thread
+	{
+		private boolean doShutdown = false;
+
+		public EventThread()
+		{
+			super("EventThread");
+		}
+
+		@Override
+		public void run()
+		{
+			handleEvents();
+		}
+
+		public void shutdown()
+		{
+			synchronized(eventMonitor)
+			{
+				this.doShutdown = true;
+				eventMonitor.notifyAll();
+			}
+		}
+
+		private void handleEvents()
+		{
+			try
+			{
+				while( true )
+				{
+					// Process all events in the event queue.
+					ALS.alDebugPrint("IRCConnection: Processing events");
+					while( processEvents() ) { }
+
+					// We can't process events while synchronized on the
+					// eventMonitor because we may end up in deadlock.
+					synchronized( eventMonitor )
+					{
+						if( !doShutdown && !pendingEvents() )
+						{
+							eventMonitor.wait();
+						}
+
+						if( doShutdown )
+						{
+							return;
+						}
+					}
+				}
+			}
+			catch( InterruptedException ie )
+			{
+				ALS.alDebugPrint( "Interrupted while handling events.", ie );
+				// And we do what?
+				// We die, that's what we do.
+			}
+		}
+
+		public void doStop()
+		{
+			shutdown();
+		}
+
+		@Override
+		public String toString()
+		{
+			return "EventThread";
+		}
+	}
+
+	/**
+	 * This method synchronizes on the inputHandlerMonitor.  Note that if
+	 * additional event types are processed, they also need to be added to
+	 * pendingEvents().
+	 * @return true if events were processed, false if there were no events to
+	 * process.
+	 */
+	private boolean processEvents()
+	{
+		boolean events = false;
+
+		// the inputHandlerMonitor here serves two purposes: To protect
+		// from inputHandler changes and to ensure only one thread is
+		// operating in processEvents.
+		//
+		// Perhaps a different monitor should be used?
+		synchronized( inputHandlerMonitor )
+		{
+			while( inputHandler != null && inputHandler.pendingMessages() )
+			{
+				String msg = inputHandler.getMessage();
+				incomingCommand( msg );
+				events = true;
+			}
+
+			while( localEventQueue != null && !localEventQueue.isEmpty() )
+			{
+				String msg = localEventQueue.removeFirst();
+				incomingCommand( msg );
+				events = true;
+			}
+
+			if( disconnectPending )
+			{
+				ALS.alDebugPrint("IRCConnection: Process events: Disconnect pending.");
+				doDisconnect();
+				events = true;
+			}
+		}
+
+		return events;
+	}
+
+	/**
+	 * Does no synchronization on its own.  This does not synchronize on
+	 * any of the IRCConnection monitors or objects and returns after making a
+	 * minimum of method calls.
+	 * @return true if there are pending events that need processing.
+	 */
+	private boolean pendingEvents()
+	{
+		if( inputHandler != null && inputHandler.pendingMessages() )
+			return true;
+		if( disconnectPending )
+			return true;
+		if( localEventQueue != null && !localEventQueue.isEmpty() )
+			return true;
+
+		return false;
+	}
+
+	// Synchronized by inputHandlerMonitor, called only from processEvents.
+	private void doDisconnect()
+	{
+		synchronized( connectMonitor )
+		{
+			disconnectPending = false;
+
+			if( !connected )
+			{
+				return;
+			}
+			connected = false;
+
+			try
+			{
+				final long startTime = System.currentTimeMillis();
+				final long sleepTime = 1000;
+				final long stopTime = startTime + sleepTime;
+				ALS.alDebugPrint("IRCConnection: Sleeping for a bit ("
+						+ sleepTime + ")..");
+				// Slow things down a bit so the server doesn't kill us
+				// Also, we want to give a second to let any pending messages
+				// get processed and any pending disconnect() calls to be made.
+				// It is important that we use wait instead of sleep!
+				while( stopTime - System.currentTimeMillis() > 0 )
+				{
+					connectMonitor.wait( stopTime - System.currentTimeMillis() );
+				}
+			}
+			catch( InterruptedException ie )
+			{
+				// Ignore
+			}
+
+			ALS.alDebugPrint("IRCConnection: Stopping input handler.");
+			// Deprecated?
+			// inputHandler.stop();
+			// inputHandler = null;
+
+			ALS.alDebugPrint("IRCConnection: Closing socket.");
+			try
+			{
+				socket.close();
+			}
+			catch( IOException ioe )
+			{
+				// And we are supposed to do what?
+				// This probably means we've called disconnect on a closed
+				// socket.
+				handleSocketCloseException( ioe );
+				return;
+			}
+			finally
+			{
+				connected = false;
+			}
+		}
+
+		// The input handler should die, because we closed the socket.
+		// We'll wait for it to die.
+		synchronized( inputHandlerMonitor )
+		{
+			ALS.alDebugPrint("IRCConnection: Waiting for the input handler to die..");
+			try
+			{
+				// ALS.alDebugPrint("IRCConnection: Stack:");
+
+				if( inputHandler.isAlive() )
+					inputHandler.join();
+				else
+				{
+					ALS.alDebugPrint("IRCConnection: No waiting required, input hander is already dead.");
+				}
+			}
+			catch( InterruptedException ie )
+			{
+				ALS.alDebugPrint("IRCConnection: Error in join(): " + ie);
+			}
+			ALS.alDebugPrint("IRCConnection: Done waiting for the input handler to die.");
+		}
+
+
+		// There may be pending messages that we should process before we
+		// actually notify all the state listeners.
+		processEvents();
+
+		// It is important that the state be switched last.  One of the
+		// state listeners may try to re-connect us.
+		setState( State.UNCONNECTED );
+
+	}
+
+	protected void handleSocketCloseException( IOException ioe )
+	{
+		ALS.alDebugPrint( "Error closing socket.", ioe );
+	}
+
+	/**
+	 * Signals to trigger a state change.  Won't actually send a state change
+	 * until a previous attempt at changing the state finishes.  This is
+	 * important if one of the state listeners affects the state (ie tries to
+	 * reconnect if we disconnect, etc).
+	 *
+	 * @param newState New state to set connection to.
+	 */
+	private void setState( State newState )
+	{
+		if( settingState )
+		{
+			// We are already setting the state.  We want to complete changing
+			// to one state before changing to another, so that we don't have
+			// out-of-order state change signals.
+			stateQueue.addLast( newState );
+			return;
+		}
+
+		settingState = true;
+
+		if( state == newState )
+			return;
+
+		while( true )
+		{
+			state = newState;
+
+			try
+			{
+				stateObservers.setChanged();
+				stateObservers.notifyObservers( newState );
+			}
+			catch( Throwable e )
+			{
+				ALS.alDebugPrint("IRCConnection: State update failed.", e);
+			}
+
+			if( stateQueue.isEmpty() )
+				break;
+			newState = stateQueue.removeFirst();
+		}
+
+		settingState = false;
+	}
+
+	private class DefaultCommandSender implements CommandSender
+	{
+		@Override
+		public CommandSender getNextCommandSender()
+		{
+			return null;
+		}
+
+		@Override
+		public void sendCommand( OutCommand oc )
+		{
+			finalSendCommand( oc.render() );
+		}
+	}
+
+	/**
+	 * Sends the command down the socket, with the required 'CRLF' on the
+	 * end.  Waits for a little bit after sending the command so that we don't
+	 * accidentally flood the server.
+	 *
+	 * @param str String to send
+	 */
+	private void finalSendCommand( String str )
+	{
+		try
+		{
+			synchronized( eventMonitor )
+			{
+
+				if( disconnectPending )
+				{
+					ALS.alDebugPrint("IRCConnection: Send cancelled, disconnect pending.");
+					return;
+				}
+
+				socketWriter.write( str + "\r\n" );
+				socketWriter.flush();
+
+				try
+				{
+					// Slow things down a bit so the server doesn't kill us
+					// We do this after the send so that if the send fails the
+					// exception is handled right away.
+					Thread.sleep( sendDelay );
+				}
+				catch( InterruptedException ie )
+				{
+					// Ignore
+				}
+			}
+		}
+		catch( IOException ioe )
+		{
+			socketError( ioe );
+		}
+	}
+	// ----- END IRCConnection -------------------------------------------
 }

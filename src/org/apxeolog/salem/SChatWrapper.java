@@ -7,6 +7,9 @@ import java.util.Hashtable;
 import org.apxeolog.salem.config.ChatConfig;
 import org.apxeolog.salem.config.ChatConfig.ChannelTypes;
 import org.apxeolog.salem.config.ChatConfig.ChatModeInfo;
+import org.apxeolog.salem.config.XConfig;
+import org.apxeolog.salem.irc.IRCProvider;
+import org.apxeolog.salem.irc.RegisteredListener;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.apxeolog.salem.utils.STextProcessor.NodeAttribute;
 import org.apxeolog.salem.utils.STextProcessor.ProcessedText;
@@ -57,10 +60,12 @@ public class SChatWrapper {
 
 	public static void bindGameUI(GameUI gui) {
 		gameUI = gui;
+		if (XConfig.mp_irc_autoconnect) startIRCProvider();
 	}
 
 	public static void unbindGameUI() {
 		gameUI = null;
+		if (ircProvider != null) ircProvider.disconnect();
 	}
 
 	public static ChannelTypes getChatType(int wdgId, Widget gui) {
@@ -145,6 +150,41 @@ public class SChatWrapper {
 
 	public static int getLastPMWidget() {
 		return lastPMWdgId;
+	}
+
+	protected static IRCProvider ircProvider = null;
+
+	public static void startIRCProvider() {
+		if (ircProvider == null) {
+			ircProvider = IRCProvider.ircConnect(new RegisteredListener() {
+				@Override
+				public void onRegister() {
+					joinIRCChannels();
+					IRCMessage("salem", "Connected!");
+				}
+			});
+		}
+	}
+
+	public static void joinIRCChannels() {
+		if (ircProvider == null || !ircProvider.isReady()) return;
+		for (Pair<String, String> pair : ChatConfig.getIRCChannels()) {
+			ALS.alDebugPrint("ALS JOIN", pair.getFirst());
+			ircProvider.joinChannel(pair.getFirst(), pair.getSecond());
+		}
+	}
+
+	public static void IRCMessage(String channel, String msg) {
+		if (gameUI != null) {
+			ALS.alDebugPrint("IRC ADD MSG", channel, msg);
+			gameUI.bdsChatB.addString(msg, ChannelTypes.IRC, channel);
+		}
+	}
+
+	public static void sendIRCMessage(String text, String channel) {
+		if (ircProvider != null && ircProvider.isReady()) {
+			ircProvider.say(channel, text);
+		}
 	}
 
 	public static void sendMessage(int wdgId, String text) {

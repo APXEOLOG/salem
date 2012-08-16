@@ -353,6 +353,10 @@ public class SWindow extends Widget {
 		parent.setfocus(this);
 	}
 
+	public String getTitle() {
+		return windowHeader.getText();
+	}
+
 	public void setResizable(boolean resizable) {
 		allowResize = resizable;
 		if (allowResize) {

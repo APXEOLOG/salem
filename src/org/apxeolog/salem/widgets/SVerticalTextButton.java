@@ -14,6 +14,9 @@ public class SVerticalTextButton extends Widget {
 
 	protected boolean pressed = false;
 	protected Text rendered = null;
+	protected boolean selected = false;
+	protected boolean notify = false;
+	protected Object data;
 
 	public SVerticalTextButton(Coord c, Coord sz, Widget parent, String title) {
 		super(c, sz, parent);
@@ -21,13 +24,40 @@ public class SVerticalTextButton extends Widget {
 		resize(rendered.sz().add(2, 8));
 	}
 
+	public void setData(Object dat) {
+		data = dat;
+	}
+
+	public Object getData() {
+		return data;
+	}
+
 	public void click() {
 
 	}
 
+	public void select() {
+		selected = true;
+		notify = false;
+	}
+
+	public void unselect() {
+		selected = false;
+	}
+
+	public void setnotify() {
+		if (!selected)
+			notify = true;
+	}
+
 	@Override
 	public void draw(GOut initialGL) {
-		initialGL.chcolor(0, 0, 0, 128);
+		if (selected)
+			initialGL.chcolor(100, 100, 100, 128);
+		else
+			initialGL.chcolor(0, 0, 0, 128);
+		if (notify)
+			initialGL.chcolor(255, 255, 100, 128);
 		initialGL.frect(Coord.z, sz);
 		initialGL.chcolor(255, 255, 255, 255);
 		initialGL.rect(Coord.z, sz);
@@ -48,8 +78,10 @@ public class SVerticalTextButton extends Widget {
 		if (pressed && button == 1) {
 			pressed = false;
 			ui.grabmouse(null);
-			if (c.isect(new Coord(0, 0), sz))
+			if (c.isect(new Coord(0, 0), sz)) {
+				select();
 				click();
+			}
 			return (true);
 		}
 		return (false);

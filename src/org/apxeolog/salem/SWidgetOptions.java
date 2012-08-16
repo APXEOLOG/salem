@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-
 import org.apxeolog.salem.config.MinimapHighlightConfig;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
 import org.apxeolog.salem.config.ToolbarsConfig.SToolbarConfigSlot;
@@ -223,6 +222,54 @@ public class SWidgetOptions extends Hidewnd {
 
 		}
 
+
+		{ /* IRC TAB */
+			tab = body.new Tab(new Coord(230, 10), 70, "IRC") {
+				@Override
+				public void draw(GOut g) {
+					g.chcolor(255, 255, 255, 255);
+					g.rect(Coord.z, sz.add(1, 1));
+					super.draw(g);
+				}
+			};
+
+			new Label(new Coord(20, 40), tab, "Enter IRC settings here. All changes will be saved.");
+			new Label(new Coord(20, 60), tab, "IRC Server:");
+			new TextEntry(new Coord(20, 80), new Coord(100, 20), tab, XConfig.mp_irc_server) {
+				@Override
+				public void changed() {
+					XConfig.mp_irc_server = this.text;
+				}
+			};
+			new Label(new Coord(20, 100), tab, "Username:");
+			new TextEntry(new Coord(20, 120), new Coord(100, 20), tab, XConfig.mp_irc_username) {
+				@Override
+				public void changed() {
+					XConfig.mp_irc_username = this.text;
+				}
+			};
+			new Label(new Coord(130, 100), tab, "Password:");
+			new TextEntry(new Coord(130, 120), new Coord(100, 20), tab, XConfig.mp_irc_password) {
+				@Override
+				public void changed() {
+					XConfig.mp_irc_password = this.text;
+				}
+			};
+
+			CheckBox checkb = new CheckBox(new Coord(20, 180), tab, "Connect automatically") {
+				@Override
+				public void changed(boolean val) {
+					XConfig.mp_irc_autoconnect = val;
+				}
+			};
+			checkb.set(XConfig.mp_irc_autoconnect);
+			new Button(new Coord(40, 200), 50, tab, "Connect") {
+				@Override
+				public void click() {
+					SChatWrapper.startIRCProvider();
+				}
+			};
+		}
 
 		{ /* General TAB */
 			GameUI gui = getparent(GameUI.class);

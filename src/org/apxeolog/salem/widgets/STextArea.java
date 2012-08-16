@@ -31,7 +31,7 @@ public class STextArea extends Widget {
 		ProcessedText txt = STextProcessor.fromString(str);
 		txt.pack(sz);
 		textBuffer.add(txt);
-		if (appendMode) scrollAmount = getMaxScrollAmount() + 10;
+		if (appendMode) scrollAmount += txt.getHeight();
 	}
 
 	public void clear() {
