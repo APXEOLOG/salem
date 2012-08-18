@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import haven.Coord;
 import haven.FoodInfo;
@@ -14,7 +14,8 @@ import haven.Widget;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import org.apxeolog.salem.SInterfaces.ITempers;
+import org.apxeolog.salem.utils.SInterfaces;
+import org.apxeolog.salem.utils.SInterfaces.ITempers;
 
 public class STempers extends ITempers {
 	public static final String[] stat_uniq = { "blood", "phlegm", "ybile", "bbile" };

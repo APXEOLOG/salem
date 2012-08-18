@@ -34,8 +34,8 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import org.apxeolog.salem.SMapper;
-import org.apxeolog.salem.SUtils;
 import org.apxeolog.salem.config.XConfig;
+import org.apxeolog.salem.utils.SUtils;
 
 public class LocalMiniMap extends Widget {
 	public final MapView mv;

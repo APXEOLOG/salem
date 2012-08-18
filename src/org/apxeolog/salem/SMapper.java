@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.imageio.ImageIO;
 
 import org.apxeolog.salem.config.XConfig;
+import org.apxeolog.salem.utils.Pair;
 
 public class SMapper {
 	private static SMapper instance = null;

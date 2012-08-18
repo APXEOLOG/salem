@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import haven.Coord;
 import haven.GOut;
@@ -14,10 +14,12 @@ import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.config.UIConfig;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.XMLConfigProvider;
 import org.apxeolog.salem.config.UIConfig.WidgetState;
+import org.apxeolog.salem.utils.SSimpleBorderBox;
 
 public class SWindow extends Widget {
 	public static final int HEADER_ALIGN_CENTER = 1;

@@ -8,11 +8,11 @@ import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.config.XConfig;
 
 import f00f.net.irc.martyr.IRCConnection;
+import f00f.net.irc.martyr.OutCommand;
 import f00f.net.irc.martyr.State;
 import f00f.net.irc.martyr.clientstate.Channel;
 import f00f.net.irc.martyr.clientstate.ClientState;
 import f00f.net.irc.martyr.clientstate.Member;
-import f00f.net.irc.martyr.commands.ActionCtcp;
 import f00f.net.irc.martyr.commands.JoinCommand;
 import f00f.net.irc.martyr.commands.MessageCommand;
 import f00f.net.irc.martyr.services.AutoReconnect;
@@ -68,8 +68,8 @@ public class IRCProvider {
 		connection.sendCommand(new MessageCommand(connection.getClientState().getChannel(channel).getName(), msg));
 	}
 
-	public void sayAction(String msg) {
-		connection.sendCommand(new ActionCtcp(mainChannel.getName(), msg));
+	public void sendCommand(String channel, OutCommand command) {
+		connection.sendCommand(command);
 	}
 
 	public void setRegisteredListener(RegisteredListener listener) {
@@ -82,40 +82,7 @@ public class IRCProvider {
 	}
 
 	public void incomingMessage(MessageCommand msg) {
-
-		String sayCommand = "say ";
-		String meCommand = "me ";
-		String kickCommand = "kick ";
-		String quitCommand = "quit ";
-		String opCommand = "op";
-		String setSecret = "setsecret";
-		String showSecret = "showsecret";
-
-		String message = msg.getMessage();
-		SChatWrapper.IRCMessage(msg.getDest(), msg.getMessage());
-		ALS.alDebugPrint("als", message, msg);
-		ALS.alDebugPrint(msg.getDest(), msg.getIrcIdentifier(), msg.getSourceString());
-		/*StringTokenizer tokenizer = new StringTokenizer(message);
-		// First, remove the command.
-		String commandStr = tokenizer.nextToken().toLowerCase();
-
-		if (message.toLowerCase().startsWith("say")) {
-			// We have a 'say' command
-			String sayString = getParameter(message, sayCommand);
-			SChatWrapper.IRCMessage(msg.getDest(), msg.getSource().getNick() + ": " + sayString);
-		} else if (message.toLowerCase().startsWith(meCommand)) {
-			// we have a 'me' command
-			String sayString = getParameter(message, meCommand);
-			sayAction(sayString);
-		} else {
-			// Umm..
-			connection.sendCommand(new MessageCommand(msg.getSource(),
-					"Bad syntax: " + message));
-		}*/
-	}
-
-	private String getParameter(String raw, String command) {
-		return raw.substring(command.length(), raw.length());
+		SChatWrapper.IRCMessage(msg.getDest(), msg.getSource().getNick() + ": " + msg.getMessage());
 	}
 
 	public void disconnect() {

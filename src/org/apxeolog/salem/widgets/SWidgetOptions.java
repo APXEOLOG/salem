@@ -24,7 +24,7 @@
  *  Boston, MA 02111-1307 USA
  */
 
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import haven.Audio;
 import haven.Button;
@@ -50,6 +50,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+
+import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.config.MinimapHighlightConfig;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
 import org.apxeolog.salem.config.ToolbarsConfig.SToolbarConfigSlot;

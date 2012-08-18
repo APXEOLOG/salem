@@ -1,12 +1,9 @@
 package org.apxeolog.salem.irc;
 
-import org.apxeolog.salem.ALS;
-
 import f00f.net.irc.martyr.GenericAutoService;
 import f00f.net.irc.martyr.InCommand;
 import f00f.net.irc.martyr.State;
 import f00f.net.irc.martyr.commands.MessageCommand;
-import f00f.net.irc.martyr.replies.NamesEndReply;
 
 public class MessageMonitor extends GenericAutoService
 {
@@ -20,13 +17,9 @@ public class MessageMonitor extends GenericAutoService
 
 	@Override
 	public void updateCommand(InCommand command) {
-		ALS.alDebugPrint("com", command);
 		if(command instanceof MessageCommand) {
 			MessageCommand msg = (MessageCommand)command;
 			provider.incomingMessage(msg);
-		}
-		else if(command instanceof NamesEndReply) {
-			provider.printMembers();
 		}
 	}
 

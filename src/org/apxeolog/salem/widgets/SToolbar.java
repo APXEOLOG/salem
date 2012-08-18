@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.config.ToolbarsConfig;
 import org.apxeolog.salem.config.ToolbarsConfig.SToolbarConfigSlot;
 

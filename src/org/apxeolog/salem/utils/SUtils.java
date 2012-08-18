@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.utils;
 
 import haven.Composite;
 import haven.Coord;
@@ -23,6 +23,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+
+import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.config.MinimapHighlightConfig;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
 

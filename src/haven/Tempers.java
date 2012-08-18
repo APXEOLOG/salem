@@ -28,7 +28,7 @@ package haven;
 
 import java.awt.Color;
 
-import org.apxeolog.salem.SInterfaces.ITempers;
+import org.apxeolog.salem.utils.SInterfaces.ITempers;
 
 public class Tempers extends ITempers {
 	public static final Tex bg = Resource.loadtex("gfx/hud/tempers");

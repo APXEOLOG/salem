@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
-import org.apxeolog.salem.Pair;
+import org.apxeolog.salem.utils.Pair;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

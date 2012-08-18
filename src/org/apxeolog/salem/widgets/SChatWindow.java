@@ -1,30 +1,31 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.config.ChatConfig;
 import org.apxeolog.salem.config.ChatConfig.ChatModeInfo;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.ChatConfig.ChannelTypes;
 import org.apxeolog.salem.config.ChatConfig.ChatTabConfig;
+import org.apxeolog.salem.utils.Pair;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.apxeolog.salem.utils.STextProcessor.ProcessedText;
-import org.apxeolog.salem.widgets.STextArea;
-import org.apxeolog.salem.widgets.SVerticalTextButton;
 
 import haven.Coord;
 import haven.GameUI;
 import haven.Text;
 import haven.Widget;
 
-public class SChatWindowB extends SWindow {
+public class SChatWindow extends SWindow {
 	protected HashMap<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> chatWidgets;
 	protected Pair<SVerticalTextButton, STextArea> currentTab = null;
 	protected SLineEdit lineEdit = null;
 
-	public SChatWindowB(Coord c, Coord sz, Widget parent, String cap) {
+	public SChatWindow(Coord c, Coord sz, Widget parent, String cap) {
 		super(c, sz, parent, cap);
 		chatWidgets = new HashMap<ChatConfig.ChatTabConfig, Pair<SVerticalTextButton,STextArea>>();
 		// Load tabs

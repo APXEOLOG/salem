@@ -26,7 +26,7 @@
 
 package haven;
 
-import org.apxeolog.salem.SWindow;
+import org.apxeolog.salem.widgets.SWindow;
 
 public class HelpWnd extends SWindow {
     public static final RichText.Foundry fnd;

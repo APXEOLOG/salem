@@ -10,10 +10,12 @@ import org.apxeolog.salem.config.ChatConfig.ChatModeInfo;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.irc.IRCProvider;
 import org.apxeolog.salem.irc.RegisteredListener;
+import org.apxeolog.salem.utils.Pair;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.apxeolog.salem.utils.STextProcessor.NodeAttribute;
 import org.apxeolog.salem.utils.STextProcessor.ProcessedText;
 
+import f00f.net.irc.martyr.commands.RawCommand;
 import haven.BuddyWnd;
 import haven.Config;
 import haven.GameUI;
@@ -183,8 +185,21 @@ public class SChatWrapper {
 
 	public static void sendIRCMessage(String text, String channel) {
 		if (ircProvider != null && ircProvider.isReady()) {
+			if (text.startsWith("/")) {
+				// Command
+				String command = text.substring(1, text.indexOf(' '));
+				String params = text.substring(text.indexOf(' '));
+				RawCommand raw = new RawCommand(command, params);
+				ircProvider.sendCommand(channel, raw);
+				ALS.alDebugPrint(raw);
+
+			}
 			ircProvider.say(channel, text);
 		}
+	}
+
+	public static void ircLogToChat(String text) {
+		IRCMessage("#salem", text);
 	}
 
 	public static void sendMessage(int wdgId, String text) {

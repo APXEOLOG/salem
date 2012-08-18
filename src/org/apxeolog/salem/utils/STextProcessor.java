@@ -23,7 +23,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apxeolog.salem.ALS;
-import org.apxeolog.salem.Triplet;
 
 public class STextProcessor {
 	public static final Color DEFAULT = Color.WHITE;
@@ -57,10 +56,7 @@ public class STextProcessor {
 	}
 
 	public static Rectangle2D getStringBounds(String str, Font fnt) {
-		if (STANDALONE.getFont() != fnt) {
-			ALS.alDebugPrint("set fnt");
-			STANDALONE.setFont(fnt);
-		}
+		STANDALONE.setFont(fnt);
 		return STANDALONE.getFontMetrics().getStringBounds(str, STANDALONE);
 	}
 

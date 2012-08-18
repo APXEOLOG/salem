@@ -79,11 +79,12 @@ public class STextArea extends Widget {
 	}
 
 	private int getMaxScrollAmount() {
-		double amount = 0;
+		double amount = 0; double med = 1;
 		for (int i = 0; i < textBuffer.size(); i++) {
+			if (i == 0) med = textBuffer.get(i).getHeight();
 			amount += textBuffer.get(i).getHeight();
 		}
-		return (int)Math.max(amount - sz.y, 0);
+		return (int)Math.max(amount - ((int)(sz.y / med)) * med, 0);
 	}
 
 	@Override

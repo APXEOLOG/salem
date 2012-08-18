@@ -31,7 +31,7 @@ import java.util.*;
 import java.text.Collator;
 
 import org.apxeolog.salem.SChatWrapper;
-import org.apxeolog.salem.SWindow;
+import org.apxeolog.salem.widgets.SWindow;
 
 public class BuddyWnd extends SWindow implements Iterable<BuddyWnd.Buddy> {
 	private List<Buddy> buddies = new ArrayList<Buddy>();

@@ -30,8 +30,8 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.apxeolog.salem.Pair;
-import org.apxeolog.salem.SUtils;
+import org.apxeolog.salem.utils.Pair;
+import org.apxeolog.salem.utils.SUtils;
 
 public class LoginScreen extends Widget {
 	Login cur;

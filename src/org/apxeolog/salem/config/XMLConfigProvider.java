@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.apxeolog.salem.ALS;
-import org.apxeolog.salem.FileUtils;
-import org.apxeolog.salem.HXml;
+import org.apxeolog.salem.utils.FileUtils;
+import org.apxeolog.salem.utils.HXml;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

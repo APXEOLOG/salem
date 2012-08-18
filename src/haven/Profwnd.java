@@ -28,7 +28,7 @@ package haven;
 
 import java.util.*;
 
-import org.apxeolog.salem.SWindow;
+import org.apxeolog.salem.widgets.SWindow;
 
 public class Profwnd extends SWindow {
     public final Profile prof;

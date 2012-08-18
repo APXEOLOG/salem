@@ -37,10 +37,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apxeolog.salem.SWindow;
 import org.apxeolog.salem.config.UIConfig;
 import org.apxeolog.salem.config.XMLConfigProvider;
 import org.apxeolog.salem.config.UIConfig.WidgetState;
+import org.apxeolog.salem.widgets.SWindow;
 
 @SuppressWarnings("serial")
 public class CharWnd extends SWindow {

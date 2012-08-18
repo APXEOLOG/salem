@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import haven.Coord;
 import haven.GOut;
@@ -10,7 +10,8 @@ import haven.Widget;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import org.apxeolog.salem.SInterfaces.IGobble;
+import org.apxeolog.salem.utils.SInterfaces;
+import org.apxeolog.salem.utils.SInterfaces.IGobble;
 
 public class SGobble extends IGobble {
 	protected int[] currentVals = new int[4];

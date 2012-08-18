@@ -1,6 +1,7 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import java.awt.Color;
+
 
 import haven.Coord;
 import haven.GOut;

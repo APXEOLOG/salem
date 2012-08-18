@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
