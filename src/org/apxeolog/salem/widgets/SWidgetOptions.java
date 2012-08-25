@@ -24,11 +24,12 @@
  *  Boston, MA 02111-1307 USA
  */
 
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import haven.Audio;
 import haven.Button;
 import haven.CheckBox;
+import haven.Config;
 import haven.Coord;
 import haven.GOut;
 import haven.GameUI;
@@ -51,9 +52,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.config.MinimapHighlightConfig;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
-import org.apxeolog.salem.config.ToolbarsConfig.SToolbarConfigSlot;
+import org.apxeolog.salem.config.ToolbarsConfig.TBSlot;
 import org.apxeolog.salem.config.ToolbarsConfig;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.XMLConfigProvider;
@@ -224,6 +226,54 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 
+		{ /* IRC TAB */
+			tab = body.new Tab(new Coord(250, 10), 70, "IRC") {
+				@Override
+				public void draw(GOut g) {
+					g.chcolor(255, 255, 255, 255);
+					g.rect(Coord.z, sz.add(1, 1));
+					super.draw(g);
+				}
+			};
+
+			new Label(new Coord(20, 40), tab, "Enter IRC settings here. All changes will be saved.");
+			new Label(new Coord(20, 60), tab, "IRC Server:");
+			new TextEntry(new Coord(20, 80), new Coord(100, 20), tab, XConfig.mp_irc_server) {
+				@Override
+				public void changed() {
+					XConfig.mp_irc_server = this.text;
+				}
+			};
+			new Label(new Coord(20, 100), tab, "Username:");
+			new TextEntry(new Coord(20, 120), new Coord(100, 20), tab, XConfig.mp_irc_username.isEmpty() ? Config.currentCharName : XConfig.mp_irc_username) {
+				@Override
+				public void changed() {
+					XConfig.mp_irc_username = this.text;
+				}
+			};
+			new Label(new Coord(130, 100), tab, "Password:");
+			new TextEntry(new Coord(130, 120), new Coord(100, 20), tab, XConfig.mp_irc_password) {
+				@Override
+				public void changed() {
+					XConfig.mp_irc_password = this.text;
+				}
+			};
+
+			CheckBox checkb = new CheckBox(new Coord(20, 140), tab, "Connect automatically") {
+				@Override
+				public void changed(boolean val) {
+					XConfig.mp_irc_autoconnect = val;
+				}
+			};
+			checkb.set(XConfig.mp_irc_autoconnect);
+			new Button(new Coord(20, 180), 50, tab, "Connect") {
+				@Override
+				public void click() {
+					SChatWrapper.startIRCProvider();
+				}
+			};
+		}
+
 		{ /* General TAB */
 			GameUI gui = getparent(GameUI.class);
 			ftab = tab = body.new Tab(new Coord(10, 10), 70, "General") {
@@ -358,11 +408,11 @@ public class SWidgetOptions extends Hidewnd {
 					XConfig.cl_use_new_chat = val;
 					XMLConfigProvider.save();
 					GameUI ui = getparent(GameUI.class);
-					if (ui.bdsChat != null) {
+					if (ui.bdsChatB != null) {
 						if (XConfig.cl_use_new_chat) {
-							ui.bdsChat.show();
+							ui.bdsChatB.show();
 						} else {
-							ui.bdsChat.hide();
+							ui.bdsChatB.hide();
 						}
 					}
 				}
@@ -738,7 +788,7 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		public void setSlot(int mode, int key) {
-			SToolbarConfigSlot slot = getSelectedSlot();
+			TBSlot slot = getSelectedSlot();
 			if (slot != null) {
 				slot.sKey = key;
 				slot.sMode = mode;
@@ -758,13 +808,13 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		public void addSlot(int mode, int key) {
-			SToolbarConfigSlot slot = new SToolbarConfigSlot(mode, key);
+			TBSlot slot = new TBSlot(mode, key);
 			if (assocedToolbar != null)
 				assocedToolbar.slotList.add(slot);
 			scrollbar.max = size() - iCannotRememberWhyDoINeedThisVariable;
 		}
 
-		public SToolbarConfigSlot getSelectedSlot() {
+		public TBSlot getSelectedSlot() {
 			if (selectedIndex >= 0 && selectedIndex < size()) return assocedToolbar.slotList.get(selectedIndex);
 			return null;
 		}
@@ -790,7 +840,7 @@ public class SWidgetOptions extends Hidewnd {
 
 			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
 				if (i + scrollbar.val >= size()) continue;
-				SToolbarConfigSlot hl = assocedToolbar.slotList.get(i + scrollbar.val);
+				TBSlot hl = assocedToolbar.slotList.get(i + scrollbar.val);
 				if (i + scrollbar.val == selectedIndex) {
 					g.chcolor(255, 255, 0, 128);
 					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));

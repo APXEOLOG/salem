@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.utils;
 
 import haven.Composite;
 import haven.Coord;
@@ -23,6 +23,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+
+import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.Pair;
 import org.apxeolog.salem.config.MinimapHighlightConfig;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
 
@@ -94,7 +97,7 @@ public class SUtils {
 		}
 
 		@Override
-		public Object tooltip(Coord c, boolean again) {
+		public Object tooltip(Coord c, Widget prev) {
 			Gob gob = ui.sess.glob.oc.getgob(id);
 			if (gob != null)
 				return hInfo.getTooltip(gob);

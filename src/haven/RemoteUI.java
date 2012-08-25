@@ -26,6 +26,9 @@
 
 package haven;
 
+import org.apxeolog.salem.SChatWrapper;
+import org.apxeolog.salem.config.ChatConfig.ChannelTypes;
+
 public class RemoteUI implements UI.Receiver {
 	Session sess;
 	UI ui;
@@ -35,6 +38,7 @@ public class RemoteUI implements UI.Receiver {
 		Widget.initbardas();
 	}
 
+	@Override
 	public void rcvmsg(int id, String name, Object... args) {
 		Message msg = new Message(Message.RMSG_WDGMSG);
 		msg.adduint16(id);
@@ -59,6 +63,14 @@ public class RemoteUI implements UI.Receiver {
 						pargs[0] = ui.root.sz.sub(800, 600).div(2);
 					}
 					ui.newwidget(id, type, parent, pargs, cargs);
+					if (type.equals("pmchat")) {
+						if (SChatWrapper.isWaitingForChat()) {
+							GameUI gui = ui.root.findchild(GameUI.class);
+							if (gui != null) {
+								gui.bdsChatB.showLine(id, ChannelTypes.PM);
+							}
+						}
+					}
 				} else if (msg.type == Message.RMSG_WDGMSG) {
 					int id = msg.uint16();
 					String name = msg.string();

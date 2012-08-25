@@ -26,20 +26,25 @@
 
 package haven;
 
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.util.*;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import haven.Resource.Tileset;
-import java.util.zip.Inflater;
 
 public class MCache {
 	public static final Coord tilesz = new Coord(11, 11);
 	public static final Coord cmaps = new Coord(100, 100);
 	public static final Coord cutsz = new Coord(25, 25);
 	public static final Coord cutn = cmaps.div(cutsz);
-	public final Resource[] sets = new Resource[256];
-	private final Tileset[] csets = new Tileset[256];
-	private final Tiler[] tiles = new Tiler[256];
+	private final Resource.Spec[] nsets = new Resource.Spec[256];
+	@SuppressWarnings("unchecked")
+	private final Reference<Resource>[] sets = new Reference[256];
+	@SuppressWarnings("unchecked")
+	private final Reference<Tileset>[] csets = new Reference[256];
+	@SuppressWarnings("unchecked")
+	private final Reference<Tiler>[] tiles = new Reference[256];
 	Map<Coord, Request> req = new HashMap<Coord, Request>();
 	Map<Coord, Grid> grids = new HashMap<Coord, Grid>();
 	Session sess;
@@ -48,25 +53,28 @@ public class MCache {
 	Random gen = new Random();
 	Map<Integer, Defrag> fragbufs = new TreeMap<Integer, Defrag>();
 	long lastctick = System.currentTimeMillis();
-	private final BufferedImage[] texes = new BufferedImage[256];
-	
-	public BufferedImage tileimg(int t) {
+
+	private BufferedImage tileimg(int t, BufferedImage[] texes) {
 		BufferedImage img = texes[t];
-		if (img == null) {
-			Resource r = sets[t];
-			if (r == null)
-				return (null);
+		if(img == null) {
+			Resource r = tilesetr(t);
+			if(r == null)
+				return(null);
 			Resource.Image ir = r.layer(Resource.imgc);
-			if (ir == null)
-				return (null);
+			if(ir == null)
+				return(null);
 			img = ir.img;
 			texes[t] = img;
 		}
-		return (img);
+		return(img);
 	}
-	
+
 	@SuppressWarnings("serial")
 	public static class LoadingMap extends Loading {
+		public LoadingMap() {}
+		public LoadingMap(Throwable cause) {
+			super(cause);
+		}
 	}
 
 	private static class Request {
@@ -103,23 +111,31 @@ public class MCache {
 		public final int tiles[] = new int[cmaps.x * cmaps.y];
 		public final int z[] = new int[cmaps.x * cmaps.y];
 		public final int ol[] = new int[cmaps.x * cmaps.y];
-		public final MapMesh cuts[] = new MapMesh[cutn.x * cutn.y];
+		private final Cut cuts[];
 		public final Rendered olcuts[][] = new Rendered[cutn.x * cutn.y][];
 		int olseq = -1;
 		private Collection<Gob>[] fo = null;
 		public final Coord gc, ul;
-		public final long id;
+		public long id;
 		String mnm;
 		protected BufferedImage gridImage;
 		public boolean loaded = false;
 		protected boolean rendered = false;
-		
+
+		private class Cut {
+			MapMesh mesh;
+			Defer.Future<MapMesh> dmesh;
+			Rendered[] ols;
+			int deftag;
+		}
+
 		private class Flavobj extends Gob {
 			private Flavobj(Coord c, double a) {
 				super(sess.glob, c);
 				this.a = a;
 			}
 
+			@Override
 			public Random mkrandoom() {
 				Random r = new Random(Grid.this.id);
 				r.setSeed(r.nextInt() ^ rc.x);
@@ -128,10 +144,12 @@ public class MCache {
 			}
 		}
 
-		public Grid(Coord gc, long id) {
+		public Grid(Coord gc) {
 			this.gc = gc;
 			this.ul = gc.mul(cmaps);
-			this.id = id;
+			cuts = new Cut[cutn.x * cutn.y];
+			for(int i = 0; i < cuts.length; i++)
+				cuts[i] = new Cut();
 			loaded = false;
 		}
 
@@ -149,8 +167,8 @@ public class MCache {
 
 		private void makeflavor() {
 			@SuppressWarnings("unchecked")
-			Collection<Gob>[] fo = (Collection<Gob>[]) new Collection[cutn.x
-					* cutn.y];
+			Collection<Gob>[] fo = new Collection[cutn.x
+			                                      * cutn.y];
 			for (int i = 0; i < fo.length; i++)
 				fo[i] = new LinkedList<Gob>();
 			Coord c = new Coord(0, 0);
@@ -182,40 +200,56 @@ public class MCache {
 			return (fo[cc.x + (cc.y * cutn.x)]);
 		}
 
+		private Cut geticut(Coord cc) {
+			return(cuts[cc.x + (cc.y * cutn.x)]);
+		}
+
 		public MapMesh getcut(Coord cc) {
-			int i = cc.x + (cc.y * cutn.x);
-			if (cuts[i] == null) {
-				Random rnd = new Random(id);
-				rnd.setSeed(rnd.nextInt() ^ cc.x);
-				rnd.setSeed(rnd.nextInt() ^ cc.y);
-				cuts[i] = MapMesh.build(MCache.this, rnd,
-						ul.add(cc.mul(cutsz)), cutsz);
+			Cut cut = geticut(cc);
+			if(cut.dmesh != null) {
+				if(cut.dmesh.done() || (cut.mesh == null)) {
+					cut.mesh = cut.dmesh.get();
+					cut.dmesh = null;
+				}
 			}
-			return (cuts[i]);
+			return(cut.mesh);
 		}
 
 		public Rendered getolcut(int ol, Coord cc) {
-			if (this.olseq != MCache.this.olseq) {
-				for (int i = 0; i < cutn.x * cutn.y; i++)
-					olcuts[i] = null;
-				this.olseq = MCache.this.olseq;
+			int nseq = MCache.this.olseq;
+			if(this.olseq != nseq) {
+				for(int i = 0; i < cutn.x * cutn.y; i++)
+					cuts[i].ols = null;
+				this.olseq = nseq;
 			}
-			int i = cc.x + (cc.y * cutn.x);
-			if (olcuts[i] == null)
-				olcuts[i] = getcut(cc).makeols();
-			return (olcuts[i][ol]);
+			Cut cut = geticut(cc);
+			if(cut.ols == null)
+				cut.ols = getcut(cc).makeols();
+			return(cut.ols[ol]);
+		}
+
+		private void buildcut(final Coord cc) {
+			final Cut cut = geticut(cc);
+			@SuppressWarnings("unused")
+			final int deftag = ++cut.deftag;
+			cut.dmesh = Defer.later(new Defer.Callable<MapMesh>() {
+				@Override
+				public MapMesh call() {
+					Random rnd = new Random(id);
+					rnd.setSeed(rnd.nextInt() ^ cc.x);
+					rnd.setSeed(rnd.nextInt() ^ cc.y);
+					return(MapMesh.build(MCache.this, rnd, ul.add(cc.mul(cutsz)), cutsz));
+				}
+			});
 		}
 
 		public void ivneigh(Coord nc) {
 			Coord cc = new Coord();
-			for (cc.y = 0; cc.y < cutn.y; cc.y++) {
-				for (cc.x = 0; cc.x < cutn.x; cc.x++) {
-					if ((((nc.x < 0) && (cc.x == 0))
-							|| ((nc.x > 0) && (cc.x == cutn.x - 1)) || (nc.x == 0))
-							&& (((nc.y < 0) && (cc.y == 0))
-									|| ((nc.y > 0) && (cc.y == cutn.y - 1)) || (nc.y == 0))) {
-						cuts[cc.x + (cc.y * cutn.x)] = null;
-						olcuts[cc.x + (cc.y * cutn.x)] = null;
+			for(cc.y = 0; cc.y < cutn.y; cc.y++) {
+				for(cc.x = 0; cc.x < cutn.x; cc.x++) {
+					if((((nc.x < 0) && (cc.x == 0)) || ((nc.x > 0) && (cc.x == cutn.x - 1)) || (nc.x == 0)) &&
+							(((nc.y < 0) && (cc.y == 0)) || ((nc.y > 0) && (cc.y == cutn.y - 1)) || (nc.y == 0))) {
+						buildcut(new Coord(cc));
 					}
 				}
 			}
@@ -229,19 +263,21 @@ public class MCache {
 				}
 			}
 		}
-		
+
 		public BufferedImage getGridImage() {
 			if (rendered) return gridImage;
-			
+
 			if (!loaded) throw new Loading();
-			
+
 			gridImage = TexI.mkbuf(cmaps);
-			
+
+			BufferedImage[] texes = new BufferedImage[256];
+
 			Coord c = new Coord();
 			for (c.y = 0; c.y < cmaps.y; c.y++) {
 				for (c.x = 0; c.x < cmaps.x; c.x++) {
 					int t = gettile(c);
-					BufferedImage tex = tileimg(t);
+					BufferedImage tex = tileimg(t, texes);
 					if (tex != null)
 						gridImage.setRGB(c.x, c.y, tex.getRGB(
 								Utils.floormod(c.x, tex.getWidth()),
@@ -260,6 +296,75 @@ public class MCache {
 			}
 			rendered = true;
 			return gridImage;
+		}
+
+		private void invalidate() {
+			for(int y = 0; y < cutn.y; y++) {
+				for(int x = 0; x < cutn.x; x++)
+					buildcut(new Coord(x, y));
+			}
+			fo = null;
+			for(Coord ic : new Coord[] {
+					new Coord(-1, -1), new Coord( 0, -1), new Coord( 1, -1),
+					new Coord(-1,  0),                    new Coord( 1,  0),
+					new Coord(-1,  1), new Coord( 0,  1), new Coord( 1,  1)}) {
+				Grid ng = grids.get(gc.add(ic));
+				if(ng != null)
+					ng.ivneigh(ic.inv());
+			}
+			loaded = true;
+		}
+
+		public void fill(Message msg) {
+			String mmname = msg.string().intern();
+			if(mmname.equals(""))
+				mnm = null;
+			else
+				mnm = mmname;
+			int[] pfl = new int[256];
+			while(true) {
+				int pidx = msg.uint8();
+				if(pidx == 255)
+					break;
+				pfl[pidx] = msg.uint8();
+			}
+			Message blob = msg.inflate();
+			id = blob.int64();
+			for(int i = 0; i < tiles.length; i++)
+				tiles[i] = blob.uint8();
+			for(int i = 0; i < z.length; i++)
+				z[i] = blob.int16();
+			for(int i = 0; i < ol.length; i++)
+				ol[i] = 0;
+			while(true) {
+				int pidx = blob.uint8();
+				if(pidx == 255)
+					break;
+				int fl = pfl[pidx];
+				int type = blob.uint8();
+				Coord c1 = new Coord(blob.uint8(), blob.uint8());
+				Coord c2 = new Coord(blob.uint8(), blob.uint8());
+				int ol;
+				if(type == 0) {
+					if((fl & 1) == 1)
+						ol = 2;
+					else
+						ol = 1;
+				} else if(type == 1) {
+					if((fl & 1) == 1)
+						ol = 8;
+					else
+						ol = 4;
+				} else {
+					throw(new RuntimeException("Unknown plot type " + type));
+				}
+				for(int y = c1.y; y <= c2.y; y++) {
+					for(int x = c1.x; x <= c2.x; x++) {
+						this.ol[x + (y * cmaps.x)] |= ol;
+					}
+				}
+			}
+			invalidate();
 		}
 	}
 
@@ -334,7 +439,7 @@ public class MCache {
 		float sy = Utils.floormod(py, th) / th;
 		return (((1.0f - sy) * (((1.0f - sx) * getz(ul)) + (sx * getz(ul.add(1,
 				0))))) + (sy * (((1.0f - sx) * getz(ul.add(0, 1))) + (sx * getz(ul
-				.add(1, 1))))));
+						.add(1, 1))))));
 	}
 
 	public float getcz(Coord pc) {
@@ -365,92 +470,14 @@ public class MCache {
 
 	public void mapdata2(Message msg) {
 		Coord c = msg.coord();
-		String mmname = msg.string().intern();
-		if (mmname.equals(""))
-			mmname = null;
-		int[] pfl = new int[256];
-		while (true) {
-			int pidx = msg.uint8();
-			if (pidx == 255)
-				break;
-			pfl[pidx] = msg.uint8();
-		}
-		Message blob = new Message(0);
-		{
-			Inflater z = new Inflater();
-			z.setInput(msg.blob, msg.off, msg.blob.length - msg.off);
-			byte[] buf = new byte[10000];
-			while (true) {
-				try {
-					int len;
-					if ((len = z.inflate(buf)) == 0) {
-						if (!z.finished())
-							throw (new RuntimeException(
-									"Got unterminated map blob"));
-						break;
-					}
-					blob.addbytes(buf, 0, len);
-				} catch (java.util.zip.DataFormatException e) {
-					throw (new RuntimeException("Got malformed map blob", e));
-				}
-			}
-		}
-		synchronized (grids) {
-			synchronized (req) {
-				if (req.containsKey(c)) {
-					long id = blob.int64();
-					Grid g = new Grid(c, id);
-					g.mnm = mmname;
-					for (int i = 0; i < g.tiles.length; i++)
-						g.tiles[i] = blob.uint8();
-					for (int i = 0, y = 0; y < cmaps.y; y++) {
-						for (int x = 0; x < cmaps.x; x++, i++)
-							g.z[i] = blob.int16();
-					}
-					for (int i = 0; i < g.ol.length; i++)
-						g.ol[i] = 0;
-					while (true) {
-						int pidx = blob.uint8();
-						if (pidx == 255)
-							break;
-						int fl = pfl[pidx];
-						int type = blob.uint8();
-						Coord c1 = new Coord(blob.uint8(), blob.uint8());
-						Coord c2 = new Coord(blob.uint8(), blob.uint8());
-						int ol;
-						if (type == 0) {
-							if ((fl & 1) == 1)
-								ol = 2;
-							else
-								ol = 1;
-						} else if (type == 1) {
-							if ((fl & 1) == 1)
-								ol = 8;
-							else
-								ol = 4;
-						} else {
-							throw (new RuntimeException("Unknown plot type "
-									+ type));
-						}
-						for (int y = c1.y; y <= c2.y; y++) {
-							for (int x = c1.x; x <= c2.x; x++) {
-								g.ol[x + (y * cmaps.x)] |= ol;
-							}
-						}
-					}
+		synchronized(grids) {
+			synchronized(req) {
+				if(req.containsKey(c)) {
+					Grid g = grids.get(c);
+					if(g == null)
+						grids.put(c, g = new Grid(c));
+					g.fill(msg);
 					req.remove(c);
-					if (grids.remove(c) == cached)
-						cached = null;
-					grids.put(c, g);
-					g.loaded = true;
-					for (Coord ic : new Coord[] { new Coord(-1, -1),
-							new Coord(0, -1), new Coord(1, -1),
-							new Coord(-1, 0), new Coord(1, 0),
-							new Coord(-1, 1), new Coord(0, 1), new Coord(1, 1) }) {
-						Grid ng = grids.get(c.add(ic));
-						if (ng != null)
-							ng.ivneigh(ic.inv());
-					}
 					olseq++;
 				}
 			}
@@ -486,37 +513,57 @@ public class MCache {
 		}
 	}
 
-	public Tileset tileset(int i) {
-		synchronized (csets) {
-			if (csets[i] == null) {
-				if (sets[i] == null)
-					return (null);
-				if (sets[i].loading)
-					throw (new LoadingMap());
-				csets[i] = sets[i].layer(Resource.tileset);
+	public Resource tilesetr(int i) {
+		synchronized(sets) {
+			Resource res = (sets[i] == null)?null:(sets[i].get());
+			if(res == null) {
+				if(nsets[i] == null)
+					return(null);
+				res = nsets[i].get();
+				sets[i] = new SoftReference<Resource>(res);
 			}
-			return (csets[i]);
+			return(res);
+		}
+	}
+
+	public Tileset tileset(int i) {
+		synchronized(csets) {
+			Tileset cset = (csets[i] == null)?null:(csets[i].get());
+			if(cset == null) {
+				Resource res = tilesetr(i);
+				if(res == null)
+					return(null);
+				try {
+					cset = res.layer(Resource.tileset);
+				} catch(Loading e) {
+					throw(new LoadingMap(e));
+				}
+				csets[i] = new SoftReference<Tileset>(cset);
+			}
+			return(cset);
 		}
 	}
 
 	public Tiler tiler(int i) {
-		synchronized (tiles) {
-			if (tiles[i] == null) {
+		synchronized(tiles) {
+			Tiler tile = (tiles[i] == null)?null:(tiles[i].get());
+			if(tile == null) {
 				Tileset set = tileset(i);
-				if (set == null)
-					return (null);
-				tiles[i] = set.tfac().create(i, set);
+				if(set == null)
+					return(null);
+				tile = set.tfac().create(i, set);
+				tiles[i] = new SoftReference<Tiler>(tile);
 			}
-			return (tiles[i]);
+			return(tile);
 		}
 	}
 
 	public void tilemap(Message msg) {
-		while (!msg.eom()) {
+		while(!msg.eom()) {
 			int id = msg.uint8();
 			String resnm = msg.string();
 			int resver = msg.uint16();
-			sets[id] = Resource.load(resnm, resver);
+			nsets[id] = new Resource.Spec(resnm, resver);
 		}
 	}
 
@@ -554,6 +601,18 @@ public class MCache {
 		synchronized (req) {
 			if (!req.containsKey(gc))
 				req.put(gc, new Request());
+		}
+	}
+
+	public void reqarea(Coord ul, Coord br) {
+		ul = ul.div(cutsz); br = br.div(cutsz);
+		Coord rc = new Coord();
+		for(rc.y = ul.y; rc.y <= br.y; rc.y++) {
+			for(rc.x = ul.x; rc.x <= br.x; rc.x++) {
+				try {
+					getcut(new Coord(rc));
+				} catch(Loading e) {}
+			}
 		}
 	}
 

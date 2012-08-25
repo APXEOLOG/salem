@@ -44,6 +44,7 @@ public class UI {
 	long lastevent, lasttick;
 	public Widget mouseon;
 	public Console cons = new WidgetConsole();
+	public final ActAudio audio = new ActAudio();
 	private Collection<AfterDraw> afterdraws = new LinkedList<AfterDraw>();
 
 	{
@@ -166,6 +167,14 @@ public class UI {
 		return rwidgets.containsKey(wdg);
 	}
 
+	public Integer getWidgetId(Widget wdg) {
+		return rwidgets.get(wdg);
+	}
+
+	public Widget getWidget(int id) {
+		return widgets.get(id);
+	}
+
 	private void removeid(Widget wdg) {
 		if (rwidgets.containsKey(wdg)) {
 			int id = rwidgets.get(wdg);
@@ -206,6 +215,12 @@ public class UI {
 		}
 		if (rcvr != null)
 			rcvr.rcvmsg(id, msg, args);
+		//ALS.alDebugPrint("MSG", sender, msg, args);
+		/*if (sender instanceof SWindow) {
+			if (((SWindow)sender).getTitle().equals("Fishing")) {
+				ALS.alDebugPrint("fishing msg", msg, args);
+			}
+		}*/
 	}
 
 	public void uimsg(int id, String msg, Object... args) {
@@ -315,5 +330,9 @@ public class UI {
 	public int modflags() {
 		return ((modshift ? 1 : 0) | (modctrl ? 2 : 0) | (modmeta ? 4 : 0) | (modsuper ? 8
 				: 0));
+	}
+
+	public void destroy() {
+		audio.clear();
 	}
 }

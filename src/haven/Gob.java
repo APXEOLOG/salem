@@ -83,13 +83,13 @@ public class Gob implements Sprite.Owner, Rendered {
 		ResDrawable dw = getattr(ResDrawable.class);
 		if (dw != null) {
 			res = dw.res.get();
-		} 
-//		else {
-//			Layered ld = getattr(Layered.class);
-//			if ((ld != null) && (ld.layers.size() > 0)) {
-//				res = ld.layers.get(0).get();
-//			}
-//		}
+		}
+		//		else {
+		//			Layered ld = getattr(Layered.class);
+		//			if ((ld != null) && (ld.layers.size() > 0)) {
+		//				res = ld.layers.get(0).get();
+		//			}
+		//		}
 		return res;
 	}
 
@@ -101,7 +101,7 @@ public class Gob implements Sprite.Owner, Rendered {
 		}
 		return name;
 	}
-	
+
 	public void dumpAttrs() {
 		ALS.alDebugPrint("<dumpattr>", "sz=", attr.size());
 		for (GAttrib atr : attr.values()) {
@@ -109,7 +109,23 @@ public class Gob implements Sprite.Owner, Rendered {
 		}
 		ALS.alDebugPrint("</dumpattr>");
 	}
-	
+
+	public String getAttrs() {
+		String str = "";
+		for (GAttrib atr : attr.values()) {
+			str += atr.getClass().getSimpleName() + ",";
+		}
+		return str;
+	}
+
+	public String getOverlays() {
+		String str = "";
+		for (Overlay ol : ols) {
+			str += ol.getClass().getSimpleName() + ",";
+		}
+		return str;
+	}
+
 	public void dumpOverlays() {
 		ALS.alDebugPrint("<dumpol>");
 		for (Overlay ol : ols) {
@@ -117,7 +133,7 @@ public class Gob implements Sprite.Owner, Rendered {
 		}
 		ALS.alDebugPrint("</dumpol>");
 	}
-	
+
 	public Gob(Glob glob, Coord c, long id, int frame) {
 		this.glob = glob;
 		this.rc = c;
@@ -224,9 +240,11 @@ public class Gob implements Sprite.Owner, Rendered {
 		attr.remove(attrclass(c));
 	}
 
+	@Override
 	public void draw(GOut g) {
 	}
 
+	@Override
 	public boolean setup(RenderList rl) {
 		for (Overlay ol : ols) {
 			if (ol.spr != null)
@@ -251,10 +269,16 @@ public class Gob implements Sprite.Owner, Rendered {
 		return (false);
 	}
 
+	@Override
 	public Random mkrandoom() {
 		return (new Random(id));
 	}
 
+	public Glob glob() {
+		return(glob);
+	}
+
+	@Override
 	public Resource.Neg getneg() {
 		Drawable d = getattr(Drawable.class);
 		if (d != null)
@@ -263,12 +287,15 @@ public class Gob implements Sprite.Owner, Rendered {
 	}
 
 	public final GLState olmod = new GLState() {
+		@Override
 		public void apply(GOut g) {
 		}
 
+		@Override
 		public void unapply(GOut g) {
 		}
 
+		@Override
 		public void prep(Buffer buf) {
 			for (Overlay ol : ols) {
 				if (ol.spr instanceof Overlay.SetupMod) {
@@ -286,6 +313,7 @@ public class Gob implements Sprite.Owner, Rendered {
 				mv = new Matrix4f();
 		public Projection proj = null;
 
+		@Override
 		public void apply(GOut g) {
 			mv.load(cam.load(g.st.cam)).mul1(wxf.load(g.st.wxf));
 			Projection proj = g.st.cur(PView.proj);
@@ -295,9 +323,11 @@ public class Gob implements Sprite.Owner, Rendered {
 			this.proj = proj;
 		}
 
+		@Override
 		public void unapply(GOut g) {
 		}
 
+		@Override
 		public void prep(Buffer buf) {
 			buf.put(savepos, this);
 		}

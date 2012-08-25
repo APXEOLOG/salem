@@ -38,6 +38,7 @@ import java.util.regex.*;
 import java.io.IOException;
 import java.awt.datatransfer.*;
 
+import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.config.XConfig;
 
 public class ChatUI extends Widget {
@@ -128,14 +129,6 @@ public class ChatUI extends Widget {
 	public static abstract class Channel extends Widget {
 		public final List<Message> msgs = new LinkedList<Message>();
 		private final Scrollbar sb;
-
-		public String name(int bid) {
-			BuddyWnd.Buddy b = getparent(GameUI.class).buddies.find(bid);
-			if (b == null)
-				return "???";
-			else
-				return b.name;
-		}
 
 		public static abstract class Message {
 			public final long time = System.currentTimeMillis();
@@ -581,6 +574,10 @@ public class ChatUI extends Widget {
 		private final String name;
 		private final boolean notify;
 
+		public String getName() {
+			return name;
+		}
+
 		public class NamedMessage extends Message {
 			public final int from;
 			public final String text;
@@ -639,16 +636,8 @@ public class ChatUI extends Widget {
 				Integer from = (Integer)args[0];
 				String line = (String)args[1];
 
-				// BDSChat Wrap
-				Color textColor = name.equals("Village") ? Color.GREEN : Color.WHITE;
-				if (from != null) {
-					BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(from.intValue());
-					String hname = (buddy == null) ? "???" : (buddy.name);
-					Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
-					getparent(GameUI.class).bdsChat.recieveMessage(line, textColor, hname, hcolor, this);
-				} else {
-					getparent(GameUI.class).bdsChat.recieveMessage(line, textColor, Config.currentCharName, Color.WHITE, this);
-				}
+				// BDSChat New Wrap
+				SChatWrapper.wrapMultiChat(this, from, line);
 
 				if(from == null) {
 					append(new MyMessage(line, iw()));
@@ -685,15 +674,9 @@ public class ChatUI extends Widget {
 						col = pm.col;
 				}
 
-				// BDSChat Wrap
-				if (from != null) {
-					BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(from.intValue());
-					String hname = (buddy == null) ? "???" : (buddy.name);
-					Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
-					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.CYAN, hname, hcolor, this);
-				} else {
-					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.CYAN, Config.currentCharName, Color.WHITE, this);
-				}
+				// BDSChat New Wrap
+				SChatWrapper.wrapPartyChat(this, from, line, col);
+
 
 				if(from == null) {
 					append(new MyMessage(line, iw()));
@@ -708,6 +691,10 @@ public class ChatUI extends Widget {
 
 	public static class PrivChat extends EntryChannel {
 		private final int other;
+
+		public int getOpponent() {
+			return other;
+		}
 
 		public class InMessage extends SimpleMessage {
 			public InMessage(String text, int w) {
@@ -732,15 +719,8 @@ public class ChatUI extends Widget {
 				String t = (String)args[0];
 				String line = (String)args[1];
 
-				// BDSChat Wrap
-				BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(other);
-				String hname = (buddy == null) ? "???" : (buddy.name);
-				Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
-				if (t.equals("in")) {
-					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.PINK, hname + " > Me", hcolor, this);
-				} else {
-					getparent(GameUI.class).bdsChat.recieveMessage(line, Color.PINK, "Me > " + hname, Color.WHITE, this);
-				}
+				// BDSChat New Wrap
+				SChatWrapper.wrapPMChat(this, other, line, t);
 
 				if(t.equals("in")) {
 					Message cmsg = new InMessage(line, iw());
@@ -752,11 +732,8 @@ public class ChatUI extends Widget {
 			} else if(msg == "err") {
 				String err = (String)args[0];
 
-				// BDSChat Wrap
-				BuddyWnd.Buddy buddy = getparent(GameUI.class).buddies.find(other);
-				String hname = (buddy == null) ? "???" : (buddy.name);
-				Color hcolor = (buddy == null) ? Color.WHITE : (BuddyWnd.gc[buddy.group]);
-				getparent(GameUI.class).bdsChat.recieveMessage(err, Color.RED, hname, hcolor, this);
+				// BDSChat New Wrap
+				SChatWrapper.wrapPMChatError(this, other, err);
 
 				Message cmsg = new SimpleMessage(err, Color.RED, iw());
 				append(cmsg);
@@ -896,7 +873,7 @@ public class ChatUI extends Widget {
 		}
 
 		private Channel bypos(Coord c) {
-			int i = (c.y / 20) - s;
+			int i = (c.y / 20) + s;
 			if((i >= 0) && (i < chls.size()))
 				return(chls.get(i).chan);
 			return(null);
@@ -1158,39 +1135,39 @@ public class ChatUI extends Widget {
 		return (super.globtype(key, ev));
 	}
 
-	public Widget getVillageChat() {
+	public int getVillageChat() {
 		for (Widget w = lchild; w != null; w = w.prev) {
 			if (w instanceof MultiChat) {
-				if (((MultiChat)w).name.equals("Village")) return w;
+				if (((MultiChat)w).name.equals("Village")) return ui.getWidgetId(w);
 			}
 		}
-		return null;
+		return -1;
 	}
 
-	public Widget getPartyChat() {
+	public int getPartyChat() {
 		for (Widget w = lchild; w != null; w = w.prev) {
 			if (w instanceof PartyChat) {
-				if (((MultiChat)w).name.equals("Party")) return w;
+				if (((MultiChat)w).name.equals("Party")) return ui.getWidgetId(w);
 			}
 		}
-		return null;
+		return -1;
 	}
 
-	public Widget getPrivChat(int bid) {
+	public int getPrivChat(int bid) {
 		for (Widget w = lchild; w != null; w = w.prev) {
 			if (w instanceof PrivChat) {
-				if (((PrivChat)w).other == bid) return w;
+				if (((PrivChat)w).other == bid) return ui.getWidgetId(w);
 			}
 		}
-		return null;
+		return -1;
 	}
 
-	public Widget getAreaChat() {
+	public int getAreaChat() {
 		for (Widget w = lchild; w != null; w = w.prev) {
 			if (w instanceof MultiChat) {
-				if (((MultiChat)w).name.equals("Area Chat")) return w;
+				if (((MultiChat)w).name.equals("Area Chat")) return ui.getWidgetId(w);
 			}
 		}
-		return null;
+		return -1;
 	}
 }

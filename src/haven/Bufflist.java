@@ -39,6 +39,7 @@ public class Bufflist extends Widget {
 
 	static {
 		Widget.addtype("buffs", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				return (new Bufflist(c, parent));
 			}
@@ -50,6 +51,7 @@ public class Bufflist extends Widget {
 				cframe.sz().y), parent);
 	}
 
+	@Override
 	public void draw(GOut g) {
 		int i = 0;
 		int w = frame.sz().x + margin;
@@ -77,13 +79,13 @@ public class Bufflist extends Widget {
 						Tex ntext = b.nmeter();
 						g.image(ntext,
 								bc.add(imgoff).add(img.sz())
-										.add(ntext.sz().inv()).add(-1, -1));
+								.add(ntext.sz().inv()).add(-1, -1));
 					}
 					if (b.cmeter >= 0) {
 						double m = b.cmeter / 100.0;
 						if (b.cticks >= 0) {
 							double ot = b.cticks * 0.06;
-							double pt = ((double) (now - b.gettime)) / 1000.0;
+							double pt = (now - b.gettime) / 1000.0;
 							m *= (ot - pt) / ot;
 						}
 						g.chcolor(0, 0, 0, 128);
@@ -102,47 +104,45 @@ public class Bufflist extends Widget {
 	private long hoverstart;
 	private Tex shorttip, longtip;
 	private Buff tipped;
-
-	public Object tooltip(Coord c, boolean again) {
+	@Override
+	public Object tooltip(Coord c, Widget prev) {
 		long now = System.currentTimeMillis();
-		if (!again)
+		if(prev != this)
 			hoverstart = now;
 		int i = 0;
 		int w = frame.sz().x + margin;
-		synchronized (ui.sess.glob.buffs) {
-			for (Buff b : ui.sess.glob.buffs.values()) {
-				if (!b.major)
+		synchronized(ui.sess.glob.buffs) {
+			for(Buff b : ui.sess.glob.buffs.values()) {
+				if(!b.major)
 					continue;
 				Coord bc = new Coord(i * w, 0);
-				if (c.isect(bc, frame.sz())) {
-					if (tipped != b)
+				if(c.isect(bc, frame.sz())) {
+					if(tipped != b)
 						shorttip = longtip = null;
 					tipped = b;
 					try {
-						if (now - hoverstart < 1000) {
-							if (shorttip == null)
+						if(now - hoverstart < 1000) {
+							if(shorttip == null)
 								shorttip = Text.render(b.tooltip()).tex();
-							return (shorttip);
+							return(shorttip);
 						} else {
-							if (longtip == null) {
-								String text = RichText.Parser
-										.quote(b.tooltip());
-								Resource.Pagina pag = b.res.get().layer(
-										Resource.pagina);
-								if (pag != null)
+							if(longtip == null) {
+								String text = RichText.Parser.quote(b.tooltip());
+								Resource.Pagina pag = b.res.get().layer(Resource.pagina);
+								if(pag != null)
 									text += "\n\n" + pag.text;
 								longtip = RichText.render(text, 200).tex();
 							}
-							return (longtip);
+							return(longtip);
 						}
-					} catch (Loading e) {
-						return ("...");
+					} catch(Loading e) {
+						return("...");
 					}
 				}
-				if (++i >= 5)
+				if(++i >= 5)
 					break;
 			}
 		}
-		return (null);
+		return(null);
 	}
 }

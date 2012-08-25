@@ -44,17 +44,18 @@ public class Widget {
 	private Widget prevtt;
 	static Map<String, WidgetFactory> types = new TreeMap<String, WidgetFactory>();
 	static Class<?>[] barda = { Img.class, TextEntry.class, MapView.class,
-			FlowerMenu.class, Window.class, Button.class, Inventory.class,
-			GItem.class, Listbox.class, Makewindow.class, Chatwindow.class,
-			Textlog.class, Equipory.class, IButton.class, Avaview.class,
-			NpcChat.class, CharWnd.class, Label.class, Progress.class,
-			VMeter.class, Partyview.class, MenuGrid.class, CheckBox.class,
-			ISBox.class, Fightview.class, IMeter.class, MapMod.class,
-			GiveButton.class, Charlist.class, BuddyWnd.class, Polity.class,
-			Speedget.class, Bufflist.class, GameUI.class, Scrollport.class };
+		FlowerMenu.class, Window.class, Button.class, Inventory.class,
+		GItem.class, Listbox.class, Makewindow.class, Chatwindow.class,
+		Textlog.class, Equipory.class, IButton.class, Avaview.class,
+		NpcChat.class, CharWnd.class, Label.class, Progress.class,
+		VMeter.class, Partyview.class, MenuGrid.class, CheckBox.class,
+		ISBox.class, Fightview.class, IMeter.class, MapMod.class,
+		GiveButton.class, Charlist.class, BuddyWnd.class, Polity.class,
+		Speedget.class, Bufflist.class, GameUI.class, Scrollport.class };
 
 	static {
 		addtype("cnt", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				return (new Widget(c, (Coord) args[0], parent));
 			}
@@ -172,7 +173,7 @@ public class Widget {
 				st.push(((Widget) st.pop()).sz);
 			} else if (op == 'w') {
 				synchronized (ui) {
-					st.push(ui.widgets.get((Integer) st.pop()));
+					st.push(ui.widgets.get(st.pop()));
 				}
 			} else if (op == 'x') {
 				st.push(((Coord) st.pop()).x);
@@ -199,6 +200,30 @@ public class Widget {
 				} else {
 					throw (new RuntimeException(
 							"Invalid subtraction operands: " + a + " - " + b));
+				}
+			} else if(op == '*') {
+				Object b = st.pop();
+				Object a = st.pop();
+				if((a instanceof Integer) && (b instanceof Integer)) {
+					st.push((Integer)a * (Integer)b);
+				} else if((a instanceof Coord) && (b instanceof Integer)) {
+					st.push(((Coord)a).mul((Integer)b));
+				} else if((a instanceof Coord) && (b instanceof Coord)) {
+					st.push(((Coord)a).mul((Coord)b));
+				} else {
+					throw(new RuntimeException("Invalid multiplication operands: " + a + " - " + b));
+				}
+			} else if(op == '/') {
+				Object b = st.pop();
+				Object a = st.pop();
+				if((a instanceof Integer) && (b instanceof Integer)) {
+					st.push((Integer)a / (Integer)b);
+				} else if((a instanceof Coord) && (b instanceof Integer)) {
+					st.push(((Coord)a).div((Integer)b));
+				} else if((a instanceof Coord) && (b instanceof Coord)) {
+					st.push(((Coord)a).div((Coord)b));
+				} else {
+					throw(new RuntimeException("Invalid division operands: " + a + " - " + b));
 				}
 			} else if (Character.isWhitespace(op)) {
 			} else {
@@ -264,7 +289,7 @@ public class Widget {
 	public Coord xlate(Coord c, boolean in) {
 		return (c);
 	}
-	
+
 	public Coord rootxlate(Coord c) {
 		return(c.sub(rootpos()));
 	}
@@ -393,7 +418,7 @@ public class Widget {
 		} else if (msg == "autofocus") {
 			autofocus = (Integer) args[0] != 0;
 		} else if (msg == "focus") {
-			Widget w = ui.widgets.get((Integer) args[0]);
+			Widget w = ui.widgets.get(args[0]);
 			if (w != null) {
 				if (w.canfocus)
 					setfocus(w);
@@ -671,6 +696,7 @@ public class Widget {
 
 	public <T extends Widget> Set<T> children(final Class<T> cl) {
 		return (new AbstractSet<T>() {
+			@Override
 			@SuppressWarnings("unused")
 			public int size() {
 				int i = 0;
@@ -679,6 +705,7 @@ public class Widget {
 				return (i);
 			}
 
+			@Override
 			public Iterator<T> iterator() {
 				return (new Iterator<T>() {
 					T cur = n(Widget.this);
@@ -702,16 +729,19 @@ public class Widget {
 							return (n(n));
 					}
 
+					@Override
 					public T next() {
 						T ret = cur;
 						cur = n(ret);
 						return (ret);
 					}
 
+					@Override
 					public boolean hasNext() {
 						return (cur != null);
 					}
 
+					@Override
 					public void remove() {
 						throw (new UnsupportedOperationException());
 					}
@@ -735,26 +765,32 @@ public class Widget {
 		return (cursor);
 	}
 
+	@Deprecated
 	public Object tooltip(Coord c, boolean again) {
-		if (tooltip != null) {
+		return(null);
+	}
+
+	public Object tooltip(Coord c, Widget prev) {
+		if(prev != this)
 			prevtt = null;
-			return (tooltip);
+		if(tooltip != null) {
+			prevtt = null;
+			return(tooltip);
 		}
-		for (Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
-			if (!wdg.visible)
+		for(Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
+			if(!wdg.visible)
 				continue;
 			Coord cc = xlate(wdg.c, true);
-			if (c.isect(cc, wdg.sz)) {
-				Object ret = wdg.tooltip(c.add(cc.inv()), again
-						&& (wdg == prevtt));
-				if (ret != null) {
+			if(c.isect(cc, wdg.sz)) {
+				Object ret = wdg.tooltip(c.add(cc.inv()), prevtt);
+				if(ret != null) {
 					prevtt = wdg;
-					return (ret);
+					return(ret);
 				}
 			}
 		}
 		prevtt = null;
-		return (null);
+		return(tooltip(c, prev == this));
 	}
 
 	public <T extends Widget> T getparent(Class<T> cl) {
@@ -770,7 +806,7 @@ public class Widget {
 		if (canfocus)
 			parent.delfocusable(this);
 	}
-	
+
 	public void show() {
 		visible = true;
 		if (canfocus)

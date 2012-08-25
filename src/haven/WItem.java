@@ -41,6 +41,7 @@ public class WItem extends Widget implements DTarget {
 	public final GItem item;
 	private Tex mask = null;
 	private Resource cmask = null;
+	private Tex ltex = null;
 
 	public static class ItemQualityComparator implements Comparator<WItem> {
 		int desc = -100;
@@ -58,14 +59,18 @@ public class WItem extends Widget implements DTarget {
 			desc = (bdesc) ? 1 : -1;
 		}
 	}
-	
+
 	public WItem(Coord c, Widget parent, GItem item) {
-		super(c, new Coord(30, 30), parent);
+		super(c, Inventory.sqsz, parent);
 		this.item = item;
 	}
 
 	public void drawmain(GOut g, Tex tex) {
 		g.image(tex, Coord.z);
+		if(tex != ltex) {
+			resize(tex.sz());
+			ltex = tex;
+		}
 	}
 
 	public static BufferedImage rendershort(List<ItemInfo> info) {
@@ -97,7 +102,7 @@ public class WItem extends Widget implements DTarget {
 			return (null);
 		return (img);
 	}
-	
+
 	protected double getPurity() {
 		List<ItemInfo> info = item.info();
 		Alchemy ch = find(Alchemy.class, info);
@@ -106,12 +111,12 @@ public class WItem extends Widget implements DTarget {
 		}
 		return -1;
 	}
-	
+
 	protected int getDominantElement() {
 		List<ItemInfo> info = item.info();
 		Alchemy ch = find(Alchemy.class, info);
 		if (ch != null) {
-			return (int)(ch.getDominantElement());
+			return (ch.getDominantElement());
 		}
 		return 0;
 	}
@@ -148,12 +153,9 @@ public class WItem extends Widget implements DTarget {
 			return (item);
 		}
 
+		@Override
 		public Tex get() {
 			return (tex);
-		}
-
-		public void set(Tex val) {
-			throw (new UnsupportedOperationException());
 		}
 	}
 
@@ -173,12 +175,20 @@ public class WItem extends Widget implements DTarget {
 	private ItemTip shorttip = null, longtip = null;
 	private List<ItemInfo> ttinfo = null;
 
-	public Object tooltip(Coord c, boolean again) {
+	@Override
+	public Object tooltip(Coord c, Widget prev) {
 		long now = System.currentTimeMillis();
-		if (!again)
+		if(prev == this) {
+
+		} else if(prev instanceof WItem) {
+			hoverstart = ((WItem)prev).hoverstart;
+		} else {
 			hoverstart = now;
+		}
 		try {
 			List<ItemInfo> info = item.info();
+			if(info.size() < 1)
+				return(null);
 			if (info != ttinfo) {
 				shorttip = longtip = null;
 				ttinfo = info;
@@ -197,95 +207,89 @@ public class WItem extends Widget implements DTarget {
 		}
 	}
 
-	private List<ItemInfo> olinfo = null;
-	private Color olcol = null;
+	public abstract class AttrCache<T> {
+		private List<ItemInfo> forinfo = null;
+		private T save = null;
 
-	private Color olcol() {
-		try {
-			List<ItemInfo> info = item.info();
-			if (info != olinfo) {
-				olcol = null;
-				GItem.ColorInfo cinf = find(GItem.ColorInfo.class, info);
-				if (cinf != null)
-					olcol = cinf.olcol();
-				olinfo = info;
+		public T get() {
+			try {
+				List<ItemInfo> info = item.info();
+				if(info != forinfo) {
+					save = find(info);
+					forinfo = info;
+				}
+			} catch(Loading e) {
+				return(null);
 			}
-		} catch (Loading e) {
-			return (null);
+			return(save);
 		}
-		return (olcol);
+
+		protected abstract T find(List<ItemInfo> info);
 	}
 
-	private List<ItemInfo> numinfo = null;
-	private Tex itemnum = null;
-
-	private Tex itemnum() {
-		try {
-			List<ItemInfo> info = item.info();
-			if (info != numinfo) {
-				itemnum = null;
-				GItem.NumberInfo ninf = find(GItem.NumberInfo.class, info);
-				if (ninf != null)
-					itemnum = new TexI(Utils.outline2(Text.render(
-							Integer.toString(ninf.itemnum()), Color.WHITE).img,
-							Utils.contrast(Color.WHITE)));
-				numinfo = info;
-			}
-		} catch (Loading e) {
-			return (null);
+	public final AttrCache<Color> olcol = new AttrCache<Color>() {
+		@Override
+		protected Color find(List<ItemInfo> info) {
+			GItem.ColorInfo cinf = ItemInfo.find(GItem.ColorInfo.class, info);
+			return((cinf == null)?null:cinf.olcol());
 		}
-		return (itemnum);
-	}
+	};
+
+	public final AttrCache<Tex> itemnum = new AttrCache<Tex>() {
+		@Override
+		protected Tex find(List<ItemInfo> info) {
+			GItem.NumberInfo ninf = ItemInfo.find(GItem.NumberInfo.class, info);
+			if(ninf == null) return(null);
+			return(new TexI(Utils.outline2(Text.render(Integer.toString(ninf.itemnum()), Color.WHITE).img, Utils.contrast(Color.WHITE))));
+		}
+	};
 
 	protected Text purityOutlinedText = null;
-	
+
+	@Override
 	public void draw(GOut g) {
 		try {
 			Resource res = item.res.get();
 			Tex tex = res.layer(Resource.imgc).tex();
 			drawmain(g, tex);
-			if (item.num >= 0) {
-				g.atext(Integer.toString(item.num), Coord.z, 0, 0);
-			} else if (itemnum() != null) {
-				g.aimage(itemnum(), Coord.z, 0, 0);
+			if(item.num >= 0) {
+				g.atext(Integer.toString(item.num), tex.sz(), 1, 1);
+			} else if(itemnum.get() != null) {
+				g.aimage(itemnum.get(), tex.sz(), 1, 1);
 			}
-			if (item.meter > 0) {
-				double a = ((double) item.meter) / 100.0;
-				int r = (int) ((1 - a) * 255);
-				int gr = (int) (a * 255);
-				int b = 0;
-				g.chcolor(r, gr, b, 255);
-				g.frect(new Coord(sz.x - 5, (int) ((1 - a) * sz.y)), new Coord(
-						5, (int) (a * sz.y)));
+			if(item.meter > 0) {
+				double a = item.meter / 100.0;
+				g.chcolor(255, 255, 255, 64);
+				g.fellipse(sz.div(2), new Coord(15, 15), 90, (int)(90 + (360 * a)));
 				g.chcolor();
 			}
 			int purity = (int) Math.round(getPurity());
-			//ALS.alDebugPrint(getPurity(), Math.round(getPurity()), purity);
 			if (purity >= 0) {
 				if (purityOutlinedText == null) {
 					purityOutlinedText = Text.renderOutlined(Integer.toString(purity), Alchemy.colors[getDominantElement()].brighter().brighter(), Color.BLACK, 1);
 				}
 				g.aimage(purityOutlinedText.tex(), sz, 1, 1);
 			}
-			if (olcol() != null) {
-				if (cmask != res) {
+			if(olcol.get() != null) {
+				if(cmask != res) {
 					mask = null;
-					if (tex instanceof TexI)
-						mask = ((TexI) tex).mkmask();
+					if(tex instanceof TexI)
+						mask = ((TexI)tex).mkmask();
 					cmask = res;
 				}
-				if (mask != null) {
-					g.chcolor(olcol());
+				if(mask != null) {
+					g.chcolor(olcol.get());
 					g.image(mask, Coord.z);
 					g.chcolor();
 				}
 			}
-		} catch (Loading e) {
+		} catch(Loading e) {
 			missing.loadwait();
 			g.image(missing.layer(Resource.imgc).tex(), Coord.z, sz);
 		}
 	}
-	
+
+	@Override
 	public boolean mousedown(Coord c, int btn) {
 		if (btn == 1) {
 			if (ui.modshift)
@@ -312,10 +316,12 @@ public class WItem extends Widget implements DTarget {
 		return (false);
 	}
 
+	@Override
 	public boolean drop(Coord cc, Coord ul) {
 		return (false);
 	}
 
+	@Override
 	public boolean iteminteract(Coord cc, Coord ul) {
 		item.wdgmsg("itemact", ui.modflags());
 		return (true);

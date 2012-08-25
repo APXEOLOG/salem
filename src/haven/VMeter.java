@@ -36,6 +36,7 @@ public class VMeter extends Widget {
 
 	static {
 		Widget.addtype("vm", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				Color cl;
 				if (args.length > 4) {
@@ -58,10 +59,12 @@ public class VMeter extends Widget {
 		this.cl = cl;
 	}
 
-	public Object tooltip(Coord c, boolean again) {
+	@Override
+	public Object tooltip(Coord c, Widget prev) {
 		return Integer.toString(amount);
 	}
 
+	@Override
 	public void draw(GOut g) {
 		g.image(bg, Coord.z);
 		g.chcolor(cl);
@@ -70,6 +73,7 @@ public class VMeter extends Widget {
 		g.image(fg, new Coord(0, 0), new Coord(0, sz.y - 3 - h), sz.add(0, h));
 	}
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "set") {
 			amount = (Integer) args[0];

@@ -1,7 +1,7 @@
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
- *                     Björn Johannessen <johannessen.bjorn@gmail.com>
+ *                     BjГ¶rn Johannessen <johannessen.bjorn@gmail.com>
  *
  *  Redistribution and/or modification of this file is subject to the
  *  terms of the GNU Lesser General Public License, version 3, as
@@ -29,42 +29,49 @@ package haven;
 import java.util.*;
 
 public class StaticSprite extends Sprite {
-    public final Rendered[] parts;
-    
-    public static final Factory fact = new Factory() {
-	    public Sprite create(Owner owner, Resource res, Message sdt) {
-		return(new StaticSprite(owner, res, sdt));
-	    }
+	public final Rendered[] parts;
+
+	public static final Factory fact = new Factory() {
+		@Override
+		public Sprite create(Owner owner, Resource res, Message sdt) {
+			if((res.layer(FastMesh.MeshRes.class) != null) ||
+					(res.layer(RenderLink.Res.class) != null))
+				return(new StaticSprite(owner, res, sdt));
+			return(null);
+		}
 	};
-    
-    public StaticSprite(Owner owner, Resource res, Rendered[] parts) {
-	super(owner, res);
-	this.parts = parts;
-    }
 
-    public StaticSprite(Owner owner, Resource res, Rendered part) {
-	this(owner, res, new Rendered[] {part});
-    }
-    
-    public StaticSprite(Owner owner, Resource res, Message sdt) {
-	this(owner, res, lsparts(res, sdt));
-    }
-    
-    public static Rendered[] lsparts(Resource res, Message sdt) {
-	int fl = sdt.eom()?0xffff0000:SkelSprite.decnum(sdt);
-	Collection<Rendered> rl = new LinkedList<Rendered>();
-	for(FastMesh.MeshRes mr : res.layers(FastMesh.MeshRes.class)) {
-	    if((mr.mat != null) && ((mr.id < 0) || (((1 << mr.id) & fl) != 0)))
-		rl.add(mr.mat.get().apply(mr.m));
+	public StaticSprite(Owner owner, Resource res, Rendered[] parts) {
+		super(owner, res);
+		this.parts = parts;
 	}
-	for(RenderLink.Res lr : res.layers(RenderLink.Res.class))
-	    rl.add(lr.l.make());
-	return(rl.toArray(new Rendered[0]));
-    }
 
-    public boolean setup(RenderList r) {
-	for(Rendered p : parts)
-	    r.add(p, null);
-	return(false);
-    }
+	public StaticSprite(Owner owner, Resource res, Rendered part) {
+		this(owner, res, new Rendered[] {part});
+	}
+
+	public StaticSprite(Owner owner, Resource res, Message sdt) {
+		this(owner, res, lsparts(res, sdt));
+	}
+
+	public static Rendered[] lsparts(Resource res, Message sdt) {
+		int fl = sdt.eom()?0xffff0000:SkelSprite.decnum(sdt);
+		Collection<Rendered> rl = new LinkedList<Rendered>();
+		for(FastMesh.MeshRes mr : res.layers(FastMesh.MeshRes.class)) {
+			if((mr.mat != null) && ((mr.id < 0) || (((1 << mr.id) & fl) != 0)))
+				rl.add(mr.mat.get().apply(mr.m));
+		}
+		for(RenderLink.Res lr : res.layers(RenderLink.Res.class))
+			rl.add(lr.l.make());
+		if(res.layer(Resource.audio, "amb") != null)
+			rl.add(new ActAudio.Ambience(res));
+		return(rl.toArray(new Rendered[0]));
+	}
+
+	@Override
+	public boolean setup(RenderList r) {
+		for(Rendered p : parts)
+			r.add(p, null);
+		return(false);
+	}
 }

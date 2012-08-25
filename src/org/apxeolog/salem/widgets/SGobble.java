@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import haven.Coord;
 import haven.GOut;
@@ -10,36 +10,36 @@ import haven.Widget;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import org.apxeolog.salem.SInterfaces.IGobble;
+import org.apxeolog.salem.utils.SInterfaces.IGobble;
 
 public class SGobble extends IGobble {
 	protected int[] currentVals = new int[4];
 	protected int[] fepVals = new int[4];
 	protected BufferedImage[] textVal = new BufferedImage[4];
-	
+
 	protected static final Tex[] caseTex = new Tex[4];
 	protected static final Text.Foundry valFoundry = new Text.Foundry("Serif", 16);
 	protected Text currentTimerVar = valFoundry.render("0");
-	
+
 	protected Tex currentCase = null;
 	long lastTimeTriggered = 0;
-	
+
 	static {
 		Text.Foundry bufFoundry = new Text.Foundry("Serif", 20);
 		bufFoundry.aa = true;
 		for (int i = 0; i < 4; i++)
 			caseTex[i] = bufFoundry.render(Integer.toString(i + 1), Color.YELLOW).tex();
 	}
-	
+
 	protected Object tooltip;
-	
+
 	protected Coord baseSize = Coord.z;
-	
+
 	public SGobble(Coord c, Coord sz, Widget parent) {
 		super(c, sz.add(20, 0), parent);
 		baseSize = sz;
 	}
-	
+
 	public void updateTextCache() {
 		tooltip = null;
 		for (int i = 0; i < 4; i++) {
@@ -61,7 +61,8 @@ public class SGobble extends IGobble {
 		if (needUpdate) updateTextCache();
 		return max;
 	}
-	
+
+	@Override
 	public void draw(GOut g) {
 		// Main BG
 		g.chcolor(0, 0, 0, 128);
@@ -69,22 +70,22 @@ public class SGobble extends IGobble {
 		// Vals
 		g.chcolor(0, 0, 0, 128);
 		g.frect(baseSize.sub(0, (sz.y / 4) * 3), new Coord(sz.x - baseSize.x, sz.y / 2));
-		
+
 		g.chcolor(255, 255, 255, 255);
 		g.rect(Coord.z, baseSize.add(1, 1));
-		
+
 		g.chcolor(255, 255, 255, 255);
 		g.rect(baseSize.sub(0, (sz.y / 4) * 3), new Coord(sz.x - baseSize.x, sz.y / 2).add(1, 1));
-		
-//		// Food
-//		FoodInfo food = null;
-//		if (ui.lasttip instanceof WItem.ItemTip) {
-//			GItem item = ((WItem.ItemTip) ui.lasttip).item();
-//			food = GItem.find(FoodInfo.class, item.info());
-//		}
-		
+
+		//		// Food
+		//		FoodInfo food = null;
+		//		if (ui.lasttip instanceof WItem.ItemTip) {
+		//			GItem item = ((WItem.ItemTip) ui.lasttip).item();
+		//			food = GItem.find(FoodInfo.class, item.info());
+		//		}
+
 		double max = updateMeters();
-		
+
 		Coord rectSize = new Coord(baseSize.x - 6, 15);
 		for (int i = 0; i < 4; i++) {
 			// Bg
@@ -92,15 +93,15 @@ public class SGobble extends IGobble {
 			g.frect(new Coord(3, i * 16 + 3), rectSize);
 			// BaseFep
 			g.chcolor(STempers.stat_color[i].getRed(), STempers.stat_color[i].getGreen(), STempers.stat_color[i].getBlue(), 128);
-			g.frect(new Coord(3, i * 16 + 3), rectSize.mul((double)currentVals[i] / max, 1D));
+			g.frect(new Coord(3, i * 16 + 3), rectSize.mul(currentVals[i] / max, 1D));
 			// Fep
 			g.chcolor(STempers.stat_color[i].getRed(), STempers.stat_color[i].getGreen(), STempers.stat_color[i].getBlue(), 255);
-			g.frect(new Coord(3, i * 16 + 3), rectSize.mul((double)fepVals[i] / max, 1D));
+			g.frect(new Coord(3, i * 16 + 3), rectSize.mul(fepVals[i] / max, 1D));
 			// Text
 			g.chcolor(Color.WHITE);
 			g.image(textVal[i], new Coord((sz.x - textVal[i].getWidth()) / 2, i * 16 + 3));
 		}
-		
+
 		// Vals
 		// ul = baseSize.sub(0, (sz.y / 4) * 3);
 		// mid = baseSize.add((sz.x - baseSize.x) / 2, - (sz.y / 2));
@@ -111,7 +112,8 @@ public class SGobble extends IGobble {
 		g.aimage(currentTimerVar.tex(), mid.add(0, 8), 0.5, 0.5);
 	}
 
-	public Object tooltip(Coord c, boolean again) {
+	@Override
+	public Object tooltip(Coord c, Widget prev) {
 		if (tooltip == null) {
 			StringBuilder buf = new StringBuilder();
 			for (int i = 0; i < 4; i++)
@@ -120,18 +122,21 @@ public class SGobble extends IGobble {
 		}
 		return tooltip;
 	}
-	
+
+	@Override
 	public void updt(int[] n) {
 		fepVals = n;
 		updateTextCache();
 	}
 
+	@Override
 	public void trig(int a) {
 		// Random case
 		currentCase = caseTex[a];
 		lastTimeTriggered = System.currentTimeMillis();
 	}
 
+	@Override
 	public void updv(int v) {
 		// Update val
 		currentTimerVar = valFoundry.render(String.valueOf(v));

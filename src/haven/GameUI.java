@@ -37,17 +37,18 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apxeolog.salem.SChatWindow;
-import org.apxeolog.salem.SGobble;
-import org.apxeolog.salem.SInterfaces.IGobble;
-import org.apxeolog.salem.SInterfaces.ITempers;
+import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.SNetworkResources;
-import org.apxeolog.salem.STempers;
-import org.apxeolog.salem.SToolbar;
-import org.apxeolog.salem.SUtils;
-import org.apxeolog.salem.SWidgetOptions;
-import org.apxeolog.salem.SWindow;
 import org.apxeolog.salem.config.XConfig;
+import org.apxeolog.salem.utils.SUtils;
+import org.apxeolog.salem.utils.SInterfaces.IGobble;
+import org.apxeolog.salem.utils.SInterfaces.ITempers;
+import org.apxeolog.salem.widgets.SChatWindow;
+import org.apxeolog.salem.widgets.SGobble;
+import org.apxeolog.salem.widgets.STempers;
+import org.apxeolog.salem.widgets.SToolbar;
+import org.apxeolog.salem.widgets.SWidgetOptions;
+import org.apxeolog.salem.widgets.SWindow;
 
 public class GameUI extends ConsoleHost implements DTarget, DropTarget,
 Console.Directory {
@@ -83,11 +84,12 @@ Console.Directory {
 	public String polowner;
 
 	/* APXEOLOG */
-	public SChatWindow bdsChat;
+	//public SChatWindow bdsChat;
 	public SWidgetOptions bdsOptions;
 	public ITempers bdsTempers;
 	public IGobble bdsGobble;
 	public ArrayList<SToolbar> bdsToolbars = new ArrayList<SToolbar>();
+	public SChatWindow bdsChatB;
 
 	public void updateWindowStyle() {
 		ui.root.resize(ui.root.sz);
@@ -206,6 +208,7 @@ Console.Directory {
 
 	public GameUI(Widget parent, String chrid, long plid) {
 		super(Coord.z, parent.sz, parent);
+		SChatWrapper.bindGameUI(this);
 		this.chrid = chrid;
 		this.plid = plid;
 		setcanfocus(true);
@@ -230,12 +233,12 @@ Console.Directory {
 			bdsTempers = new Tempers(Coord.z, this);
 		}
 
-		bdsChat = new SChatWindow(new Coord(100, 100), new Coord(300, 200),
-				this);
-		bdsChat.setResizable(true);
-		bdsChat.setClosable(false);
+
+		bdsChatB = new SChatWindow(new Coord(100, 100), new Coord(300, 200), this, "Chat");
+		bdsChatB.setResizable(true);
+		bdsChatB.setClosable(false);
 		if (!XConfig.cl_use_new_chat)
-			bdsChat.hide();
+			bdsChatB.hide();
 
 		syslog = new ChatUI.Log(chat, "System");
 		ui.cons.out = new java.io.PrintWriter(new java.io.Writer() {
@@ -528,6 +531,12 @@ Console.Directory {
 		}
 	}
 
+	@Override
+	public void destroy() {
+		super.destroy();
+		SChatWrapper.unbindGameUI();
+	}
+
 	private boolean showbeltp() {
 		return (!chat.expanded && !XConfig.cl_use_new_toolbars);
 	}
@@ -687,6 +696,9 @@ Console.Directory {
 		} else if ((sender == help) && (msg == "close")) {
 			ui.destroy(help);
 			help = null;
+			return;
+		} else if (msg.equals("sle_activate")) {
+			bdsChatB.wdgmsg(sender, "sle_activate", args);
 			return;
 		}
 		super.wdgmsg(sender, msg, args);

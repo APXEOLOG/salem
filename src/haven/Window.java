@@ -242,11 +242,11 @@ public class Window extends Widget implements DTarget {
 	}
 
 	@Override
-	public Object tooltip(Coord c, boolean again) {
-		Object ret = super.tooltip(c, again);
-		if (ret != null)
-			return (ret);
+	public Object tooltip(Coord c, Widget prev) {
+		Object ret = super.tooltip(c, prev);
+		if(ret != null)
+			return(ret);
 		else
-			return ("");
+			return("");
 	}
 }

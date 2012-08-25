@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -9,8 +9,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.config.ToolbarsConfig;
-import org.apxeolog.salem.config.ToolbarsConfig.SToolbarConfigSlot;
+import org.apxeolog.salem.config.ToolbarsConfig.TBSlot;
 
 import haven.Config;
 import haven.Coord;
@@ -32,9 +33,9 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	public String barName;
 	public int actKey;
 	public Coord barSize = new Coord(1, 1);
-	private boolean isVert = false;
+	private boolean isVertical = false;
 	private Slot[] slotList;
-	private SToolbarConfigSlot[] slotConfig;
+	private TBSlot[] slotConfig;
 	private int slotCount;
 	private Pagina dragPag, pressPag;
 	public final static Tex backGround = Resource.loadtex("gfx/hud/invsq");
@@ -56,7 +57,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	public SToolbar(Coord c, Widget w, ToolbarsConfig cfg) {
 		this(c, w, cfg.tbName, cfg.slotList.size());
 		getparent(GameUI.class).bdsToolbars.add(this);
-		slotConfig = new SToolbarConfigSlot[slotCount];
+		slotConfig = new TBSlot[slotCount];
 		for (int slot = 0; slot < slotCount; slot++) {
 			slotConfig[slot] = cfg.slotList.get(slot);
 		}
@@ -90,7 +91,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 
 	private int slotIndex(Coord c) {
 		if(isMinimized) return -1;
-		if(isVert) {
+		if(isVertical) {
 			for(int i = 0; i < barSize.y; i++){
 				Coord stl = new Coord(5, 5 + windowHeader.sz.y + bGSize.y*i); //slot top left corner
 				if(c.isect(stl, bGSize)) return i;
@@ -110,12 +111,12 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		if(isMinimized) return;
 		Coord backDraw;
 		int limit;
-		if(isVert)
+		if(isVertical)
 			limit = barSize.y;
 		else
 			limit = barSize.x;
 		for(int i = 0; i < limit; i++) {
-			if(isVert) backDraw = new Coord(0, bGSize.y*i);
+			if(isVertical) backDraw = new Coord(0, bGSize.y*i);
 			else backDraw = new Coord(bGSize.x*i, 0);
 			backDraw = backDraw.add(5, 5 + windowHeader.sz.y);
 			initGL.image(backGround, backDraw);
@@ -147,7 +148,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 
 	private void calcBarSize() {
 		Coord newSize;
-		if(isVert) {
+		if(isVertical) {
 			int height = 0;
 			for(int i = 0; i < barSize.y; i++)
 				height += bGSize.y;
@@ -163,7 +164,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 
 	private void initBar(int slotsCount) {
 		if(slotsCount < 1) slotsCount = 1;
-		if(isVert)
+		if(isVertical)
 			barSize = new Coord(1, slotsCount);
 		else
 			barSize = new Coord(slotsCount, 1);
@@ -199,7 +200,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 
 	@Override
 	public void mousemove(Coord c) {
-		if ((dragPag == null) && (pressPag != null) && slotIndex(c) < 0) {
+		if ((dragPag == null) && (pressPag != null) && slotIndex(c) >= 0) {
 			//moving items on toolbar
 			//removing old one
 			Pagina p = null;
@@ -262,7 +263,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	}
 
 	@Override
-	public Object tooltip(Coord c, boolean again) {
+	public Object tooltip(Coord c, Widget prev) {
 		if(slotIndex(c) < 0 || slotIndex(c) > slotCount) return null;
 		Slot slot = slotList[slotIndex(c)];
 		Resource res = (slot == null) ? null : slot.getRes();
@@ -270,7 +271,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		if ((res != null)
 				&& ((res.layer(Resource.action) != null) || (res
 						.layer(Resource.tooltip) != null))) {
-			if (!again)
+			if (prev != this)
 				hoverstart = now;
 			boolean ttl = (now - hoverstart) > 500;
 			if ((res != curttr) || (ttl != curttl)) {
@@ -288,7 +289,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	@Override
 	public boolean keydown(KeyEvent ev) {
 		if(ev.getKeyCode() == 70 && ui.modctrl) {
-			isVert = !isVert;
+			isVertical = !isVertical;
 			barSize = new Coord(barSize.y, barSize.x);
 			calcBarSize();
 			return true;

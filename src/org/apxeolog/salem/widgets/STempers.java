@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import haven.Coord;
 import haven.FoodInfo;
@@ -6,6 +6,7 @@ import haven.GItem;
 import haven.GOut;
 import haven.GameUI;
 import haven.ItemInfo;
+import haven.Loading;
 import haven.RichText;
 import haven.Text;
 import haven.WItem;
@@ -14,26 +15,26 @@ import haven.Widget;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 
-import org.apxeolog.salem.SInterfaces.ITempers;
+import org.apxeolog.salem.utils.SInterfaces.ITempers;
 
 public class STempers extends ITempers {
 	public static final String[] stat_uniq = { "blood", "phlegm", "ybile", "bbile" };
 	public static final String[] stat_name = { "Blood", "Phlegm", "Yellow Bile", "Black Bile" };
 	public static final Color[] stat_color = { new Color(178, 0, 0, 255), new Color(0, 102, 179, 255), new Color(255, 151, 0, 255), new Color(128, 128, 128, 255) };
-	
+
 	protected int[] softVal = new int[4];
 	protected int[] hardVal = new int[4];
 	protected int[] maxVal = new int[4];
 	protected BufferedImage[] textVal = new BufferedImage[4];
-	
-	
+
+
 	protected boolean fullTempers = false;
 	protected Object tooltip;
-	
+
 	public STempers(Coord c, Widget parent) {
 		super(c, new Coord(120, 71), parent);
 	}
-	
+
 	public void updateTextCache() {
 		tooltip = null;
 		for (int i = 0; i < 4; i++) {
@@ -57,33 +58,38 @@ public class STempers extends ITempers {
 		maxVal = max;
 		if (needUpdate) updateTextCache();
 	}
-	
+
+	@Override
 	public void draw(GOut g) {
 		updateMeters();
-		
+
 		if (fullTempers)
 			g.chcolor(0, 96, 0, 128);
 		else
 			g.chcolor(0, 0, 0, 128);
 		g.frect(Coord.z, sz);
-		
+
 		if (fullTempers)
 			g.chcolor(0, 255, 0, 128);
 		else
 			g.chcolor(255, 255, 255, 255);
 		g.rect(Coord.z, sz.add(1, 1));
-		
+
 		// Food
 		FoodInfo food = null;
 		if (ui.lasttip instanceof WItem.ItemTip) {
-			GItem item = ((WItem.ItemTip) ui.lasttip).item();
-			food = ItemInfo.find(FoodInfo.class, item.info());
+			try {
+				GItem item = ((WItem.ItemTip) ui.lasttip).item();
+				food = ItemInfo.find(FoodInfo.class, item.info());
+			} catch(Loading e) {
+
+			}
 		}
-		
+
 		Coord rectSize = new Coord(sz.x - 6, 15);
 		for (int i = 0; i < 4; i++) {
 			double hardP = Math.min((double)hardVal[i] / (double)maxVal[i], 1D);
-			double softP = Math.min(((double)softVal[i] + (food != null ? food.tempers[i] : 0)) / (double)maxVal[i], 1D);
+			double softP = Math.min(((double)softVal[i] + (food != null ? food.tempers[i] : 0)) / maxVal[i], 1D);
 			// Bg
 			g.chcolor(Color.BLACK);
 			g.frect(new Coord(3, i * 16 + 3), rectSize);
@@ -99,7 +105,8 @@ public class STempers extends ITempers {
 		}
 	}
 
-	public Object tooltip(Coord c, boolean again) {
+	@Override
+	public Object tooltip(Coord c, Widget prev) {
 		if (tooltip == null) {
 			StringBuilder buf = new StringBuilder();
 			for (int i = 0; i < 4; i++)
@@ -108,17 +115,20 @@ public class STempers extends ITempers {
 		}
 		return tooltip;
 	}
-	
+
+	@Override
 	public void upds(int[] n) {
 		softVal = n;
 		updateTextCache();
 	}
 
+	@Override
 	public void updh(int[] n) {
 		hardVal = n;
 		updateTextCache();
 	}
-	
+
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		getparent(GameUI.class).act("gobble");
 		return true;

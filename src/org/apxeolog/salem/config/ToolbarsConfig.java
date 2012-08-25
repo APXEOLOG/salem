@@ -9,7 +9,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apxeolog.salem.SToolbar;
+import org.apxeolog.salem.widgets.SToolbar;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -25,15 +25,24 @@ public class ToolbarsConfig implements IConfigExport {
 		});
 	}
 
-	public static class SToolbarConfigSlot {
+	public static class TBSlot {
 		public int sMode = 0;
 		public int sKey = 0;
+		public int sGLobal = 0;
 
 		protected String slotString = null;
 
-		public SToolbarConfigSlot(int mode, int key) {
+		public TBSlot(int mode, int key) {
 			sMode = mode;
 			sKey = key;
+			sGLobal = getFreeGlobalSlot();
+			rebuildString();
+		}
+
+		public TBSlot(int mode, int key, int global) {
+			sMode = mode;
+			sKey = key;
+			sGLobal = global;
 			rebuildString();
 		}
 
@@ -59,17 +68,30 @@ public class ToolbarsConfig implements IConfigExport {
 		}
 	}
 
+	public static class TBConfig {
+		public ArrayList<TBSlot> tbSlots;
+		public String tbName;
+		public boolean isEnabled = true;
+		public boolean isVertical = false;
+		public boolean isLocked = true;
+
+		public TBConfig(String name) {
+			tbName = name;
+			tbSlots = new ArrayList<ToolbarsConfig.TBSlot>();
+		}
+	}
+
 	public String tbName;
-	public ArrayList<SToolbarConfigSlot> slotList;
+	public ArrayList<TBSlot> slotList;
 	public boolean enabled = true;
 
 	public ToolbarsConfig(String name) {
 		tbName = name;
-		slotList = new ArrayList<ToolbarsConfig.SToolbarConfigSlot>();
+		slotList = new ArrayList<ToolbarsConfig.TBSlot>();
 	}
 
-	public void addSlot(int mode, int key) {
-		slotList.add(new SToolbarConfigSlot(mode, key));
+	public void addSlot(int mode, int key, int global) {
+		slotList.add(new TBSlot(mode, key, global));
 	}
 
 	public void removeSlot(int index) {
@@ -113,16 +135,28 @@ public class ToolbarsConfig implements IConfigExport {
 			currentNode.setAttribute("enabled", String.valueOf(cfg.enabled));
 
 			for (int j = 0; j < cfg.slotList.size(); j++) {
-				int mode = cfg.slotList.get(j).sMode;
-				int key = cfg.slotList.get(j).sKey;
-
+				TBSlot slotc = cfg.slotList.get(j);
 				Element slot = document.createElement("slot");
-				slot.setAttribute("mode", String.valueOf(mode));
-				slot.setAttribute("key", String.valueOf(key));
+				slot.setAttribute("mode", String.valueOf(slotc.sMode));
+				slot.setAttribute("key", String.valueOf(slotc.sKey));
+				slot.setAttribute("id", String.valueOf(slotc.sGLobal));
 				currentNode.appendChild(slot);
 			}
 			rootElement.appendChild(currentNode);
 		}
+	}
+
+	private static int[] slotIndexes = new int[144];
+
+	public static int getFreeGlobalSlot() {
+		for (int i = 0; i < slotIndexes.length; i++) {
+			if (slotIndexes[i] < 0) return i;
+		}
+		return -1;
+	}
+
+	public static void markGlobalSlot(int slot) {
+		if (slot >= 0 && slot < slotIndexes.length) slotIndexes[slot] = 1;
 	}
 
 	@Override
@@ -132,6 +166,7 @@ public class ToolbarsConfig implements IConfigExport {
 			cachedElement = rootElement;
 			definedToolbars.clear();
 		}
+		for (int i = 0; i < slotIndexes.length; i++) slotIndexes[i] = -1;
 		NodeList list = cachedElement.getElementsByTagName("toolbar");
 		Element currentNode = null;
 		for (int i = 0; i < list.getLength(); i++) {
@@ -145,7 +180,12 @@ public class ToolbarsConfig implements IConfigExport {
 				Element slot = (Element) slots.item(j);
 				int mode = Integer.valueOf(slot.getAttribute("mode"));
 				int key = Integer.valueOf(slot.getAttribute("key"));
-				tcfg.addSlot(mode, key);
+				int global = getFreeGlobalSlot();
+				if (slot.hasAttribute("id")) {
+					global = Integer.valueOf(slot.getAttribute("id"));
+				}
+				markGlobalSlot(global);
+				tcfg.addSlot(mode, key, global);
 			}
 			definedToolbars.put(tcfg.tbName, tcfg);
 		}

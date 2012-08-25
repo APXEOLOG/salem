@@ -48,7 +48,7 @@ public class Glob {
 	public Indir<Resource> sky1 = null, sky2 = null;
 	public double skyblend = 0.0;
 	public int pagseq = 0;
-	
+
 	public Glob(Session sess) {
 		this.sess = sess;
 		map = new MCache(sess);
@@ -78,7 +78,7 @@ public class Glob {
 
 	@SuppressWarnings("serial")
 	public static class Pagina implements java.io.Serializable {
-		private final java.lang.ref.WeakReference<Resource> res;
+		private final Resource res;
 		public State st;
 		public int meter, dtime;
 		public long gettime;
@@ -91,10 +91,12 @@ public class Glob {
 
 		public static enum State {
 			ENABLED, DISABLED {
+				@Override
 				public Image img(final Pagina pag) {
 					return (new Image() {
 						private Tex c = null;
 
+						@Override
 						public Tex tex() {
 							if (pag.res() == null)
 								return (null);
@@ -110,6 +112,7 @@ public class Glob {
 
 			public Image img(final Pagina pag) {
 				return (new Image() {
+					@Override
 					public Tex tex() {
 						if (pag.res() == null)
 							return (null);
@@ -120,12 +123,12 @@ public class Glob {
 		}
 
 		public Pagina(Resource res) {
-			this.res = new java.lang.ref.WeakReference<Resource>(res);
+			this.res = res;
 			state(State.ENABLED);
 		}
 
 		public Resource res() {
-			return (res.get());
+			return(res);
 		}
 
 		public Resource.AButton act() {
@@ -142,7 +145,7 @@ public class Glob {
 
 	@SuppressWarnings("unused")
 	private static double defix(int i) {
-		return (((double) i) / 1e9);
+		return (i / 1e9);
 	}
 
 	public void blob(Message msg) {

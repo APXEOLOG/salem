@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apxeolog.salem.SWindow;
+import org.apxeolog.salem.widgets.SWindow;
 
 public class Polity extends SWindow {
 	public final String name;

@@ -776,14 +776,27 @@ public class MapView extends PView implements DTarget {
 			undelay(delayed2, g);
 			poldraw(g);
 			partydraw(g);
+			glob.map.reqarea(cc.div(tilesz).sub(MCache.cutsz.mul(view + 1)),
+					cc.div(tilesz).add(MCache.cutsz.mul(view + 1)));
 			if (ui.modshift && XConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
 				FastText.aprint(g, ui.mc.sub(0, 5), 0.5, 0.5, String.valueOf(cz));
 			}
 			if (ui.modctrl && XConfig.cl_debug_mode && hoveredGob != null) {
-				FastText.aprint(g, ui.mc.add(0, 16), 0.5, 0.5, hoveredGob.resname());
+				int yy = 24;
+				FastText.aprint(g, ui.mc.add(0, yy), 0.5, 0.5, "ID: " + String.valueOf(hoveredGob.id)); yy += 10;
+				FastText.aprint(g, ui.mc.add(0, yy), 0.5, 0.5, "Resource: " + hoveredGob.resname()); yy += 10;
 				Composite comp = hoveredGob.getattr(Composite.class);
 				if (comp != null) {
-					FastText.aprint(g, ui.mc.add(0, 24), 0.5, 0.5, "Composite: " + comp.resname());
+					FastText.aprint(g, ui.mc.add(0, yy), 0.5, 0.5, "Composite: " + comp.resname()); yy += 10;
+					FastText.aprint(g, ui.mc.add(0, yy), 0.5, 0.5, "NPoses (" + String.valueOf(System.currentTimeMillis() - comp.getLastPoseChangeTime()) + " ): " + comp.getNPoses()); yy += 10;
+				}
+				String attrs = hoveredGob.getAttrs();
+				if (!attrs.isEmpty()) {
+					FastText.aprint(g, ui.mc.add(0, yy), 0.5, 0.5, "Attributes: " + attrs); yy += 10;
+				}
+				String ols = hoveredGob.getOverlays();
+				if (!ols.isEmpty()) {
+					FastText.aprint(g, ui.mc.add(0, yy), 0.5, 0.5, "Overlays: " + ols); yy += 10;
 				}
 			}
 		} catch(Loading e) {

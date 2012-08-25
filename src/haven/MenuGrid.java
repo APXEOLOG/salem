@@ -44,7 +44,7 @@ public class MenuGrid extends Widget {
 			TextAttribute.FAMILY, "SansSerif", TextAttribute.SIZE, 10);
 	private static Coord gsz = new Coord(4, 4);
 	private Pagina cur, pressed, dragging,
-			layout[][] = new Pagina[gsz.x][gsz.y];
+	layout[][] = new Pagina[gsz.x][gsz.y];
 	private int curoff = 0;
 	private int pagseq = 0;
 	private boolean loading = true;
@@ -52,6 +52,7 @@ public class MenuGrid extends Widget {
 
 	static {
 		Widget.addtype("scm", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				return (new MenuGrid(c, parent));
 			}
@@ -104,6 +105,7 @@ public class MenuGrid extends Widget {
 	}
 
 	private static Comparator<Pagina> sorter = new Comparator<Pagina>() {
+		@Override
 		public int compare(Pagina a, Pagina b) {
 			AButton aa = a.act(), ab = b.act();
 			if ((aa.ad.length == 0) && (ab.ad.length > 0))
@@ -150,7 +152,7 @@ public class MenuGrid extends Widget {
 		int pos = tt.toUpperCase().indexOf(Character.toUpperCase(ad.hk));
 		if (pos >= 0)
 			tt = tt.substring(0, pos) + "$col[255,255,0]{" + tt.charAt(pos)
-					+ "}" + tt.substring(pos + 1);
+			+ "}" + tt.substring(pos + 1);
 		else if (ad.hk != 0)
 			tt += " [" + ad.hk + "]";
 		if (withpg && (pg != null)) {
@@ -159,6 +161,7 @@ public class MenuGrid extends Widget {
 		return (ttfnd.render(tt, 300));
 	}
 
+	@Override
 	public void draw(GOut g) {
 		long now = System.currentTimeMillis();
 		for (int y = 0; y < gsz.y; y++) {
@@ -172,8 +175,8 @@ public class MenuGrid extends Widget {
 					if (btn.meter > 0) {
 						double m = btn.meter / 1000.0;
 						if (btn.dtime > 0)
-							m += (1 - m) * (double) (now - btn.gettime)
-									/ (double) btn.dtime;
+							m += (1 - m) * (now - btn.gettime)
+							/ btn.dtime;
 						m = Utils.clip(m, 0, 1);
 						g.chcolor(255, 255, 255, 128);
 						g.fellipse(p.add(bgsz.div(2)), bgsz.div(2), 90,
@@ -192,6 +195,7 @@ public class MenuGrid extends Widget {
 		if (dragging != null) {
 			final Tex dt = dragging.img.tex();
 			ui.drawafter(new UI.AfterDraw() {
+				@Override
 				public void draw(GOut g) {
 					g.image(dt, ui.mc.add(dt.sz().div(2).inv()));
 				}
@@ -204,22 +208,23 @@ public class MenuGrid extends Widget {
 	private Text curtt = null;
 	private long hoverstart;
 
-	public Object tooltip(Coord c, boolean again) {
+	@Override
+	public Object tooltip(Coord c, Widget prev) {
 		Pagina pag = bhit(c);
 		long now = System.currentTimeMillis();
-		if ((pag != null) && (pag.act() != null)) {
-			if (!again)
+		if((pag != null) && (pag.act() != null)) {
+			if(prev != this)
 				hoverstart = now;
 			boolean ttl = (now - hoverstart) > 500;
-			if ((pag != curttp) || (ttl != curttl)) {
+			if((pag != curttp) || (ttl != curttl)) {
 				curtt = rendertt(pag.res(), ttl);
 				curttp = pag;
 				curttl = ttl;
 			}
-			return (curtt);
+			return(curtt);
 		} else {
 			hoverstart = now;
-			return ("");
+			return("");
 		}
 	}
 
@@ -231,6 +236,7 @@ public class MenuGrid extends Widget {
 			return (null);
 	}
 
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		Pagina h = bhit(c);
 		if ((button == 1) && (h != null)) {
@@ -240,6 +246,7 @@ public class MenuGrid extends Widget {
 		return (true);
 	}
 
+	@Override
 	public void mousemove(Coord c) {
 		if ((dragging == null) && (pressed != null)) {
 			Pagina h = bhit(c);
@@ -281,6 +288,7 @@ public class MenuGrid extends Widget {
 			updlayout();
 	}
 
+	@Override
 	public boolean mouseup(Coord c, int button) {
 		Pagina h = bhit(c);
 		if (button == 1) {
@@ -297,6 +305,7 @@ public class MenuGrid extends Widget {
 		return (true);
 	}
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "goto") {
 			String res = (String) args[0];
@@ -309,6 +318,7 @@ public class MenuGrid extends Widget {
 		}
 	}
 
+	@Override
 	public boolean globtype(char k, KeyEvent ev) {
 		if ((k == 27) && (this.cur != null)) {
 			this.cur = null;

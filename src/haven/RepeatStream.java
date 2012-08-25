@@ -1,7 +1,7 @@
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
- *                     Björn Johannessen <johannessen.bjorn@gmail.com>
+ *                     BjГ¶rn Johannessen <johannessen.bjorn@gmail.com>
  *
  *  Redistribution and/or modification of this file is subject to the
  *  terms of the GNU Lesser General Public License, version 3, as
@@ -26,31 +26,51 @@
 
 package haven;
 
-import org.apxeolog.salem.widgets.SWindow;
+import java.io.*;
 
-public class Logout extends SWindow {
-    Button y, n;
-	
-    public Logout(Coord c, Widget parent) {
-	super(c, new Coord(125, 50), parent, "Haven & Hearth");
-	new Label(Coord.z, this, "Do you want to log out?");
-	y = new Button(new Coord(0, 30), 50, this, "Yes");
-	n = new Button(new Coord(75, 30), 50, this, "No");
-	canactivate = true;
-    }
-	
-    public void wdgmsg(Widget sender, String msg, Object... args) {
-	if(sender == y) {
-	    ui.sess.close();
-	} else if(sender == n) {
-	    ui.destroy(this);
-	} else if(sender == this) {
-	    if(msg == "close")
-		ui.destroy(this);
-	    if(msg == "activate")
-		ui.sess.close();
-	} else {
-	    super.wdgmsg(sender, msg, args);
+public class RepeatStream extends InputStream {
+	private final Repeater rep;
+	private InputStream cur;
+
+	public interface Repeater {
+		public InputStream cons();
 	}
-    }
+
+	public RepeatStream(Repeater rep) {
+		this.rep = rep;
+		this.cur = rep.cons();
+	}
+
+	@Override
+	public int read(byte[] b, int off, int len) throws IOException {
+		if(cur == null)
+			return(-1);
+		int ret;
+		while((ret = cur.read(b, off, len)) < 0) {
+			cur.close();
+			if((cur = rep.cons()) == null)
+				return(-1);
+		}
+		return(ret);
+	}
+
+	@Override
+	public int read() throws IOException {
+		if(cur == null)
+			return(-1);
+		int ret;
+		while((ret = cur.read()) < 0) {
+			cur.close();
+			if((cur = rep.cons()) == null)
+				return(-1);
+		}
+		return(ret);
+	}
+
+	@Override
+	public void close() throws IOException {
+		if(cur != null)
+			cur.close();
+		cur = null;
+	}
 }

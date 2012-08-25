@@ -27,6 +27,7 @@
 package haven;
 
 import java.util.*;
+
 import haven.Skeleton.Pose;
 import haven.Skeleton.TrackMod;
 import static haven.Composited.ED;
@@ -37,6 +38,8 @@ public class Composite extends Drawable {
 	public final Indir<Resource> base;
 	public Composited comp;
 	private List<Indir<Resource>> nposes = null, tposes = null;
+	private List<Indir<Resource>> poseBuf = null;
+	private long lastPoseChange = 0;
 	private float tptime;
 	private WrapMode tpmode;
 	public int pseq;
@@ -47,7 +50,7 @@ public class Composite extends Drawable {
 		super(gob);
 		this.base = base;
 	}
-	
+
 	public String resname() {
 		return base.get().name;
 	}
@@ -58,6 +61,7 @@ public class Composite extends Drawable {
 		comp = new Composited(base.get().layer(Skeleton.Res.class).s);
 	}
 
+	@Override
 	public void setup(RenderList rl) {
 		try {
 			init();
@@ -77,6 +81,7 @@ public class Composite extends Drawable {
 		return (mods);
 	}
 
+	@Override
 	public void ctick(int dt) {
 		if (comp == null)
 			return;
@@ -93,6 +98,7 @@ public class Composite extends Drawable {
 				final Composited.Poses cp = comp.poses;
 				Composited.Poses np = comp.new Poses(loadposes(tposes,
 						comp.skel, tpmode)) {
+					@Override
 					protected void done() {
 						cp.set(ipollen);
 					}
@@ -118,19 +124,38 @@ public class Composite extends Drawable {
 		comp.tick(dt, v);
 	}
 
+	@Override
 	public Resource.Neg getneg() {
 		return (base.get().layer(Resource.negc));
 	}
 
+	@Override
 	public Pose getpose() {
 		init();
 		return (comp.pose);
+	}
+
+	public long getLastPoseChangeTime() {
+		return lastPoseChange;
+	}
+
+	public String getNPoses() {
+		if (poseBuf == null) return "null";
+		String str = "";
+		for (Indir<Resource> pose : poseBuf) {
+			if (pose != null)
+				str += pose.toString() + ", ";
+			else str += "null, ";
+		}
+		return str;
 	}
 
 	public void chposes(List<Indir<Resource>> poses, boolean interp) {
 		if (tposes != null)
 			tposes = null;
 		nposes = poses;
+		poseBuf = poses;
+		lastPoseChange = System.currentTimeMillis();
 	}
 
 	public void tposes(List<Indir<Resource>> poses, WrapMode mode, float time) {

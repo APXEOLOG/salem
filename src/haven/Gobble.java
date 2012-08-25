@@ -28,7 +28,7 @@ package haven;
 
 import java.awt.Color;
 
-import org.apxeolog.salem.SInterfaces.IGobble;
+import org.apxeolog.salem.utils.SInterfaces.IGobble;
 
 public class Gobble extends IGobble {
 	static final Tex[] trigi = new Tex[4];

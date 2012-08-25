@@ -77,12 +77,12 @@ import javax.imageio.ImageIO;
 
 @SuppressWarnings("serial")
 public class Resource implements Comparable<Resource>, Prioritized,
-		Serializable {
-	private static Map<String, Resource> cache = new TreeMap<String, Resource>();
+Serializable {
+	private final static Map<String, Resource> cache;
 	private static Loader loader;
 	private static CacheSource prscache;
 	public static ThreadGroup loadergroup = null;
-	private static Map<String, Class<? extends Layer>> ltypes = new TreeMap<String, Class<? extends Layer>>();
+	private static Map<String, LayerFactory<?>> ltypes = new TreeMap<String, LayerFactory<?>>();
 	static Set<Resource> loadwaited = new HashSet<Resource>();
 	public static Class<Image> imgc = Image.class;
 	public static Class<Tile> tile = Tile.class;
@@ -95,14 +95,21 @@ public class Resource implements Comparable<Resource>, Prioritized,
 	public static Class<Tooltip> tooltip = Tooltip.class;
 
 	static {
-		ltypes.put("vbuf", VertexBuf.VertexRes.class);
-		ltypes.put("mesh", FastMesh.MeshRes.class);
-		ltypes.put("mat", Material.Res.class);
-		ltypes.put("skel", Skeleton.Res.class);
-		ltypes.put("skan", Skeleton.ResPose.class);
-		ltypes.put("boneoff", Skeleton.BoneOffset.class);
-		ltypes.put("light", Light.Res.class);
-		ltypes.put("rlink", RenderLink.Res.class);
+		addltype("vbuf", VertexBuf.VertexRes.class);
+		addltype("mesh", FastMesh.MeshRes.class);
+		addltype("mat", Material.Res.class);
+		addltype("skel", Skeleton.Res.class);
+		addltype("skan", Skeleton.ResPose.class);
+		addltype("boneoff", Skeleton.BoneOffset.class);
+		addltype("light", Light.Res.class);
+		addltype("rlink", RenderLink.Res.class);
+	}
+
+	static {
+		if(Config.softres)
+			cache = new CacheMap<String, Resource>();
+		else
+			cache = new TreeMap<String, Resource>();
 	}
 
 	static {
@@ -141,6 +148,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		final CacheSource mc = prscache;
 		if (mc != null) {
 			src = new TeeSource(src) {
+				@Override
 				public OutputStream fork(String name) throws IOException {
 					return (mc.cache.store("res/" + name));
 				}
@@ -182,7 +190,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 								String.format(
 										"Weird version number on %s (%d > %d), loaded from %s",
 										res.name, res.ver, ver, res.source),
-								res));
+										res));
 
 					}
 				} else if (ver == -1) {
@@ -205,11 +213,15 @@ public class Resource implements Comparable<Resource>, Prioritized,
 	}
 
 	public static int numloaded() {
-		return (cache.size());
+		synchronized(cache) {
+			return(cache.size());
+		}
 	}
 
 	public static Collection<Resource> cached() {
-		return (cache.values());
+		synchronized(cache) {
+			return(cache.values());
+		}
 	}
 
 	public static Resource load(String name, int ver) {
@@ -271,6 +283,25 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		public InputStream get(String name) throws IOException;
 	}
 
+	public static class Spec implements Indir<Resource> {
+		public final String name;
+		public final int ver;
+
+		public Spec(String name, int ver) {
+			this.name = name;
+			this.ver = ver;
+		}
+
+		public Resource get(int prio) {
+			return(load(name, ver));
+		}
+
+		@Override
+		public Resource get() {
+			return(get(0));
+		}
+	}
+
 	public static abstract class TeeSource implements ResSource, Serializable {
 		public ResSource back;
 
@@ -278,6 +309,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			this.back = back;
 		}
 
+		@Override
 		public InputStream get(String name) throws IOException {
 			StreamTee tee = new StreamTee(back.get(name));
 			tee.setncwe();
@@ -287,6 +319,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 
 		public abstract OutputStream fork(String name) throws IOException;
 
+		@Override
 		public String toString() {
 			return ("forking source backed by " + back);
 		}
@@ -299,10 +332,12 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			this.cache = cache;
 		}
 
+		@Override
 		public InputStream get(String name) throws IOException {
 			return (cache.fetch("res/" + name));
 		}
 
+		@Override
 		public String toString() {
 			return ("cache source backed by " + cache);
 		}
@@ -315,6 +350,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			this.base = base;
 		}
 
+		@Override
 		public InputStream get(String name) {
 			File cur = base;
 			String[] parts = name.split("/");
@@ -326,16 +362,18 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			} catch (FileNotFoundException e) {
 				throw ((LoadException) (new LoadException(
 						"Could not find resource in filesystem: " + name, this)
-						.initCause(e)));
+				.initCause(e)));
 			}
 		}
 
+		@Override
 		public String toString() {
 			return ("filesystem res source (" + base + ")");
 		}
 	}
 
 	public static class JarSource implements ResSource, Serializable {
+		@Override
 		public InputStream get(String name) {
 			InputStream s = Resource.class.getResourceAsStream("/res/" + name + ".res");
 			if (s == null)
@@ -344,6 +382,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			return (s);
 		}
 
+		@Override
 		public String toString() {
 			return ("local res source");
 		}
@@ -383,6 +422,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			}
 		}
 
+		@Override
 		public InputStream get(String name) throws IOException {
 			URL resurl = encodeurl(new URL(baseurl, name + ".res"));
 			URLConnection c;
@@ -394,6 +434,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			return (c.getInputStream());
 		}
 
+		@Override
 		public String toString() {
 			return ("HTTP res source (" + baseurl + ")");
 		}
@@ -428,6 +469,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			}
 		}
 
+		@Override
 		public void run() {
 			try {
 				while (true) {
@@ -524,6 +566,49 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		return (new Coord(Utils.int16d(buf, off), Utils.int16d(buf, off + 2)));
 	}
 
+	public interface LayerFactory<T extends Layer> {
+		public T cons(Resource res, byte[] buf);
+	}
+
+	public static class LayerConstructor<T extends Layer> implements LayerFactory<T> {
+		public final Class<T> cl;
+		private final Constructor<T> cons;
+
+		public LayerConstructor(Class<T> cl) {
+			this.cl = cl;
+			try {
+				this.cons = cl.getConstructor(Resource.class, byte[].class);
+			} catch(NoSuchMethodException e) {
+				throw(new RuntimeException("No proper constructor found for layer type " + cl.getName(), e));
+			}
+		}
+
+		@Override
+		public T cons(Resource res, byte[] buf) {
+			try {
+				return(cons.newInstance(res, buf));
+			} catch(InstantiationException e) {
+				throw(new LoadException(e, res));
+			} catch(IllegalAccessException e) {
+				throw(new LoadException(e, res));
+			} catch(InvocationTargetException e) {
+				Throwable c = e.getCause();
+				if(c instanceof RuntimeException)
+					throw((RuntimeException)c);
+				else
+					throw(new LoadException(e, res));
+			}
+		}
+	}
+
+	public static void addltype(String name, LayerFactory<?> cons) {
+		ltypes.put(name, cons);
+	}
+
+	public static <T extends Layer> void addltype(String name, Class<T> cl) {
+		addltype(name, new LayerConstructor<T>(cl));
+	}
+
 	public abstract class Layer implements Serializable {
 		public abstract void init();
 
@@ -555,7 +640,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 	}
 
 	public class Image extends Layer implements Comparable<Image>,
-			IDLayer<Integer> {
+	IDLayer<Integer> {
 		public transient BufferedImage img;
 		transient private Tex tex;
 		public final int z, subz;
@@ -589,6 +674,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			if (tex != null)
 				return (tex);
 			tex = new TexI(img) {
+				@Override
 				public String toString() {
 					return ("TexI(" + Resource.this.name + ")");
 				}
@@ -612,20 +698,23 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			return (gay == 1);
 		}
 
+		@Override
 		public int compareTo(Image other) {
 			return (z - other.z);
 		}
 
+		@Override
 		public Integer layerid() {
 			return (id);
 		}
 
+		@Override
 		public void init() {
 		}
 	}
 
 	static {
-		ltypes.put("image", Image.class);
+		addltype("image", Image.class);
 	}
 
 	public class Tooltip extends Layer {
@@ -639,12 +728,13 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			}
 		}
 
+		@Override
 		public void init() {
 		}
 	}
 
 	static {
-		ltypes.put("tooltip", Tooltip.class);
+		addltype("tooltip", Tooltip.class);
 	}
 
 	public class Tile extends Layer {
@@ -675,12 +765,13 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			return (tex);
 		}
 
+		@Override
 		public void init() {
 		}
 	}
 
 	static {
-		ltypes.put("tile", Tile.class);
+		addltype("tile", Tile.class);
 	}
 
 	public class Neg extends Layer {
@@ -706,12 +797,13 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			}
 		}
 
+		@Override
 		public void init() {
 		}
 	}
 
 	static {
-		ltypes.put("neg", Neg.class);
+		addltype("neg", Neg.class);
 	}
 
 	public class Anim extends Layer {
@@ -730,6 +822,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 				ids[i] = Utils.int16d(buf, 6 + (i * 2));
 		}
 
+		@Override
 		public void init() {
 			f = new Image[ids.length][];
 			Image[] typeinfo = new Image[0];
@@ -745,7 +838,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 	}
 
 	static {
-		ltypes.put("anim", Anim.class);
+		addltype("anim", Anim.class);
 	}
 
 	public class Tileset extends Layer {
@@ -811,6 +904,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 				}
 			}
 			TexIM packbuf = new TexIM(new Coord(minw, minh)) {
+				@Override
 				public String toString() {
 					return ("TileTex(" + Resource.this.name + ")");
 				}
@@ -860,6 +954,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			packbuf.update();
 		}
 
+		@Override
 		@SuppressWarnings("unchecked")
 		public void init() {
 			flavobjs = new WeightList<Resource>();
@@ -906,7 +1001,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 	}
 
 	static {
-		ltypes.put("tileset", Tileset.class);
+		addltype("tileset", Tileset.class);
 	}
 
 	public class Pagina extends Layer {
@@ -920,12 +1015,13 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			}
 		}
 
+		@Override
 		public void init() {
 		}
 	}
 
 	static {
-		ltypes.put("pagina", Pagina.class);
+		addltype("pagina", Pagina.class);
 	}
 
 	public class AButton extends Layer {
@@ -960,12 +1056,13 @@ public class Resource implements Comparable<Resource>, Prioritized,
 				ad[i] = Utils.strd(buf, off);
 		}
 
+		@Override
 		public void init() {
 		}
 	}
 
 	static {
-		ltypes.put("action", AButton.class);
+		addltype("action", AButton.class);
 	}
 
 	@Retention(RetentionPolicy.RUNTIME)
@@ -977,7 +1074,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 
 		public interface Instancer {
 			public Object make(Class<?> cl) throws InstantiationException,
-					IllegalAccessException;
+			IllegalAccessException;
 		}
 	}
 
@@ -993,12 +1090,13 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			System.arraycopy(buf, off[0], data, 0, data.length);
 		}
 
+		@Override
 		public void init() {
 		}
 	}
 
 	static {
-		ltypes.put("code", Code.class);
+		addltype("code", Code.class);
 	}
 
 	public class ResClassLoader extends ClassLoader {
@@ -1010,6 +1108,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			return (Resource.this);
 		}
 
+		@Override
 		public String toString() {
 			return ("cl:" + Resource.this.toString());
 		}
@@ -1018,6 +1117,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 	public static Resource classres(final Class<?> cl) {
 		return (java.security.AccessController
 				.doPrivileged(new java.security.PrivilegedAction<Resource>() {
+					@Override
 					public Resource run() {
 						ClassLoader l = cl.getClassLoader();
 						if (l instanceof ResClassLoader)
@@ -1038,6 +1138,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			this.classpath = classpath.toArray(new ClassLoader[0]);
 		}
 
+		@Override
 		public Class<?> findClass(String name) throws ClassNotFoundException {
 			for (ClassLoader lib : classpath) {
 				try {
@@ -1089,6 +1190,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			}
 		}
 
+		@Override
 		public void init() {
 			for (Code c : layers(Code.class, false))
 				clmap.put(c.name, c);
@@ -1099,6 +1201,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 				if (this.loader == null) {
 					this.loader = java.security.AccessController
 							.doPrivileged(new java.security.PrivilegedAction<ClassLoader>() {
+								@Override
 								public ClassLoader run() {
 									ClassLoader parent = Resource.class
 											.getClassLoader();
@@ -1109,12 +1212,13 @@ public class Resource implements Comparable<Resource>, Prioritized,
 												res.loadwait();
 											loaders.add(res.layer(
 													CodeEntry.class).loader(
-													wait));
+															wait));
 										}
 										parent = new LibClassLoader(parent,
 												loaders);
 									}
 									return (new ResClassLoader(parent) {
+										@Override
 										public Class<?> findClass(String name)
 												throws ClassNotFoundException {
 											Code c = clmap.get(name);
@@ -1204,27 +1308,62 @@ public class Resource implements Comparable<Resource>, Prioritized,
 	}
 
 	static {
-		ltypes.put("codeentry", CodeEntry.class);
+		addltype("codeentry", CodeEntry.class);
 	}
 
-	public class Audio extends Layer {
-		transient public byte[] clip;
+	public class Audio extends Layer implements IDLayer<String> {
+		transient public byte[] coded;
+		public final String id;
+		public double bvol = 1.0;
+
+		public Audio(byte[] coded, String id) {
+			this.coded = coded;
+			this.id = id.intern();
+		}
 
 		public Audio(byte[] buf) {
+			this(buf, "cl");
+		}
+
+		public InputStream pcmstream() {
 			try {
-				clip = Utils.readall(new VorbisDecoder(
-						new ByteArrayInputStream(buf)));
-			} catch (IOException e) {
-				throw (new LoadException(e, Resource.this));
+				return(new dolda.xiphutil.VorbisStream(new ByteArrayInputStream(coded)).pcmstream());
+			} catch(IOException e) {
+				throw(new RuntimeException(e));
 			}
 		}
 
-		public void init() {
+		@Override
+		public void init() {}
+
+		@Override
+		public String layerid() {
+			return(id);
 		}
 	}
-
 	static {
-		ltypes.put("audio", Audio.class);
+		addltype("audio", Audio.class);
+		addltype("audio2", new LayerFactory<Audio>() {
+			@Override
+			public Audio cons(Resource res, byte[] buf) {
+				int[] off = {0};
+				int ver = buf[off[0]++];
+				if((ver == 1) || (ver == 2)) {
+					String id = Utils.strd(buf, off);
+					double bvol = 1.0;
+					if(ver == 2) {
+						bvol = Utils.uint16d(buf, off[0]) / 1000.0; off[0] += 2;
+					}
+					byte[] data = new byte[buf.length - off[0]];
+					System.arraycopy(buf, off[0], data, 0, buf.length - off[0]);
+					Audio ret = res.new Audio(data, id);
+					ret.bvol = bvol;
+					return(ret);
+				} else {
+					throw(new LoadException("Unknown audio layer version: " + ver, res));
+				}
+			}
+		});
 	}
 
 	public class Music extends Resource.Layer {
@@ -1241,12 +1380,13 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			}
 		}
 
+		@Override
 		public void init() {
 		}
 	}
 
 	static {
-		ltypes.put("midi", Music.class);
+		addltype("midi", Music.class);
 	}
 
 	private void readall(InputStream in, byte[] buf) throws IOException {
@@ -1264,6 +1404,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			throw (new Loading(this));
 		checkerr();
 		return (new AbstractCollection<L>() {
+			@Override
 			@SuppressWarnings("unused")
 			public int size() {
 				int s = 0;
@@ -1272,6 +1413,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 				return (s);
 			}
 
+			@Override
 			public Iterator<L> iterator() {
 				return (new Iterator<L>() {
 					Iterator<Layer> i = layers.iterator();
@@ -1286,10 +1428,12 @@ public class Resource implements Comparable<Resource>, Prioritized,
 						return (null);
 					}
 
+					@Override
 					public boolean hasNext() {
 						return (c != null);
 					}
 
+					@Override
 					public L next() {
 						L ret = c;
 						if (ret == null)
@@ -1298,6 +1442,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 						return (ret);
 					}
 
+					@Override
 					public void remove() {
 						throw (new UnsupportedOperationException());
 					}
@@ -1339,6 +1484,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		return (null);
 	}
 
+	@Override
 	public int compareTo(Resource other) {
 		checkerr();
 		int nc = name.compareTo(other.name);
@@ -1351,6 +1497,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		return (0);
 	}
 
+	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof Resource) || (other == null))
 			return (false);
@@ -1395,30 +1542,10 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			int len = Utils.int32d(buf, 0);
 			buf = new byte[len];
 			readall(in, buf);
-			Class<? extends Layer> lc = ltypes.get(tbuf.toString());
-			if (lc == null)
+			LayerFactory<?> lc = ltypes.get(tbuf.toString());
+			if(lc == null)
 				continue;
-			Constructor<? extends Layer> cons;
-			try {
-				cons = lc.getConstructor(Resource.class, byte[].class);
-			} catch (NoSuchMethodException e) {
-				throw (new LoadException(e, Resource.this));
-			}
-			Layer l;
-			try {
-				l = cons.newInstance(this, buf);
-			} catch (InstantiationException e) {
-				throw (new LoadException(e, Resource.this));
-			} catch (InvocationTargetException e) {
-				Throwable c = e.getCause();
-				if (c instanceof RuntimeException)
-					throw ((RuntimeException) c);
-				else
-					throw (new LoadException(c, Resource.this));
-			} catch (IllegalAccessException e) {
-				throw (new LoadException(e, Resource.this));
-			}
-			layers.add(l);
+			layers.add(lc.cons(this, buf));
 		}
 		this.layers = layers;
 		for (Layer l : layers)
@@ -1431,14 +1558,11 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		indir = new Indir<Resource>() {
 			public Resource res = Resource.this;
 
+			@Override
 			public Resource get() {
 				if (loading)
 					throw (new Loading(Resource.this));
 				return (Resource.this);
-			}
-
-			public void set(Resource r) {
-				throw (new RuntimeException());
 			}
 
 			@SuppressWarnings("unused")
@@ -1458,6 +1582,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		}
 	}
 
+	@Override
 	public int priority() {
 		return (prio);
 	}
@@ -1474,6 +1599,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 		return (res.layer(imgc).tex());
 	}
 
+	@Override
 	public String toString() {
 		return (name + "(v" + ver + ")");
 	}
@@ -1562,7 +1688,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			updateloadlist(new File(args[1]));
 		}
 	}
-	
+
 	public static void dumpPNG2(String name, BufferedImage img) {
 		name = name.replace("/", ".");
 		// new File(name.substring(0, name.lastIndexOf("/"))).mkdirs();
@@ -1580,7 +1706,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 			e.printStackTrace();
 		}
 	}
-	
+
 	static {
 		Console.setscmd("dumpres", new Command() {
 			@Override
@@ -1588,7 +1714,7 @@ public class Resource implements Comparable<Resource>, Prioritized,
 				synchronized (cache) {
 					for (Resource res : cache.values()) {
 						if (res.name.contains("borka") || res.name.contains("kritter") || res.name.contains("tiles")) continue;
-						
+
 						if (res.layer(Image.class) != null) {
 							String name = "";
 							Tooltip tl = res.layer(Tooltip.class);
@@ -1601,20 +1727,20 @@ public class Resource implements Comparable<Resource>, Prioritized,
 				}
 			}
 		});
-		
+
 		Console.setscmd("dumpp", new Command() {
 			@Override
 			public void run(Console cons, String[] args) throws Exception {
 				synchronized (cache) {
-					
+
 					Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("skilldump.txt"), "UTF-8"));
 
 					for (Resource res : cache.values()) {
 						if (!res.name.contains("skills")) continue;
-						
+
 						Pagina p = res.layer(Pagina.class);
 						AButton b = res.layer(Resource.action);
-						
+
 						if (p != null && b != null) {
 							out.write(b.name);
 							out.write('\n');

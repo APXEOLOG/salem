@@ -48,6 +48,7 @@ public class Config {
 	public static String allused = getprop("haven.allused", null);
 	public static int mainport = getint("haven.mainport", 1870);
 	public static int authport = getint("haven.authport", 1871);
+	public static boolean softres = getprop("haven.softres", "off").equals("on");
 	public static String authmech = "native";//getprop("haven.authmech", "native");
 	public static byte[] authck = null;
 	public static String prefspec = "salem";

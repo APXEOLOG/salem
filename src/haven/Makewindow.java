@@ -41,6 +41,7 @@ public class Makewindow extends Widget {
 
 	static {
 		Widget.addtype("make", new WidgetFactory() {
+			@Override
 			public Widget create(Coord c, Widget parent, Object[] args) {
 				return (new Makewindow(c, parent, (String) args[0]));
 			}
@@ -73,6 +74,7 @@ public class Makewindow extends Widget {
 		pack();
 	}
 
+	@Override
 	public void uimsg(String msg, Object... args) {
 		if (msg == "inpop") {
 			List<Spec> inputs = new LinkedList<Spec>();
@@ -89,6 +91,7 @@ public class Makewindow extends Widget {
 		}
 	}
 
+	@Override
 	public void draw(GOut g) {
 		Coord c = new Coord(xoff, 0);
 		for (Spec s : inputs) {
@@ -117,22 +120,24 @@ public class Makewindow extends Widget {
 		super.draw(g);
 	}
 
-	public Object tooltip(Coord mc, boolean again) {
+	@Override
+	public Object tooltip(Coord mc, Widget prev) {
 		Coord c = new Coord(xoff, 0);
-		for (Spec s : inputs) {
-			if (mc.isect(c, Inventory.invsq.sz()))
-				return (s.res.get().layer(Resource.tooltip).t);
+		for(Spec s : inputs) {
+			if(mc.isect(c, Inventory.invsq.sz()))
+				return(s.res.get().layer(Resource.tooltip).t);
 			c = c.add(31, 0);
 		}
 		c = new Coord(xoff, yoff);
-		for (Spec s : outputs) {
-			if (mc.isect(c, Inventory.invsq.sz()))
-				return (s.res.get().layer(Resource.tooltip).t);
+		for(Spec s : outputs) {
+			if(mc.isect(c, Inventory.invsq.sz()))
+				return(s.res.get().layer(Resource.tooltip).t);
 			c = c.add(31, 0);
 		}
-		return (null);
+		return(null);
 	}
 
+	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (sender == obtn) {
 			if (msg == "activate")
@@ -147,6 +152,7 @@ public class Makewindow extends Widget {
 		super.wdgmsg(sender, msg, args);
 	}
 
+	@Override
 	public boolean globtype(char ch, java.awt.event.KeyEvent ev) {
 		if (ch == '\n') {
 			wdgmsg("make", ui.modctrl ? 1 : 0);
@@ -162,6 +168,7 @@ public class Makewindow extends Widget {
 			super(owner);
 		}
 
+		@Override
 		public Color olcol() {
 			return (olcol);
 		}

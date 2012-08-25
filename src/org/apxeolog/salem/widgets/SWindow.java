@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.widgets;
 
 import haven.Coord;
 import haven.GOut;
@@ -14,10 +14,12 @@ import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.config.UIConfig;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.XMLConfigProvider;
 import org.apxeolog.salem.config.UIConfig.WidgetState;
+import org.apxeolog.salem.utils.SSimpleBorderBox;
 
 public class SWindow extends Widget {
 	public static final int HEADER_ALIGN_CENTER = 1;
@@ -50,7 +52,7 @@ public class SWindow extends Widget {
 		}
 
 		@Override
-		public Object tooltip(Coord c, boolean again) {
+		public Object tooltip(Coord c, Widget prev) {
 			return "Close this window";
 		}
 	}
@@ -353,6 +355,10 @@ public class SWindow extends Widget {
 		parent.setfocus(this);
 	}
 
+	public String getTitle() {
+		return windowHeader.getText();
+	}
+
 	public void setResizable(boolean resizable) {
 		allowResize = resizable;
 		if (allowResize) {
@@ -579,10 +585,15 @@ public class SWindow extends Widget {
 		return true;
 	}
 
+	public void drag() {
+
+	}
+
 	@Override
 	public void mousemove(Coord c) {
 		if (dragMode) {
 			this.c = this.c.add(c.add(doff.inv()));
+			drag();
 		} else if (resizeMode) {
 			Coord newSz = windowBox.getContentSize().add(c.add(szOff.inv()));
 			if (newSz.x < windowHeader.headerBox.getBoxSize().x) {
@@ -648,12 +659,11 @@ public class SWindow extends Widget {
 	}
 
 	@Override
-	public Object tooltip(Coord c, boolean again) {
-		Object ret = super.tooltip(c, again);
-		if (ret != null)
-			return (ret);
+	public Object tooltip(Coord c, Widget prev) {
+		Object ret = super.tooltip(c, prev);
+		if(ret != null)
+			return(ret);
 		else
-			return ("");
+			return("");
 	}
-
 }

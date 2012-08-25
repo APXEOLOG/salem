@@ -1,4 +1,4 @@
-package org.apxeolog.salem;
+package org.apxeolog.salem.utils;
 
 import haven.Coord;
 import haven.Widget;
