@@ -260,7 +260,8 @@ public class SChatWrapper {
 			ProcessedText header = getLineHeader(messageType, name, color);
 			header.addAttribute(new TextBackLink(wdgId.intValue(), name));
 
-			ProcessedText text = STextProcessor.fromString(STextProcessor.getColoredText(str, getColor(messageType)));
+			ProcessedText text = STextProcessor.fromString(str);
+			text.addAttribute(new TextColor(getColor(messageType)));
 			header.append(text);
 			gameUI.bdsChatB.addPText(header, messageType);
 		}
@@ -280,7 +281,8 @@ public class SChatWrapper {
 			ProcessedText header = getLineHeader(messageType, name, color);
 			header.addAttribute(new TextBackLink(wdgId.intValue(), name));
 
-			ProcessedText text = STextProcessor.fromString(STextProcessor.getColoredText(str, getColor(messageType)));
+			ProcessedText text = STextProcessor.fromString(str);
+			text.addAttribute(new TextColor(getColor(messageType)));
 			header.append(text);
 			gameUI.bdsChatB.addPText(header, messageType);
 		}
@@ -309,7 +311,8 @@ public class SChatWrapper {
 			ProcessedText header = STextProcessor.fromString(builder.toString());
 			header.addAttribute(new TextBackLink(wdgId.intValue(), name));
 
-			ProcessedText text = STextProcessor.fromString(STextProcessor.getColoredText(str, getColor(messageType)));
+			ProcessedText text = STextProcessor.fromString(str);
+			text.addAttribute(new TextColor(getColor(messageType)));
 			header.append(text);
 			gameUI.bdsChatB.addPText(header, messageType);
 		}
@@ -326,7 +329,8 @@ public class SChatWrapper {
 			ProcessedText header = getLineHeader(messageType, name, color);
 			header.addAttribute(new TextBackLink(wdgId.intValue(), name));
 
-			ProcessedText text = STextProcessor.fromString(STextProcessor.getColoredText(str, Color.RED));
+			ProcessedText text = STextProcessor.fromString(str);
+			text.addAttribute(new TextColor(Color.RED));
 			header.append(text);
 			gameUI.bdsChatB.addPText(header, messageType);
 		}

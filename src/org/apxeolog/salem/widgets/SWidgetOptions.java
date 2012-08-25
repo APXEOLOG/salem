@@ -29,6 +29,7 @@ package org.apxeolog.salem.widgets;
 import haven.Audio;
 import haven.Button;
 import haven.CheckBox;
+import haven.Config;
 import haven.Coord;
 import haven.GOut;
 import haven.GameUI;
@@ -244,7 +245,7 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			new Label(new Coord(20, 100), tab, "Username:");
-			new TextEntry(new Coord(20, 120), new Coord(100, 20), tab, XConfig.mp_irc_username) {
+			new TextEntry(new Coord(20, 120), new Coord(100, 20), tab, XConfig.mp_irc_username.isEmpty() ? Config.currentCharName : XConfig.mp_irc_username) {
 				@Override
 				public void changed() {
 					XConfig.mp_irc_username = this.text;

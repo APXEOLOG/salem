@@ -10,7 +10,6 @@ import org.apxeolog.salem.config.XConfig;
 import f00f.net.irc.martyr.IRCConnection;
 import f00f.net.irc.martyr.OutCommand;
 import f00f.net.irc.martyr.State;
-import f00f.net.irc.martyr.clientstate.Channel;
 import f00f.net.irc.martyr.clientstate.ClientState;
 import f00f.net.irc.martyr.clientstate.Member;
 import f00f.net.irc.martyr.commands.JoinCommand;
@@ -24,7 +23,6 @@ public class IRCProvider {
 	private AutoReconnect autoReconnect;
 	private String server;
 	private int port;
-	private Channel mainChannel;
 	private ClientState clientState;
 	private RegisteredListener listener;
 
