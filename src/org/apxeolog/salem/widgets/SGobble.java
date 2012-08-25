@@ -113,7 +113,7 @@ public class SGobble extends IGobble {
 	}
 
 	@Override
-	public Object tooltip(Coord c, boolean again) {
+	public Object tooltip(Coord c, Widget prev) {
 		if (tooltip == null) {
 			StringBuilder buf = new StringBuilder();
 			for (int i = 0; i < 4; i++)

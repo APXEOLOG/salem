@@ -128,7 +128,7 @@ public class CharWnd extends SWindow {
 		}
 
 		@Override
-		public Object tooltip(Coord c, boolean again) {
+		public Object tooltip(Coord c, Widget prev) {
 			if (c.x < 57 || c.x > textSize().x)
 				return null;
 			if (meterPercent < 0)

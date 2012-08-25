@@ -52,7 +52,7 @@ public class SWindow extends Widget {
 		}
 
 		@Override
-		public Object tooltip(Coord c, boolean again) {
+		public Object tooltip(Coord c, Widget prev) {
 			return "Close this window";
 		}
 	}
@@ -656,15 +656,6 @@ public class SWindow extends Widget {
 
 	public boolean iteminteract(Coord cc, Coord ul) {
 		return (false);
-	}
-
-	@Override
-	public Object tooltip(Coord c, boolean again) {
-		Object ret = super.tooltip(c, again);
-		if (ret != null)
-			return (ret);
-		else
-			return ("");
 	}
 
 	@Override

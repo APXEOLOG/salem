@@ -97,7 +97,7 @@ public class SUtils {
 		}
 
 		@Override
-		public Object tooltip(Coord c, boolean again) {
+		public Object tooltip(Coord c, Widget prev) {
 			Gob gob = ui.sess.glob.oc.getgob(id);
 			if (gob != null)
 				return hInfo.getTooltip(gob);

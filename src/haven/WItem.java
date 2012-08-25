@@ -176,7 +176,7 @@ public class WItem extends Widget implements DTarget {
 	private List<ItemInfo> ttinfo = null;
 
 	@Override
-	public Object tooltip(Coord c, boolean again) {
+	public Object tooltip(Coord c, Widget prev) {
 		long now = System.currentTimeMillis();
 		if(prev == this) {
 

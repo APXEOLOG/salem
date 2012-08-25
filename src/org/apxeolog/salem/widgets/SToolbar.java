@@ -263,7 +263,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 	}
 
 	@Override
-	public Object tooltip(Coord c, boolean again) {
+	public Object tooltip(Coord c, Widget prev) {
 		if(slotIndex(c) < 0 || slotIndex(c) > slotCount) return null;
 		Slot slot = slotList[slotIndex(c)];
 		Resource res = (slot == null) ? null : slot.getRes();
@@ -271,7 +271,7 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 		if ((res != null)
 				&& ((res.layer(Resource.action) != null) || (res
 						.layer(Resource.tooltip) != null))) {
-			if (!again)
+			if (prev != this)
 				hoverstart = now;
 			boolean ttl = (now - hoverstart) > 500;
 			if ((res != curttr) || (ttl != curttl)) {

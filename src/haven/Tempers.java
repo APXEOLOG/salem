@@ -40,8 +40,8 @@ public class Tempers extends ITempers {
 	static final String[] anm = { "blood", "phlegm", "ybile", "bbile" };
 	static final String[] rnm = { "Blood", "Phlegm", "Yellow Bile", "Black Bile" };
 	static final Color[] cols = { new Color(255, 0, 0, 255),
-			new Color(255, 255, 255, 255), new Color(255, 255, 0, 255),
-			new Color(0, 64, 0, 255), };
+		new Color(255, 255, 255, 255), new Color(255, 255, 0, 255),
+		new Color(0, 64, 0, 255), };
 	int[] soft = new int[4], hard = new int[4];
 	int[] lmax = new int[4];
 	boolean full = false;
@@ -57,6 +57,7 @@ public class Tempers extends ITempers {
 		return (Math.min(Math.max(1, (val * 35) / max), 35));
 	}
 
+	@Override
 	public void draw(GOut g) {
 		g.image(bg, Coord.z);
 		int[] max = new int[4];
@@ -98,17 +99,20 @@ public class Tempers extends ITempers {
 		g.chcolor();
 	}
 
+	@Override
 	public void upds(int[] n) {
 		this.soft = n;
 		tt = null;
 	}
 
+	@Override
 	public void updh(int[] n) {
 		this.hard = n;
 		tt = null;
 	}
 
-	public Object tooltip(Coord c, boolean again) {
+	@Override
+	public Object tooltip(Coord c, Widget prev) {
 		if (c.dist(mid) < l) {
 			if (tt == null) {
 				StringBuilder buf = new StringBuilder();
@@ -124,6 +128,7 @@ public class Tempers extends ITempers {
 		return (null);
 	}
 
+	@Override
 	public boolean mousedown(Coord c, int button) {
 		if (c.dist(mid) < l) {
 			getparent(GameUI.class).act("gobble");
