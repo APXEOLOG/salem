@@ -281,6 +281,8 @@ public class HavenPanel extends GLCanvas implements Runnable {
 	}
 
 	UI newui(Session sess) {
+		if(ui != null)
+			ui.destroy();
 		ui = new UI(new Coord(w, h), sess);
 		ui.root.gprof = prof;
 		if (getParent() instanceof Console.Directory)
@@ -365,7 +367,7 @@ public class HavenPanel extends GLCanvas implements Runnable {
 		}
 		Object tooltip;
 		try {
-			tooltip = ui.root.tooltip(mousepos, true);
+			tooltip = ui.root.tooltip(mousepos, ui.root);
 		} catch (Loading e) {
 			tooltip = "...";
 		}

@@ -667,4 +667,12 @@ public class SWindow extends Widget {
 			return ("");
 	}
 
+	@Override
+	public Object tooltip(Coord c, Widget prev) {
+		Object ret = super.tooltip(c, prev);
+		if(ret != null)
+			return(ret);
+		else
+			return("");
+	}
 }

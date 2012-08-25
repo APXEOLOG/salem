@@ -10,7 +10,6 @@ import org.apxeolog.salem.config.ChatConfig.ChatModeInfo;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.irc.IRCProvider;
 import org.apxeolog.salem.irc.RegisteredListener;
-import org.apxeolog.salem.utils.Pair;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.apxeolog.salem.utils.STextProcessor.NodeAttribute;
 import org.apxeolog.salem.utils.STextProcessor.ProcessedText;
@@ -161,8 +160,8 @@ public class SChatWrapper {
 			ircProvider = IRCProvider.ircConnect(new RegisteredListener() {
 				@Override
 				public void onRegister() {
+					ircLogToChat("You was registered on IRC!");
 					joinIRCChannels();
-					IRCMessage("salem", "Connected!");
 				}
 			});
 		}
@@ -171,14 +170,17 @@ public class SChatWrapper {
 	public static void joinIRCChannels() {
 		if (ircProvider == null || !ircProvider.isReady()) return;
 		for (Pair<String, String> pair : ChatConfig.getIRCChannels()) {
-			ALS.alDebugPrint("ALS JOIN", pair.getFirst());
+			ircLogToChat("Joining channel " + pair.getFirst());
 			ircProvider.joinChannel(pair.getFirst(), pair.getSecond());
 		}
 	}
 
-	public static void IRCMessage(String channel, String msg) {
+	public static void ircLogToChat(String text) {
+		ircMessageRecieved(ChatConfig.getFirstIRCChannel(), text);
+	}
+
+	public static void ircMessageRecieved(String channel, String msg) {
 		if (gameUI != null) {
-			ALS.alDebugPrint("IRC ADD MSG", channel, msg);
 			gameUI.bdsChatB.addString(msg, ChannelTypes.IRC, channel);
 		}
 	}
@@ -191,16 +193,13 @@ public class SChatWrapper {
 				String params = text.substring(text.indexOf(' '));
 				RawCommand raw = new RawCommand(command, params);
 				ircProvider.sendCommand(channel, raw);
-				ALS.alDebugPrint(raw);
-
+			} else {
+				ircProvider.say(channel, text);
 			}
-			ircProvider.say(channel, text);
 		}
 	}
 
-	public static void ircLogToChat(String text) {
-		IRCMessage("#salem", text);
-	}
+
 
 	public static void sendMessage(int wdgId, String text) {
 		if (gameUI != null) {

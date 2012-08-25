@@ -1,7 +1,7 @@
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
- *                     Björn Johannessen <johannessen.bjorn@gmail.com>
+ *                     BjГ¶rn Johannessen <johannessen.bjorn@gmail.com>
  *
  *  Redistribution and/or modification of this file is subject to the
  *  terms of the GNU Lesser General Public License, version 3, as
@@ -27,54 +27,66 @@
 package haven;
 
 public interface RenderLink {
-    public Rendered make();
-    
-    @SuppressWarnings("serial")
+	public Rendered make();
+
+	@SuppressWarnings("serial")
 	public class Res extends Resource.Layer {
-	public final RenderLink l;
-	
-	public Res(Resource res, byte[] buf) {
-	    res.super();
-	    int t = buf[0];
-	    int[] off = {1};
-	    if(t == 0) {
-		String meshnm = Utils.strd(buf, off);
-		int meshver = Utils.uint16d(buf, off[0]); off[0] += 2;
-		final int meshid = Utils.int16d(buf, off[0]); off[0] += 2;
-		String matnm = Utils.strd(buf, off);
-		int matver = Utils.uint16d(buf, off[0]); off[0] += 2;
-		final int matid = Utils.int16d(buf, off[0]); off[0] += 2;
-		final Resource mesh = Resource.load(meshnm, meshver);
-		final Resource mat = Resource.load(matnm, matver);
-		l = new RenderLink() {
-			Rendered res = null;
-			public Rendered make() {
-			    if(res == null) {
-				FastMesh m = null;
-				for(FastMesh.MeshRes mr : mesh.layers(FastMesh.MeshRes.class)) {
-				    if((meshid < 0) || (mr.id == meshid)) {
-					m = mr.m;
-					break;
-				    }
-				}
-				Material M = null;
-				for(Material.Res mr : mat.layers(Material.Res.class)) {
-				    if((matid < 0) || (mr.id == matid)) {
-					M = mr.get();
-					break;
-				    }
-				}
-				res = M.apply(m);
-			    }
-			    return(res);
+		public final RenderLink l;
+
+		public Res(Resource res, byte[] buf) {
+			res.super();
+			int t = buf[0];
+			int[] off = {1};
+			if(t == 0) {
+				String meshnm = Utils.strd(buf, off);
+				int meshver = Utils.uint16d(buf, off[0]); off[0] += 2;
+				final int meshid = Utils.int16d(buf, off[0]); off[0] += 2;
+				String matnm = Utils.strd(buf, off);
+				int matver = Utils.uint16d(buf, off[0]); off[0] += 2;
+				final int matid = Utils.int16d(buf, off[0]); off[0] += 2;
+				final Resource mesh = Resource.load(meshnm, meshver);
+				final Resource mat = Resource.load(matnm, matver);
+				l = new RenderLink() {
+					Rendered res = null;
+					@Override
+					public Rendered make() {
+						if(res == null) {
+							FastMesh m = null;
+							for(FastMesh.MeshRes mr : mesh.layers(FastMesh.MeshRes.class)) {
+								if((meshid < 0) || (mr.id == meshid)) {
+									m = mr.m;
+									break;
+								}
+							}
+							Material M = null;
+							for(Material.Res mr : mat.layers(Material.Res.class)) {
+								if((matid < 0) || (mr.id == matid)) {
+									M = mr.get();
+									break;
+								}
+							}
+							res = M.apply(m);
+						}
+						return(res);
+					}
+				};
+			} else if(t == 1) {
+				String nm = Utils.strd(buf, off);
+				int ver = Utils.uint16d(buf, off[0]); off[0] += 2;
+				final Resource amb = Resource.load(nm, ver);
+				l = new RenderLink() {
+					@Override
+					public Rendered make() {
+						return(new ActAudio.Ambience(amb));
+					}
+				};
+			} else {
+				throw(new Resource.LoadException("Invalid renderlink type: " + t, getres()));
 			}
-		    };
-	    } else {
-		throw(new Resource.LoadException("Invalid renderlink type: " + t, getres()));
-	    }
+		}
+
+		@Override
+		public void init() {
+		}
 	}
-	
-	public void init() {
-	}
-    }
 }

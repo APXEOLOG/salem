@@ -1,7 +1,7 @@
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
- *                     Björn Johannessen <johannessen.bjorn@gmail.com>
+ *                     BjГ¶rn Johannessen <johannessen.bjorn@gmail.com>
  *
  *  Redistribution and/or modification of this file is subject to the
  *  terms of the GNU Lesser General Public License, version 3, as
@@ -26,6 +26,51 @@
 
 package haven;
 
-public interface Indir<T> {
-	public T get();
+import java.io.*;
+
+public class RepeatStream extends InputStream {
+	private final Repeater rep;
+	private InputStream cur;
+
+	public interface Repeater {
+		public InputStream cons();
+	}
+
+	public RepeatStream(Repeater rep) {
+		this.rep = rep;
+		this.cur = rep.cons();
+	}
+
+	@Override
+	public int read(byte[] b, int off, int len) throws IOException {
+		if(cur == null)
+			return(-1);
+		int ret;
+		while((ret = cur.read(b, off, len)) < 0) {
+			cur.close();
+			if((cur = rep.cons()) == null)
+				return(-1);
+		}
+		return(ret);
+	}
+
+	@Override
+	public int read() throws IOException {
+		if(cur == null)
+			return(-1);
+		int ret;
+		while((ret = cur.read()) < 0) {
+			cur.close();
+			if((cur = rep.cons()) == null)
+				return(-1);
+		}
+		return(ret);
+	}
+
+	@Override
+	public void close() throws IOException {
+		if(cur != null)
+			cur.close();
+		cur = null;
+	}
 }

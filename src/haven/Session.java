@@ -1,7 +1,7 @@
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
- *                     Björn Johannessen <johannessen.bjorn@gmail.com>
+ *                     BjГ¶rn Johannessen <johannessen.bjorn@gmail.com>
  *
  *  Redistribution and/or modification of this file is subject to the
  *  terms of the GNU Lesser General Public License, version 3, as
@@ -29,9 +29,10 @@ package haven;
 import java.net.*;
 import java.util.*;
 import java.io.*;
+import java.lang.ref.*;
 
 public class Session {
-	public static final int PVER = 20;
+	public static final int PVER = 21;
 
 	public static final int MSG_SESS = 0;
 	public static final int MSG_REL = 1;
@@ -84,7 +85,7 @@ public class Session {
 	Map<Long, ObjAck> objacks = new TreeMap<Long, ObjAck>();
 	String username;
 	byte[] cookie;
-	final Map<Integer, Indir<Resource>> rescache = new TreeMap<Integer, Indir<Resource>>();
+	final Map<Integer, CachedRes> rescache = new TreeMap<Integer, CachedRes>();
 	public final Glob glob;
 	public byte[] sesskey;
 
@@ -98,7 +99,6 @@ public class Session {
 		}
 	}
 
-	@SuppressWarnings("serial")
 	public static class LoadingIndir extends Loading {
 		public int resid;
 
@@ -107,56 +107,70 @@ public class Session {
 		}
 	}
 
-	public Indir<Resource> getres(final int id) {
+	private static class CachedRes {
+		private final int resid;
+		private String resnm = null;
+		private int resver;
+		private Reference<Indir<Resource>> ind;
+
+		private CachedRes(int id) {
+			resid = id;
+		}
+
+		private Indir<Resource> get() {
+			Indir<Resource> ind = (this.ind == null)?null:(this.ind.get());
+			if(ind == null) {
+				ind = new Indir<Resource>() {
+					private Resource res;
+
+					@Override
+					public Resource get() {
+						if(resnm == null)
+							throw(new LoadingIndir(resid));
+						if(res == null)
+							res = Resource.load(resnm, resver, 0);
+						if(res.loading)
+							throw(new Resource.Loading(res));
+						return(res);
+					}
+
+					@Override
+					public String toString() {
+						if(res == null) {
+							return("<res:" + resid + ">");
+						} else {
+							if(res.loading)
+								return("<!" + res + ">");
+							else
+								return("<" + res + ">");
+						}
+					}
+				};
+				this.ind = new WeakReference<Indir<Resource>>(ind);
+			}
+			return(ind);
+		}
+
+		public void set(String nm, int ver) {
+			this.resnm = nm;
+			this.resver = ver;
+			Resource.load(nm, ver, -5);
+		}
+	}
+
+	private CachedRes cachedres(int id) {
 		synchronized(rescache) {
-			Indir<Resource> ret = rescache.get(id);
+			CachedRes ret = rescache.get(id);
 			if(ret != null)
 				return(ret);
-			ret = new Indir<Resource>() {
-				public int resid = id;
-				Resource res;
-
-				@Override
-				public Resource get() {
-					if(res == null)
-						throw(new LoadingIndir(resid));
-					if(res.loading) {
-						res.boostprio(0);
-						throw(new Resource.Loading(res));
-					}
-					return(res);
-				}
-
-				@Override
-				public void set(Resource r) {
-					res = r;
-				}
-
-				@Override
-				public boolean equals(Object o) {
-					return((this.getClass().isInstance(o)) && ((this.getClass().cast(o)).resid == resid));
-				}
-
-				@SuppressWarnings("unused")
-				public int compareTo(Indir<Resource> x) {
-					return((this.getClass().cast(x)).resid - resid);
-				}
-
-				@Override
-				public String toString() {
-					if(res == null) {
-						return("<res:" + resid + ">");
-					} else {
-						if(res.loading)
-							return("<!" + res + ">");
-						else
-							return("<" + res + ">");
-					}
-				}
-			};
+			ret = new CachedRes(id);
 			rescache.put(id, ret);
 			return(ret);
 		}
+	}
+
+	public Indir<Resource> getres(int id) {
+		return(cachedres(id).get());
 	}
 
 	private class ObjAck {
@@ -440,7 +454,6 @@ public class Session {
 			}
 		}
 
-		@SuppressWarnings("unused")
 		private void handlerel(Message msg) {
 			if(msg.type == Message.RMSG_NEWWDG) {
 				synchronized(uimsgs) {
@@ -464,9 +477,7 @@ public class Session {
 				int resid = msg.uint16();
 				String resname = msg.string();
 				int resver = msg.uint16();
-				synchronized(rescache) {
-					getres(resid).set(Resource.load(resname, resver, -5));
-				}
+				cachedres(resid).set(resname, resver);
 			} else if(msg.type == Message.RMSG_PARTY) {
 				glob.party.msg(msg);
 			} else if(msg.type == Message.RMSG_SFX) {

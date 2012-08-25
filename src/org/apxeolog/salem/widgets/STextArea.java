@@ -34,6 +34,10 @@ public class STextArea extends Widget {
 		if (appendMode) scrollAmount += txt.getHeight();
 	}
 
+	public void scrollDown() {
+		scrollAmount = getMaxScrollAmount();
+	}
+
 	public void clear() {
 		textBuffer.clear();
 		scrollAmount = 0;
@@ -115,8 +119,8 @@ public class STextArea extends Widget {
 			scrollAmount += amount * 10;
 			if (amount < 0) appendMode = false;
 			if (scrollAmount < 0) scrollAmount = 0;
-			if (scrollAmount > getMaxScrollAmount() + 15)  {
-				scrollAmount = getMaxScrollAmount() + 15;
+			if (scrollAmount > getMaxScrollAmount())  {
+				scrollAmount = getMaxScrollAmount();
 				appendMode = true;
 			}
 			return true;

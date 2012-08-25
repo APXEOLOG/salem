@@ -201,6 +201,30 @@ public class Widget {
 					throw (new RuntimeException(
 							"Invalid subtraction operands: " + a + " - " + b));
 				}
+			} else if(op == '*') {
+				Object b = st.pop();
+				Object a = st.pop();
+				if((a instanceof Integer) && (b instanceof Integer)) {
+					st.push((Integer)a * (Integer)b);
+				} else if((a instanceof Coord) && (b instanceof Integer)) {
+					st.push(((Coord)a).mul((Integer)b));
+				} else if((a instanceof Coord) && (b instanceof Coord)) {
+					st.push(((Coord)a).mul((Coord)b));
+				} else {
+					throw(new RuntimeException("Invalid multiplication operands: " + a + " - " + b));
+				}
+			} else if(op == '/') {
+				Object b = st.pop();
+				Object a = st.pop();
+				if((a instanceof Integer) && (b instanceof Integer)) {
+					st.push((Integer)a / (Integer)b);
+				} else if((a instanceof Coord) && (b instanceof Integer)) {
+					st.push(((Coord)a).div((Integer)b));
+				} else if((a instanceof Coord) && (b instanceof Coord)) {
+					st.push(((Coord)a).div((Coord)b));
+				} else {
+					throw(new RuntimeException("Invalid division operands: " + a + " - " + b));
+				}
 			} else if (Character.isWhitespace(op)) {
 			} else {
 				throw (new RuntimeException("Unknown position operation: " + op));
@@ -741,6 +765,7 @@ public class Widget {
 		return (cursor);
 	}
 
+	@Deprecated
 	public Object tooltip(Coord c, boolean again) {
 		if (tooltip != null) {
 			prevtt = null;
@@ -761,6 +786,29 @@ public class Widget {
 		}
 		prevtt = null;
 		return (null);
+	}
+
+	public Object tooltip(Coord c, Widget prev) {
+		if(prev != this)
+			prevtt = null;
+		if(tooltip != null) {
+			prevtt = null;
+			return(tooltip);
+		}
+		for(Widget wdg = lchild; wdg != null; wdg = wdg.prev) {
+			if(!wdg.visible)
+				continue;
+			Coord cc = xlate(wdg.c, true);
+			if(c.isect(cc, wdg.sz)) {
+				Object ret = wdg.tooltip(c.add(cc.inv()), prevtt);
+				if(ret != null) {
+					prevtt = wdg;
+					return(ret);
+				}
+			}
+		}
+		prevtt = null;
+		return null;
 	}
 
 	public <T extends Widget> T getparent(Class<T> cl) {

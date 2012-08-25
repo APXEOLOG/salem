@@ -213,6 +213,7 @@ public class MapMesh implements Rendered {
 			}
 		}
 
+		@Override
 		public void build(MeshBuf buf) {
 			MeshBuf.Vertex v1 = buf.new Vertex(vrt[0].pos, vrt[0].nrm);
 			MeshBuf.Vertex v2 = buf.new Vertex(vrt[1].pos, vrt[1].nrm);
@@ -233,17 +234,20 @@ public class MapMesh implements Rendered {
 
 	@SuppressWarnings("rawtypes")
 	private static final Order mmorder = new Order<Layer>() {
+		@Override
 		public int mainz() {
 			return (1000);
 		}
 
 		private final RComparator<Layer> cmp = new RComparator<Layer>() {
+			@Override
 			public int compare(Layer a, Layer b, GLState.Buffer sa,
 					GLState.Buffer sb) {
 				return (a.z - b.z);
 			}
 		};
 
+		@Override
 		public RComparator<Layer> cmp() {
 			return (cmp);
 		}
@@ -255,10 +259,12 @@ public class MapMesh implements Rendered {
 		FastMesh mesh;
 		Collection<Shape> pl = new LinkedList<Shape>();
 
+		@Override
 		public void draw(GOut g) {
 			mesh.draw(g);
 		}
 
+		@Override
 		public boolean setup(RenderList rl) {
 			rl.prepo(st);
 			rl.prepo(mmorder);
@@ -291,9 +297,6 @@ public class MapMesh implements Rendered {
 		int cx[] = { 0, 2, 2, 0 };
 		int cy[] = { 0, 0, 2, 2 };
 		for (int i = max; i >= 0; i--) {
-			Tiler t = m.map.tiler(i);
-			if (t == null)
-				continue;
 			int bm = 0, cm = 0;
 			for (int o = 0; o < 4; o++) {
 				if (tr[bx[o]][by[o]] == i)
@@ -305,8 +308,12 @@ public class MapMesh implements Rendered {
 				if (tr[cx[o]][cy[o]] == i)
 					cm |= 1 << o;
 			}
-			if ((bm != 0) || (cm != 0))
+			if((bm != 0) || (cm != 0)) {
+				Tiler t = m.map.tiler(i);
+				if(t == null)
+					continue;
 				t.trans(m, rnd, ground, lc, gc, 255 - i, bm, cm);
+			}
 		}
 	}
 
@@ -393,6 +400,7 @@ public class MapMesh implements Rendered {
 			l.mesh = buf.mkmesh();
 		}
 		Collections.sort(m.layers, new Comparator<Layer>() {
+			@Override
 			public int compare(Layer a, Layer b) {
 				return (a.z - b.z);
 			}
@@ -443,16 +451,16 @@ public class MapMesh implements Rendered {
 			Coord t = new Coord();
 			float cz = map.getcz(cc);
 			MeshBuf.Vertex[][] vm = new MeshBuf.Vertex[brt.x - ult.x + 1][brt.y
-					- ult.y + 1];
+			                                                              - ult.y + 1];
 			for (t.y = ult.y; t.y <= brt.y; t.y++) {
 				for (t.x = ult.x; t.x <= brt.x; t.x++) {
 					MapMesh cut = map.getcut(t.div(MCache.cutsz));
 					SPoint p = cut.surf(surf).spoint(t.mod(MCache.cutsz));
 					Coord3f texc = new Coord3f(
 							(float) ((t.x * tilesz.x) - ul.x)
-									/ (float) (br.x - ul.x),
+							/ (float) (br.x - ul.x),
 							(float) ((t.y * tilesz.y) - ul.y)
-									/ (float) (br.y - ul.y), 0);
+							/ (float) (br.y - ul.y), 0);
 					Coord3f pos = p.pos.add((cut.ul.x * tilesz.x) - cc.x,
 							-((cut.ul.y * tilesz.y) - cc.y), -cz);
 					vm[t.x - ult.x][t.y - ult.y] = buf.new Vertex(pos, p.nrm,
@@ -468,9 +476,11 @@ public class MapMesh implements Rendered {
 			mesh = buf.mkmesh();
 		}
 
+		@Override
 		public void draw(GOut g) {
 		}
 
+		@Override
 		public boolean setup(RenderList rl) {
 			rl.prepc(gmorder);
 			rl.prepc(mat);
@@ -491,17 +501,19 @@ public class MapMesh implements Rendered {
 				mesh = buf.makeCustomMesh(qfaces, MapView.customOverlayInfo.get(ol_index));
 			else mesh = buf.mkmesh();
 		}
-		
+
+		@Override
 		public void draw(GOut g) {
 			mesh.draw(g);
 		}
 
+		@Override
 		public boolean setup(RenderList rl) {
 			rl.prepo(olorder);
 			return (true);
 		}
 	}
-	
+
 	public Rendered[] makeols() {
 		Surface surf = new Surface();
 		surf.calcnrm();
@@ -550,6 +562,7 @@ public class MapMesh implements Rendered {
 		data = null;
 	}
 
+	@Override
 	public void draw(GOut g) {
 	}
 
@@ -594,6 +607,7 @@ public class MapMesh implements Rendered {
 		GOut.checkerr(gl);
 	}
 
+	@Override
 	public boolean setup(RenderList rl) {
 		for (Layer l : layers)
 			rl.add(l, null);

@@ -1,7 +1,7 @@
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
- *                     Björn Johannessen <johannessen.bjorn@gmail.com>
+ *                     BjГ¶rn Johannessen <johannessen.bjorn@gmail.com>
  *
  *  Redistribution and/or modification of this file is subject to the
  *  terms of the GNU Lesser General Public License, version 3, as
@@ -27,14 +27,13 @@
 package haven;
 
 import java.util.*;
-import java.io.InputStream;
+import java.io.*;
 import javax.sound.sampled.*;
 
 public class Audio {
 	public static boolean enabled = true;
-	private static Thread player;
-	public static final AudioFormat fmt = new AudioFormat(44100, 16, 2, true,
-			false);
+	private static Player player;
+	public static final AudioFormat fmt = new AudioFormat(44100, 16, 2, true, false);
 	private static Collection<CS> ncl = new LinkedList<CS>();
 	private static Object queuemon = new Object();
 	private static Collection<Runnable> queue = new LinkedList<Runnable>();
@@ -51,20 +50,29 @@ public class Audio {
 	}
 
 	public interface CS {
-		public boolean get(double[] sample);
+		public int get(double[][] sample);
 	}
 
 	public static class DataClip implements CS {
-		private InputStream clip;
-		private double vol, sp;
-		private int ack = 0;
-		private double[] ov = new double[2];
+		public final int rate;
 		public boolean eof;
+		public double vol, sp;
+		private InputStream clip;
+		private final int trate;
+		private int ack = 0;
+		private final byte[] buf = new byte[256];
+		private int dp = 0, dl = 0;
 
-		public DataClip(InputStream clip, double vol, double sp) {
+		public DataClip(InputStream clip, int rate, double vol, double sp) {
 			this.clip = clip;
+			this.rate = rate;
 			this.vol = vol;
 			this.sp = sp;
+			this.trate = (int)fmt.getSampleRate();
+		}
+
+		public DataClip(InputStream clip, double vol, double sp) {
+			this(clip, 44100, vol, sp);
 		}
 
 		public DataClip(InputStream clip) {
@@ -72,137 +80,187 @@ public class Audio {
 		}
 
 		public void finwait() throws InterruptedException {
-			synchronized (this) {
-				if (eof)
-					return;
-				wait();
+			while(!eof) {
+				synchronized(this) {
+					wait();
+				}
 			}
 		}
 
-		public boolean get(double[] sm) {
-			try {
-				ack += 44100.0 * sp;
-				while (ack >= 44100) {
-					for (int i = 0; i < 2; i++) {
-						int b1 = clip.read();
-						int b2 = clip.read();
-						if ((b1 < 0) || (b2 < 0)) {
-							synchronized (this) {
-								eof = true;
-								notifyAll();
-							}
-							return (false);
-						}
-						int v = b1 + (b2 << 8);
-						if (v >= 32768)
-							v -= 65536;
-						ov[i] = ((double) v / 32768.0) * vol;
-					}
-					ack -= 44100;
-				}
-			} catch (java.io.IOException e) {
-				synchronized (this) {
-					eof = true;
-					notifyAll();
-				}
-				return (false);
+		protected void eof() {
+			synchronized(this) {
+				eof = true;
+				notifyAll();
 			}
-			for (int i = 0; i < 2; i++)
-				sm[i] = ov[i];
-			return (true);
 		}
+
+		@Override
+		public int get(double[][] buf) {
+			if(eof)
+				return(-1);
+			try {
+				for(int off = 0; off < buf[0].length; off++) {
+					ack += rate * sp;
+					while(ack >= trate) {
+						if(dl - dp < 4) {
+							for(int i = 0; i < dl - dp; i++)
+								this.buf[i] = this.buf[dp + i];
+							dl -= dp;
+							while(dl < 4) {
+								int ret = clip.read(this.buf, dl, this.buf.length - dl);
+								if(ret < 0) {
+									eof();
+									return(off);
+								}
+								dl += ret;
+							}
+							dp = 0;
+						}
+						for(int i = 0; i < 2; i++) {
+							int b1 = this.buf[dp++] & 0xff;
+							int b2 = this.buf[dp++] & 0xff;
+							int v = b1 + (b2 << 8);
+							if(v >= 32768)
+								v -= 65536;
+							buf[i][off] = (v / 32768.0) * vol;
+						}
+						ack -= trate;
+					}
+				}
+				return(buf[0].length);
+			} catch(IOException e) {
+				eof();
+				return(-1);
+			}
+		}
+	}
+
+	public static double[][] pcmi2f(byte[] pcm, int ch) {
+		if(pcm.length % (ch * 2) != 0)
+			throw(new IllegalArgumentException("Uneven samples in PCM data"));
+		int sm = pcm.length / (ch * 2);
+		double[][] ret = new double[ch][sm];
+		int off = 0;
+		for(int i = 0; i < sm; i++) {
+			for(int o = 0; o < ch; o++) {
+				int b1 = pcm[off++] & 0xff;
+				int b2 = pcm[off++] & 0xff;
+				int v = b1 + (b2 << 8);
+				if(v >= 32768)
+					v -= 65536;
+				ret[o][i] = v / 32768.0;
+			}
+		}
+		return(ret);
 	}
 
 	private static class Player extends HackThread {
 		private Collection<CS> clips = new LinkedList<CS>();
-		@SuppressWarnings("unused")
 		private int srate, nch = 2;
 
 		Player() {
 			super("Haven audio player");
 			setDaemon(true);
-			srate = (int) fmt.getSampleRate();
+			srate = (int)fmt.getSampleRate();
 		}
 
-		private void fillbuf(byte[] buf, int off, int len) {
-			double[] val = new double[nch];
-			double[] sm = new double[nch];
-			while (len > 0) {
-				for (int i = 0; i < nch; i++)
-					val[i] = 0;
-				for (Iterator<CS> i = clips.iterator(); i.hasNext();) {
+		private void fillbuf(byte[] dst, int off, int len) {
+			int ns = len / (2 * nch);
+			double[][] val = new double[nch][ns];
+			double[][] buf = new double[nch][ns];
+			synchronized(clips) {
+				clip: for(Iterator<CS> i = clips.iterator(); i.hasNext();) {
+					int left = ns;
 					CS cs = i.next();
-					if (!cs.get(sm)) {
-						i.remove();
-						continue;
+					int boff = 0;
+					while(left > 0) {
+						int ret = cs.get(buf);
+						if(ret < 0) {
+							i.remove();
+							continue clip;
+						}
+						for(int ch = 0; ch < nch; ch++) {
+							for(int sm = 0; sm < ret; sm++)
+								val[ch][sm + boff] += buf[ch][sm];
+						}
+						left -= ret;
 					}
-					for (int ch = 0; ch < nch; ch++)
-						val[ch] += sm[ch];
 				}
-				for (int i = 0; i < nch; i++) {
-					int iv = (int) (val[i] * volume * 32767.0);
-					if (iv < 0) {
-						if (iv < -32768)
+			}
+			for(int i = 0; i < ns; i++) {
+				for(int o = 0; o < nch; o++) {
+					int iv = (int)(val[o][i] * volume * 32767.0);
+					if(iv < 0) {
+						if(iv < -32768)
 							iv = -32768;
 						iv += 65536;
 					} else {
-						if (iv > 32767)
+						if(iv > 32767)
 							iv = 32767;
 					}
-					buf[off++] = (byte) (iv & 0xff);
-					buf[off++] = (byte) ((iv & 0xff00) >> 8);
-					len -= 2;
+					dst[off++] = (byte)(iv & 0xff);
+					dst[off++] = (byte)((iv & 0xff00) >> 8);
 				}
 			}
 		}
 
+		public void stop(CS clip) {
+			synchronized(clips) {
+				for(Iterator<CS> i = clips.iterator(); i.hasNext();) {
+					if(i.next() == clip) {
+						i.remove();
+						return;
+					}
+				}
+			}
+		}
+
+		@Override
 		public void run() {
 			SourceDataLine line = null;
 			try {
 				try {
-					line = (SourceDataLine) AudioSystem
-							.getLine(new DataLine.Info(SourceDataLine.class,
-									fmt));
+					line = (SourceDataLine)AudioSystem.getLine(new DataLine.Info(SourceDataLine.class, fmt));
 					line.open(fmt, bufsize);
 					line.start();
-				} catch (Exception e) {
+				} catch(Exception e) {
 					e.printStackTrace();
 					return;
 				}
 				byte[] buf = new byte[1024];
-				while (true) {
-					if (Thread.interrupted())
-						throw (new InterruptedException());
-					synchronized (queuemon) {
+				while(true) {
+					if(Thread.interrupted())
+						throw(new InterruptedException());
+					synchronized(queuemon) {
 						Collection<Runnable> queue = Audio.queue;
 						Audio.queue = new LinkedList<Runnable>();
-						for (Runnable r : queue)
+						for(Runnable r : queue)
 							r.run();
 					}
-					synchronized (ncl) {
-						for (CS cs : ncl)
-							clips.add(cs);
-						ncl.clear();
+					synchronized(ncl) {
+						synchronized(clips) {
+							for(CS cs : ncl)
+								clips.add(cs);
+							ncl.clear();
+						}
 					}
 					fillbuf(buf, 0, 1024);
-					for (int off = 0; off < buf.length; off += line.write(buf,
-							off, buf.length - off))
-						;
+					for(int off = 0; off < buf.length; off += line.write(buf, off, buf.length - off));
 				}
-			} catch (InterruptedException e) {
+			} catch(InterruptedException e) {
 			} finally {
-				synchronized (Audio.class) {
+				synchronized(Audio.class) {
 					player = null;
 				}
-				if (line != null)
+				if(line != null)
 					line.close();
 			}
 		}
 	}
 
 	private static synchronized void ckpl() {
-		if (enabled) {
-			if (player == null) {
+		if(enabled) {
+			if(player == null) {
 				player = new Player();
 				player.start();
 			}
@@ -212,48 +270,58 @@ public class Audio {
 	}
 
 	public static void play(CS clip) {
-		synchronized (ncl) {
+		if(clip == null)
+			throw(new NullPointerException());
+		synchronized(ncl) {
 			ncl.add(clip);
 		}
 		ckpl();
 	}
 
-	public static void play(final InputStream clip, final double vol,
-			final double sp) {
-		play(new DataClip(clip, vol, sp));
+	public static void stop(CS clip) {
+		Player pl = player;
+		if(pl != null)
+			pl.stop(clip);
 	}
 
-	public static void play(byte[] clip, double vol, double sp) {
-		play(new DataClip(new java.io.ByteArrayInputStream(clip), vol, sp));
+	public static DataClip play(InputStream clip, final double vol, final double sp) {
+		DataClip cs = new DataClip(clip, vol, sp);
+		play(cs);
+		return(cs);
 	}
 
-	public static void play(byte[] clip) {
-		play(clip, 1.0, 1.0);
+	public static DataClip play(byte[] clip, double vol, double sp) {
+		return(play(new ByteArrayInputStream(clip), vol, sp));
+	}
+
+	public static DataClip play(byte[] clip) {
+		return(play(clip, 1.0, 1.0));
 	}
 
 	public static void queue(Runnable d) {
-		synchronized (queuemon) {
+		synchronized(queuemon) {
 			queue.add(d);
 		}
 		ckpl();
 	}
 
-	public static void playres(Resource res) {
+	public static DataClip playres(Resource res) {
 		Collection<Resource.Audio> clips = res.layers(Resource.audio);
-		int s = (int) (Math.random() * clips.size());
+		int s = (int)(Math.random() * clips.size());
 		Resource.Audio clip = null;
-		for (Resource.Audio cp : clips) {
+		for(Resource.Audio cp : clips) {
 			clip = cp;
-			if (--s < 0)
+			if(--s < 0)
 				break;
 		}
-		play(clip.clip);
+		return(play(clip.pcmstream(), 1.0, 1.0));
 	}
 
 	public static void play(final Resource clip) {
 		queue(new Runnable() {
+			@Override
 			public void run() {
-				if (clip.loading)
+				if(clip.loading)
 					queue.add(this);
 				else
 					playres(clip);
@@ -263,58 +331,60 @@ public class Audio {
 
 	public static void play(final Indir<Resource> clip) {
 		queue(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					playres(clip.get());
-				} catch (Loading e) {
+				} catch(Loading e) {
 					queue.add(this);
 				}
 			}
 		});
 	}
 
-	public static byte[] readclip(InputStream in) throws java.io.IOException {
+	public static byte[] readclip(InputStream in) throws IOException {
 		AudioInputStream cs;
 		try {
-			cs = AudioSystem.getAudioInputStream(fmt,
-					AudioSystem.getAudioInputStream(in));
-		} catch (UnsupportedAudioFileException e) {
-			throw (new java.io.IOException("Unsupported audio encoding"));
+			cs = AudioSystem.getAudioInputStream(fmt, AudioSystem.getAudioInputStream(in));
+		} catch(UnsupportedAudioFileException e) {
+			throw(new IOException("Unsupported audio encoding"));
 		}
-		java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
+		ByteArrayOutputStream buf = new ByteArrayOutputStream();
 		byte[] bbuf = new byte[65536];
-		while (true) {
+		while(true) {
 			int rv = cs.read(bbuf);
-			if (rv < 0)
+			if(rv < 0)
 				break;
 			buf.write(bbuf, 0, rv);
 		}
-		return (buf.toByteArray());
+		return(buf.toByteArray());
 	}
 
 	public static void main(String[] args) throws Exception {
 		Collection<DataClip> clips = new LinkedList<DataClip>();
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-b")) {
+		for(int i = 0; i < args.length; i++) {
+			if(args[i].equals("-b")) {
 				bufsize = Integer.parseInt(args[++i]);
 			} else {
-				DataClip c = new DataClip(new java.io.FileInputStream(args[i]));
+				DataClip c = new DataClip(new FileInputStream(args[i]));
 				clips.add(c);
 			}
 		}
-		for (DataClip c : clips)
+		for(DataClip c : clips)
 			play(c);
-		for (DataClip c : clips)
+		for(DataClip c : clips)
 			c.finwait();
 	}
 
 	static {
 		Console.setscmd("sfx", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				play(Resource.load(args[1]));
 			}
 		});
 		Console.setscmd("sfxvol", new Console.Command() {
+			@Override
 			public void run(Console cons, String[] args) {
 				setvolume(Double.parseDouble(args[1]));
 			}

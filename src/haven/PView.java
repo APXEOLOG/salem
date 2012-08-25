@@ -29,155 +29,166 @@ package haven;
 import javax.media.opengl.*;
 
 public abstract class PView extends Widget {
-    private RenderList rls;
-    public static final GLState.Slot<RenderState> wnd = new GLState.Slot<RenderState>(GLState.Slot.Type.SYS, RenderState.class, HavenPanel.proj2d);
-    public static final GLState.Slot<Projection> proj = new GLState.Slot<Projection>(GLState.Slot.Type.SYS, Projection.class, wnd);
-    public static final GLState.Slot<Camera> cam = new GLState.Slot<Camera>(GLState.Slot.Type.SYS, Camera.class, proj);
-    public static final GLState.Slot<Location> loc = new GLState.Slot<Location>(GLState.Slot.Type.GEOM, Location.class, cam);
-    public Profile prof = new Profile(300);
-    protected Light.Model lm;
-    private GLState rstate, pstate;
-    
-    public static abstract class RenderState extends GLState {
-	public void apply(GOut g) {
-	    GL gl = g.gl;
-	    gl.glScissor(g.ul.x, g.root().sz.y - g.ul.y - g.sz.y, g.sz.x, g.sz.y);
-	    Coord ul = ul();
-	    Coord sz = sz();
-	    gl.glViewport(ul.x, g.root().sz.y - ul.y - sz.y, sz.x, sz.y);
+	private RenderList rls;
+	public static final GLState.Slot<RenderState> wnd = new GLState.Slot<RenderState>(GLState.Slot.Type.SYS, RenderState.class, HavenPanel.proj2d);
+	public static final GLState.Slot<Projection> proj = new GLState.Slot<Projection>(GLState.Slot.Type.SYS, Projection.class, wnd);
+	public static final GLState.Slot<Camera> cam = new GLState.Slot<Camera>(GLState.Slot.Type.SYS, Camera.class, proj);
+	public static final GLState.Slot<Location> loc = new GLState.Slot<Location>(GLState.Slot.Type.GEOM, Location.class, cam);
+	public Profile prof = new Profile(300);
+	protected Light.Model lm;
+	private GLState rstate, pstate;
 
-	    gl.glAlphaFunc(GL.GL_GREATER, 0.5f);
-	    gl.glEnable(GL.GL_DEPTH_TEST);
-	    gl.glEnable(GL.GL_CULL_FACE);
-	    gl.glEnable(GL.GL_SCISSOR_TEST);
-	    gl.glDepthFunc(GL.GL_LEQUAL);
-	    gl.glClearDepth(1.0);
+	public static abstract class RenderState extends GLState {
+		@Override
+		public void apply(GOut g) {
+			GL gl = g.gl;
+			gl.glScissor(g.ul.x, g.root().sz.y - g.ul.y - g.sz.y, g.sz.x, g.sz.y);
+			Coord ul = ul();
+			Coord sz = sz();
+			gl.glViewport(ul.x, g.root().sz.y - ul.y - sz.y, sz.x, sz.y);
+
+			gl.glAlphaFunc(GL.GL_GREATER, 0.5f);
+			gl.glEnable(GL.GL_DEPTH_TEST);
+			gl.glEnable(GL.GL_CULL_FACE);
+			gl.glEnable(GL.GL_SCISSOR_TEST);
+			gl.glDepthFunc(GL.GL_LEQUAL);
+			gl.glClearDepth(1.0);
+		}
+
+		@Override
+		public void unapply(GOut g) {
+			GL gl = g.gl;
+
+			gl.glDisable(GL.GL_DEPTH_TEST);
+			gl.glDisable(GL.GL_CULL_FACE);
+			gl.glDisable(GL.GL_SCISSOR_TEST);
+
+			gl.glViewport(g.root().ul.x, g.root().ul.y, g.root().sz.x, g.root().sz.y);
+			gl.glScissor(g.root().ul.x, g.root().ul.y, g.root().sz.x, g.root().sz.y);
+		}
+
+		@Override
+		public void prep(Buffer b) {
+			b.put(wnd, this);
+		}
+
+		public abstract Coord ul();
+		public abstract Coord sz();
 	}
-	
-	public void unapply(GOut g) {
-	    GL gl = g.gl;
 
-	    gl.glDisable(GL.GL_DEPTH_TEST);
-	    gl.glDisable(GL.GL_CULL_FACE);
-	    gl.glDisable(GL.GL_SCISSOR_TEST);
+	private class WidgetRenderState extends RenderState {
+		@Override
+		public Coord ul() {
+			return(rootpos());
+		}
 
-	    gl.glViewport(g.root().ul.x, g.root().ul.y, g.root().sz.x, g.root().sz.y);
-	    gl.glScissor(g.root().ul.x, g.root().ul.y, g.root().sz.x, g.root().sz.y);
+		@Override
+		public Coord sz() {
+			return(PView.this.sz);
+		}
 	}
-	
-	public void prep(Buffer b) {
-	    b.put(wnd, this);
-	}
-	
-	public abstract Coord ul();
-	public abstract Coord sz();
-    }
-    
-    private class WidgetRenderState extends RenderState {
-	public Coord ul() {
-	    return(rootpos());
-	}
-	
-	public Coord sz() {
-	    return(PView.this.sz);
-	}
-    }
-    
-    public PView(Coord c, Coord sz, Widget parent) {
-	super(c, sz, parent);
-	rstate = new WidgetRenderState();
-	pstate = makeproj();
-	lm = new Light.Model();
-	lm.cc = GL.GL_SEPARATE_SPECULAR_COLOR;
-    }
-    
-    protected GLState.Buffer basic(GOut g) {
-	GLState.Buffer buf = g.st.copy();
-	rstate.prep(buf);
-	pstate.prep(buf);
-	camera().prep(buf);
-	return(buf);
-    }
 
-    protected abstract Camera camera();
-    protected abstract void setup(RenderList rls);
-    
-    protected Projection makeproj() {
-	float field = 0.5f;
-	float aspect = ((float)sz.y) / ((float)sz.x);
-	return(Projection.frustum(-field, field, -aspect * field, aspect * field, 1, 5000));
-    }
+	public PView(Coord c, Coord sz, Widget parent) {
+		super(c, sz, parent);
+		rstate = new WidgetRenderState();
+		pstate = makeproj();
+		lm = new Light.Model();
+		lm.cc = GL.GL_SEPARATE_SPECULAR_COLOR;
+	}
 
-    public void resize(Coord sz) {
-	super.resize(sz);
-	pstate = makeproj();
-    }
+	protected GLState.Buffer basic(GOut g) {
+		GLState.Buffer buf = g.st.copy();
+		rstate.prep(buf);
+		pstate.prep(buf);
+		camera().prep(buf);
+		return(buf);
+	}
 
-    private final Rendered scene = new Rendered() {
-	    public void draw(GOut g) {
-	    }
-	    
-	    public boolean setup(RenderList rl) {
-		PView.this.setup(rl);
-		return(false);
-	    }
+	protected abstract Camera camera();
+	protected abstract void setup(RenderList rls);
+
+	protected Projection makeproj() {
+		float field = 0.5f;
+		float aspect = ((float)sz.y) / ((float)sz.x);
+		return(Projection.frustum(-field, field, -aspect * field, aspect * field, 1, 5000));
+	}
+
+	@Override
+	public void resize(Coord sz) {
+		super.resize(sz);
+		pstate = makeproj();
+	}
+
+	private final Rendered scene = new Rendered() {
+		@Override
+		public void draw(GOut g) {
+		}
+
+		@Override
+		public boolean setup(RenderList rl) {
+			PView.this.setup(rl);
+			return(false);
+		}
 	};
 
-    public void draw(GOut g) {
-	if((g.sz.x < 1) || (g.sz.y < 1))
-	    return;
-	if((rls == null) || (rls.cfg != g.gc))
-	    rls = new RenderList(g.gc);
-	Profile.Frame curf = null;
-	if(Config.profile)
-	    curf = prof.new Frame();
-	GLState.Buffer bk = g.st.copy();
-	GLState.Buffer def = basic(g);
-	if(g.gc.fsaa)
-	    States.fsaa.prep(def);
-	try {
-	    lm.prep(def);
-	    new Light.LightList().prep(def);
-	    rls.setup(scene, def);
-	    if(curf != null)
-		curf.tick("setup");
-	    rls.fin();
-	    if(curf != null)
-		curf.tick("sort");
-	    g.st.set(def);
-	    g.apply();
-	    if(curf != null)
-		curf.tick("cls");
-	    GL gl = g.gl;
-	    gl.glClear(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT);
-	    g.st.time = 0;
-	    rls.render(g);
-	    if(curf != null) {
-		curf.add("apply", g.st.time);
-		curf.tick("render", g.st.time);
-	    }
-	} finally {
-	    g.st.set(bk);
+	@Override
+	public void draw(GOut g) {
+		if((g.sz.x < 1) || (g.sz.y < 1))
+			return;
+		if((rls == null) || (rls.cfg != g.gc))
+			rls = new RenderList(g.gc);
+		Profile.Frame curf = null;
+		if(Config.profile)
+			curf = prof.new Frame();
+		GLState.Buffer bk = g.st.copy();
+		GLState.Buffer def = basic(g);
+		if(g.gc.fsaa)
+			States.fsaa.prep(def);
+		try {
+			lm.prep(def);
+			new Light.LightList().prep(def);
+			rls.setup(scene, def);
+			if(curf != null)
+				curf.tick("setup");
+			rls.fin();
+			if(curf != null)
+				curf.tick("sort");
+			g.st.set(def);
+			g.apply();
+			if(curf != null)
+				curf.tick("cls");
+			GL gl = g.gl;
+			gl.glClear(GL.GL_DEPTH_BUFFER_BIT | GL.GL_COLOR_BUFFER_BIT);
+			g.st.time = 0;
+			rls.render(g);
+			if(curf != null) {
+				curf.add("apply", g.st.time);
+				curf.tick("render", g.st.time);
+			}
+		} finally {
+			g.st.set(bk);
+		}
+		for(RenderList.Slot s : rls.slots()) {
+			if(s.r instanceof Render2D)
+				((Render2D)s.r).draw2d(g);
+		}
+		if(curf != null)
+			curf.tick("2d");
+		if(curf != null)
+			curf.fin();
 	}
-	for(RenderList.Slot s : rls.slots()) {
-	    if(s.r instanceof Render2D)
-		((Render2D)s.r).draw2d(g);
+
+	public interface Render2D extends Rendered {
+		public void draw2d(GOut g);
 	}
-	if(curf != null)
-	    curf.tick("2d");
-	if(curf != null)
-	    curf.fin();
-    }
-    
-    public interface Render2D extends Rendered {
-	public void draw2d(GOut g);
-    }
-    
-    public static abstract class Draw2D implements Render2D {
-	public void draw(GOut g) {}
-	
-	public boolean setup(RenderList r) {
-	    return(false);
+
+	public static abstract class Draw2D implements Render2D {
+		@Override
+		public void draw(GOut g) {}
+
+		@Override
+		public boolean setup(RenderList r) {
+			return(false);
+		}
 	}
-    }
 }

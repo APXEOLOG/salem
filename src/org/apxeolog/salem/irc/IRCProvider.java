@@ -65,7 +65,9 @@ public class IRCProvider {
 	}
 
 	public void say(String channel, String msg) {
-		connection.sendCommand(new MessageCommand(connection.getClientState().getChannel(channel).getName(), msg));
+		MessageCommand mc = new MessageCommand(connection.getClientState().getChannel(channel).getName(), msg);
+		connection.sendCommand(mc);
+		incomingMessage(mc);
 	}
 
 	public void sendCommand(String channel, OutCommand command) {
@@ -77,12 +79,11 @@ public class IRCProvider {
 	}
 
 	public void onRegistered() {
-		ALS.alDebugPrint(connection);
 		if (listener != null) listener.onRegister();
 	}
 
 	public void incomingMessage(MessageCommand msg) {
-		SChatWrapper.IRCMessage(msg.getDest(), msg.getSource().getNick() + ": " + msg.getMessage());
+		SChatWrapper.ircMessageRecieved(msg.getDest(), msg.getSource().getNick() + ": " + msg.getMessage());
 	}
 
 	public void disconnect() {

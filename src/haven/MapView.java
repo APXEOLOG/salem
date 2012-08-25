@@ -776,6 +776,8 @@ public class MapView extends PView implements DTarget {
 			undelay(delayed2, g);
 			poldraw(g);
 			partydraw(g);
+			glob.map.reqarea(cc.div(tilesz).sub(MCache.cutsz.mul(view + 1)),
+					cc.div(tilesz).add(MCache.cutsz.mul(view + 1)));
 			if (ui.modshift && XConfig.cl_grid_mode == MapView.GRID_MODE_HEIGHTMAP) {
 				FastText.aprint(g, ui.mc.sub(0, 5), 0.5, 0.5, String.valueOf(cz));
 			}

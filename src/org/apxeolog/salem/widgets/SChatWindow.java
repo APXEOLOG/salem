@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.Pair;
 import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.config.ChatConfig;
 import org.apxeolog.salem.config.ChatConfig.ChatModeInfo;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.ChatConfig.ChannelTypes;
 import org.apxeolog.salem.config.ChatConfig.ChatTabConfig;
-import org.apxeolog.salem.utils.Pair;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.apxeolog.salem.utils.STextProcessor.ProcessedText;
 

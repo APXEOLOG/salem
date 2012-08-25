@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
-import org.apxeolog.salem.utils.Pair;
+import org.apxeolog.salem.Pair;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -169,6 +169,15 @@ public class ChatConfig implements IConfigExport {
 		if (local.equals("ru")) {
 			return "#salem";
 		} else return "#salem";
+	}
+
+	public static String getFirstIRCChannel() {
+		for (ChatTabConfig tab : chatTabs) {
+			if (tab.containsChannel(ChannelTypes.IRC)) {
+				return tab.getIRCChannel();
+			}
+		}
+		return null;
 	}
 
 	public static ArrayList<Pair<String, String>> getIRCChannels() {

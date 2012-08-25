@@ -274,6 +274,10 @@ public class Gob implements Sprite.Owner, Rendered {
 		return (new Random(id));
 	}
 
+	public Glob glob() {
+		return(glob);
+	}
+
 	@Override
 	public Resource.Neg getneg() {
 		Drawable d = getattr(Drawable.class);

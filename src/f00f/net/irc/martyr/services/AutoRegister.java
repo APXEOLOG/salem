@@ -51,241 +51,247 @@ import f00f.net.irc.martyr.util.FullNick;
  */
 public class AutoRegister extends GenericAutoService
 {
-    // I've lost track of why the timer stuff was in here.  I think the
-    // original purpose was to make AutoRegister take control of the nick
-    // more *after* registration occurred.  This code is now causing so
-    // many problems *before* registration, that I think it may need to be
-    // pulled out.  Maybe time to bring a "Manager" service into the
-    // fold?
-    private long nickTimerTaskDelay = 10*1000;
-    private TimerTaskCommand nickTimerTask;
+	// I've lost track of why the timer stuff was in here.  I think the
+	// original purpose was to make AutoRegister take control of the nick
+	// more *after* registration occurred.  This code is now causing so
+	// many problems *before* registration, that I think it may need to be
+	// pulled out.  Maybe time to bring a "Manager" service into the
+	// fold?
+	private long nickTimerTaskDelay = 10*1000;
+	private TimerTaskCommand nickTimerTask;
 
-    // Kept so it can be passed to getNickIterator()
-    private String originalNick;
-    // Used to set the client state once we register properly.
-    private String lastTryNick = null;
-    // Passed to the server on login
-    private String user;
-    private String name;
-    private String pass;
-    // Our list of nicks.
-    @SuppressWarnings("rawtypes")
+	// Kept so it can be passed to getNickIterator()
+	private String originalNick;
+	// Used to set the client state once we register properly.
+	private String lastTryNick = null;
+	// Passed to the server on login
+	private String user;
+	private String name;
+	private String pass;
+	// Our list of nicks.
+	@SuppressWarnings("rawtypes")
 	private Iterator nickIterator = null;
-    // attempt is only used for the debug output.
-    private int attempt = 0;
+	// attempt is only used for the debug output.
+	private int attempt = 0;
 
-    public static final int MAX_ATTEMPTS = 5;
+	public static final int MAX_ATTEMPTS = 5;
 
-    public AutoRegister( IRCConnection connection, String nick,
-        String user, String name )
-    {
-        super( connection );
+	public AutoRegister( IRCConnection connection, String nick,
+			String user, String name )
+	{
+		super( connection );
 
-        this.originalNick = nick;
-        this.user = user;
-        this.name = name;
-        this.pass = null;
+		this.originalNick = nick;
+		this.user = user;
+		this.name = name;
+		this.pass = null;
 
-        enable();
-    }
+		enable();
+	}
 
-    public AutoRegister( IRCConnection connection, String nick,
-        String user, String name, String pass)
-    {
-        super( connection );
+	public AutoRegister( IRCConnection connection, String nick,
+			String user, String name, String pass)
+	{
+		super( connection );
 
-        this.originalNick = nick;
-        this.user = user;
-        this.name = name;
-        this.pass = pass;
+		this.originalNick = nick;
+		this.user = user;
+		this.name = name;
+		this.pass = pass;
 
-        enable();
-    }
+		enable();
+	}
 
 
-    /**
-     * <p>This method supplies an Iterator that generates nicknames.  Each successive
-     * failed attempt to login to the server with a nickname will be met with a new
-     * try using the next nickname in the iterator.  When there are no more
-     * nicknames in the Iterator, AutoRegister gives up.  Defining the Iterator as
-     * an anonymous class works well.</p>
-     *
-     * <p>The iterator should iterate over String objects.</p>
-     *
-     * @param baseNick The nickname passed into the constructor.
-     * @return Iterator over other attempts of nicks to try
-     */
-    @SuppressWarnings("rawtypes")
+	/**
+	 * <p>This method supplies an Iterator that generates nicknames.  Each successive
+	 * failed attempt to login to the server with a nickname will be met with a new
+	 * try using the next nickname in the iterator.  When there are no more
+	 * nicknames in the Iterator, AutoRegister gives up.  Defining the Iterator as
+	 * an anonymous class works well.</p>
+	 *
+	 * <p>The iterator should iterate over String objects.</p>
+	 *
+	 * @param baseNick The nickname passed into the constructor.
+	 * @return Iterator over other attempts of nicks to try
+	 */
+	@SuppressWarnings("rawtypes")
 	protected Iterator getNickIterator( final String baseNick )
-    {
-        // This is simple and clean.. define the nick generation scheme as an
-        // anonymous class.
-        return new UnderscoreIterator(baseNick);
-    }
+	{
+		// This is simple and clean.. define the nick generation scheme as an
+		// anonymous class.
+		return new UnderscoreIterator(baseNick);
+	}
 
-    @SuppressWarnings("rawtypes")
+	@SuppressWarnings("rawtypes")
 	private static class UnderscoreIterator implements Iterator
-    {
-        int count = 1;
-        String nick;
+	{
+		int count = 1;
+		String nick;
 
-        public UnderscoreIterator( String base )
-        {
-            this.nick = base;
-        }
+		public UnderscoreIterator( String base )
+		{
+			this.nick = base;
+		}
 
-        public boolean hasNext()
-        {
-            return count <= MAX_ATTEMPTS;
-        }
+		@Override
+		public boolean hasNext()
+		{
+			return count <= MAX_ATTEMPTS;
+		}
 
-        public Object next()
-        {
-            if( hasNext() )
-            {
-                String result = nick;
+		@Override
+		public Object next()
+		{
+			if( hasNext() )
+			{
+				String result = nick;
 
-                // Set up the next round
-                nick = nick + "_";
-                ++count;
+				// Set up the next round
+				nick = nick + "_";
+				++count;
 
-                // return the value for this round.
-                return result;
-            }
-            else
-            {
-                throw new NoSuchElementException("No more nicknames");
-            }
-        }
+				// return the value for this round.
+				return result;
+			}
+			else
+			{
+				throw new NoSuchElementException("No more nicknames");
+			}
+		}
 
-        public void remove()
-        {
-            throw new UnsupportedOperationException();
-        }
-    }
+		@Override
+		public void remove()
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
 
-    protected void updateState( State state )
-    {
-        ALS.alDebugPrint("AutoRegister: Update with state " + state);
-        if( state == State.UNREGISTERED )
-        {
-            // We need to do some registerin'!
-            nickIterator = getNickIterator( originalNick );
-            attempt = 0;
-            doRegister();
-        }
-        else if( state == State.REGISTERED )
-        {
-            // We need to update the client state.
-            ClientState clientState = getConnection().getClientState();
-            clientState.setNick( new FullNick( lastTryNick ) );
-            clientState.setName( name );
-            clientState.setUser( user );
-            clientState.setPass( pass );
-        }
+	@Override
+	protected void updateState( State state )
+	{
+		//ALS.alDebugPrint("AutoRegister: Update with state " + state);
+		if( state == State.UNREGISTERED )
+		{
+			// We need to do some registerin'!
+			nickIterator = getNickIterator( originalNick );
+			attempt = 0;
+			doRegister();
+		}
+		else if( state == State.REGISTERED )
+		{
+			// We need to update the client state.
+			ClientState clientState = getConnection().getClientState();
+			clientState.setNick( new FullNick( lastTryNick ) );
+			clientState.setName( name );
+			clientState.setUser( user );
+			clientState.setPass( pass );
+		}
 
-        ALS.alDebugPrint("AutoRegister: Returned from " + state);
-    }
+		//ALS.alDebugPrint("AutoRegister: Returned from " + state);
+	}
 
-    protected void updateCommand( InCommand command )
-    {
-        // First, check the state, because if we are already registered
-        // then none of this matters.
-        //if( getConnection().getState() == State.REGISTERED )
-        //{
-        //	// We're registered.
-        //	// No reason to continue.
-        //	return;
-        //}
+	@Override
+	protected void updateCommand( InCommand command )
+	{
+		// First, check the state, because if we are already registered
+		// then none of this matters.
+		//if( getConnection().getState() == State.REGISTERED )
+		//{
+		//	// We're registered.
+		//	// No reason to continue.
+		//	return;
+		//}
 
-        if( command instanceof NickInUseError)
-        {
-            // If we get an error, then try another nick
-            NickInUseError nickErr = (NickInUseError)command;
-            if(nickErr.getNick().getNick().equals(originalNick))
-            {
-                cancelNickAttempt(); // We don't want more than one of these
+		if( command instanceof NickInUseError)
+		{
+			// If we get an error, then try another nick
+			NickInUseError nickErr = (NickInUseError)command;
+			if(nickErr.getNick().getNick().equals(originalNick))
+			{
+				cancelNickAttempt(); // We don't want more than one of these
 
-                scheduleNickAttempt();
-            }
-            if(getConnection().getState() == State.UNREGISTERED )
-            {
-                // re-register.
-                doRegister();
-            }
-        }
-        else if( command instanceof NickCommand )
-        {
-            // If we get a nick... then cancel a pending change
-            NickCommand nickCmd = (NickCommand)command;
-            if( nickCmd.getOldNick().equalsIgnoreCase( originalNick ) )
-            {
-                cancelNickAttempt();
-            }
-        }
-    }
+				scheduleNickAttempt();
+			}
+			if(getConnection().getState() == State.UNREGISTERED )
+			{
+				// re-register.
+				doRegister();
+			}
+		}
+		else if( command instanceof NickCommand )
+		{
+			// If we get a nick... then cancel a pending change
+			NickCommand nickCmd = (NickCommand)command;
+			if( nickCmd.getOldNick().equalsIgnoreCase( originalNick ) )
+			{
+				cancelNickAttempt();
+			}
+		}
+	}
 
-    /**
-     *
-     */
-    private void scheduleNickAttempt()
-    {
-        if( getConnection().getState().equals(State.REGISTERED))
-        {
-            // We're already connected.
-            // We're short-circuiting
-            return;
-        }
-        if(nickTimerTask == null || !nickTimerTask.isScheduled())
-        {
-            nickTimerTask = new TimerTaskCommand(getConnection(), new NickCommand(originalNick));
-            //TODO back off delay on repeated retries?
-            getConnection().getCronManager().schedule(nickTimerTask, nickTimerTaskDelay);
-        }
-    }
+	/**
+	 *
+	 */
+	private void scheduleNickAttempt()
+	{
+		if( getConnection().getState().equals(State.REGISTERED))
+		{
+			// We're already connected.
+			// We're short-circuiting
+			return;
+		}
+		if(nickTimerTask == null || !nickTimerTask.isScheduled())
+		{
+			nickTimerTask = new TimerTaskCommand(getConnection(), new NickCommand(originalNick));
+			//TODO back off delay on repeated retries?
+			getConnection().getCronManager().schedule(nickTimerTask, nickTimerTaskDelay);
+		}
+	}
 
-    private void cancelNickAttempt()
-    {
-        if(nickTimerTask != null && nickTimerTask.isScheduled())
-        {
-            nickTimerTask.cancel();
-        }
-    }
+	private void cancelNickAttempt()
+	{
+		if(nickTimerTask != null && nickTimerTask.isScheduled())
+		{
+			nickTimerTask.cancel();
+		}
+	}
 
-    private void doRegister()
-    {
-        if( getConnection().getState() != State.UNREGISTERED )
-        {
-            ALS.alDebugPrint("AutoRegister: Tried to register but we are not UNREGISTERED");
-            return;
-        }
+	private void doRegister()
+	{
+		if( getConnection().getState() != State.UNREGISTERED )
+		{
+			ALS.alDebugPrint("AutoRegister: Tried to register but we are not UNREGISTERED");
+			return;
+		}
 
-        if( ! nickIterator.hasNext() )
-        {
-            ALS.alDebugPrint("AutoRegister: Failed to register.");
-            getConnection().disconnect();
-            return;
-        }
+		if( ! nickIterator.hasNext() )
+		{
+			ALS.alDebugPrint("AutoRegister: Failed to register.");
+			getConnection().disconnect();
+			return;
+		}
 
-        lastTryNick = (String)nickIterator.next();
-        ++attempt;
-        ALS.alDebugPrint("AutoRegister: Trying to register as " + lastTryNick);
+		lastTryNick = (String)nickIterator.next();
+		++attempt;
+		ALS.alDebugPrint("AutoRegister: Trying to register as " + lastTryNick);
 
-        if (pass != null) {
-            getConnection().sendCommand( new PassCommand( pass ));
-        }
-        getConnection().sendCommand( new NickCommand( lastTryNick ) );
-        getConnection().sendCommand( new UserCommand( user, name, getConnection() ) );
-    }
+		if (pass != null) {
+			getConnection().sendCommand( new PassCommand( pass ));
+		}
+		getConnection().sendCommand( new NickCommand( lastTryNick ) );
+		getConnection().sendCommand( new UserCommand( user, name, getConnection() ) );
+	}
 
-    public String toString()
-    {
-        return "AutoRegister [" + attempt + "]";
-    }
+	@Override
+	public String toString()
+	{
+		return "AutoRegister [" + attempt + "]";
+	}
 
-    // END AutoRegister
+	// END AutoRegister
 }
- 
 
 
- 
+
+

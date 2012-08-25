@@ -1,4 +1,4 @@
-package org.apxeolog.salem.utils;
+package org.apxeolog.salem;
 
 import java.io.Serializable;
 

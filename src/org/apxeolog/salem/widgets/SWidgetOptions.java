@@ -54,7 +54,7 @@ import java.util.HashMap;
 import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.config.MinimapHighlightConfig;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
-import org.apxeolog.salem.config.ToolbarsConfig.SToolbarConfigSlot;
+import org.apxeolog.salem.config.ToolbarsConfig.TBSlot;
 import org.apxeolog.salem.config.ToolbarsConfig;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.XMLConfigProvider;
@@ -787,7 +787,7 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		public void setSlot(int mode, int key) {
-			SToolbarConfigSlot slot = getSelectedSlot();
+			TBSlot slot = getSelectedSlot();
 			if (slot != null) {
 				slot.sKey = key;
 				slot.sMode = mode;
@@ -807,13 +807,13 @@ public class SWidgetOptions extends Hidewnd {
 		}
 
 		public void addSlot(int mode, int key) {
-			SToolbarConfigSlot slot = new SToolbarConfigSlot(mode, key);
+			TBSlot slot = new TBSlot(mode, key);
 			if (assocedToolbar != null)
 				assocedToolbar.slotList.add(slot);
 			scrollbar.max = size() - iCannotRememberWhyDoINeedThisVariable;
 		}
 
-		public SToolbarConfigSlot getSelectedSlot() {
+		public TBSlot getSelectedSlot() {
 			if (selectedIndex >= 0 && selectedIndex < size()) return assocedToolbar.slotList.get(selectedIndex);
 			return null;
 		}
@@ -839,7 +839,7 @@ public class SWidgetOptions extends Hidewnd {
 
 			for (int i = 0; i < iCannotRememberWhyDoINeedThisVariable; i++) {
 				if (i + scrollbar.val >= size()) continue;
-				SToolbarConfigSlot hl = assocedToolbar.slotList.get(i + scrollbar.val);
+				TBSlot hl = assocedToolbar.slotList.get(i + scrollbar.val);
 				if (i + scrollbar.val == selectedIndex) {
 					g.chcolor(255, 255, 0, 128);
 					g.frect(new Coord(0, i * 20), new Coord(sz.x, 20));

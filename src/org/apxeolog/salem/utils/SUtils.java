@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
 import org.apxeolog.salem.ALS;
+import org.apxeolog.salem.Pair;
 import org.apxeolog.salem.config.MinimapHighlightConfig;
 import org.apxeolog.salem.config.MinimapHighlightConfig.HighlightInfo;
 

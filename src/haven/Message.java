@@ -27,6 +27,7 @@
 package haven;
 
 import java.util.*;
+import java.util.zip.Inflater;
 import java.awt.Color;
 
 @SuppressWarnings("serial")
@@ -267,6 +268,31 @@ public class Message implements java.io.Serializable {
 				throw(new RuntimeException("Encountered unknown type " + t + " in TTO list."));
 		}
 		return(ret.toArray());
+	}
+
+	public Message inflate(int length) {
+		Message ret = new Message(0);
+		Inflater z = new Inflater();
+		z.setInput(blob, off, length);
+		byte[] buf = new byte[10000];
+		while(true) {
+			try {
+				int len;
+				if((len = z.inflate(buf)) == 0) {
+					if(!z.finished())
+						throw(new RuntimeException("Got unterminated gzip blob"));
+					break;
+				}
+				ret.addbytes(buf, 0, len);
+			} catch(java.util.zip.DataFormatException e) {
+				throw(new RuntimeException("Got malformed gzip blob", e));
+			}
+		}
+		return(ret);
+	}
+
+	public Message inflate() {
+		return(inflate(blob.length - off));
 	}
 
 	@Override

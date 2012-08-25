@@ -623,12 +623,8 @@ public class STextProcessor {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Pattern test = Pattern.compile("\\[([^]=]+)(?:=[^]]+)?]([^\\[]*)\\[/\1]");
-		Matcher m = test.matcher("[c=val]wr[]rew][er]wr[/c]");
-		while (m.find()) {
-			ALS.alDebugPrint("match!");
-			for (int i = 0; i < m.groupCount(); i++)
-				System.out.print(m.group(i) + " ");
+		for (int i = 0; i < 360; i+= 45) {
+			ALS.alDebugPrint(Math.round(Math.cos(i + 45)), Math.round(Math.sin(i)));
 		}
 	}
 

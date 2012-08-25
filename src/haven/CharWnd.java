@@ -664,29 +664,34 @@ public class CharWnd extends SWindow {
 				else
 					((CharWndWindowHeader) windowHeader)
 					.setMeterColor(new Color(0, 255, 0, 225));
+
 				if (ui.lasttip instanceof WItem.ItemTip) {
-					GItem item = ((WItem.ItemTip) ui.lasttip).item();
-					Inspiration insp = ItemInfo.find(Inspiration.class,
-							item.info());
-					if (insp != null) {
-						for (int i = 0; i < insp.attrs.length; i++) {
-							if (insp.attrs[i].equals(atr.nm)) {
-								int itemExp = insp.exp[i];
-								itemExp += atr.sexp;
-								double futureperc = (itemExp * 1.) / op;
-								((CharWndWindowHeader) windowHeader)
-								.setFutureValue((int) futureperc);
-								if ((int) futureperc > 100)
+					try {
+						GItem item = ((WItem.ItemTip) ui.lasttip).item();
+						Inspiration insp = ItemInfo.find(Inspiration.class,
+								item.info());
+						if (insp != null) {
+							for (int i = 0; i < insp.attrs.length; i++) {
+								if (insp.attrs[i].equals(atr.nm)) {
+									int itemExp = insp.exp[i];
+									itemExp += atr.sexp;
+									double futureperc = (itemExp * 1.) / op;
 									((CharWndWindowHeader) windowHeader)
-									.setFutureColor(new Color(255, 255,
-											0));
-								else
-									((CharWndWindowHeader) windowHeader)
-									.setFutureColor(new Color(200, 200,
-											0));
-								break;
+									.setFutureValue((int) futureperc);
+									if ((int) futureperc > 100)
+										((CharWndWindowHeader) windowHeader)
+										.setFutureColor(new Color(255, 255,
+												0));
+									else
+										((CharWndWindowHeader) windowHeader)
+										.setFutureColor(new Color(200, 200,
+												0));
+									break;
+								}
 							}
 						}
+					} catch(Loading e) {
+
 					}
 				} else {
 					((CharWndWindowHeader) windowHeader).setFutureValue(0);
