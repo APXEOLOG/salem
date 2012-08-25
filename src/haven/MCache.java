@@ -53,21 +53,20 @@ public class MCache {
 	Random gen = new Random();
 	Map<Integer, Defrag> fragbufs = new TreeMap<Integer, Defrag>();
 	long lastctick = System.currentTimeMillis();
-	private final BufferedImage[] texes = new BufferedImage[256];
 
-	public BufferedImage tileimg(int t) {
+	private BufferedImage tileimg(int t, BufferedImage[] texes) {
 		BufferedImage img = texes[t];
-		if (img == null) {
+		if(img == null) {
 			Resource r = tilesetr(t);
-			if (r == null)
-				return (null);
+			if(r == null)
+				return(null);
 			Resource.Image ir = r.layer(Resource.imgc);
-			if (ir == null)
-				return (null);
+			if(ir == null)
+				return(null);
 			img = ir.img;
 			texes[t] = img;
 		}
-		return (img);
+		return(img);
 	}
 
 	@SuppressWarnings("serial")
@@ -272,11 +271,13 @@ public class MCache {
 
 			gridImage = TexI.mkbuf(cmaps);
 
+			BufferedImage[] texes = new BufferedImage[256];
+
 			Coord c = new Coord();
 			for (c.y = 0; c.y < cmaps.y; c.y++) {
 				for (c.x = 0; c.x < cmaps.x; c.x++) {
 					int t = gettile(c);
-					BufferedImage tex = tileimg(t);
+					BufferedImage tex = tileimg(t, texes);
 					if (tex != null)
 						gridImage.setRGB(c.x, c.y, tex.getRGB(
 								Utils.floormod(c.x, tex.getWidth()),
@@ -311,6 +312,7 @@ public class MCache {
 				if(ng != null)
 					ng.ivneigh(ic.inv());
 			}
+			loaded = true;
 		}
 
 		public void fill(Message msg) {

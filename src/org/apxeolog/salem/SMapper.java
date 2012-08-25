@@ -72,7 +72,6 @@ public class SMapper {
 									gridToDump = mapCache.getgrid(entry.getFirst());
 								}
 								img = gridToDump.getGridImage();
-
 							} catch (Loading ex) {
 								gridToDump = null;
 								try {
