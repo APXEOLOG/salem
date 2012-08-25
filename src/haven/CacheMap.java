@@ -92,6 +92,7 @@ public class CacheMap<K, V> extends AbstractMap<K, V> {
 						}
 					}
 
+					@SuppressWarnings("hiding")
 					class IteredEntry<K, V> implements Entry<K, V> {
 						private final K k;
 						private final V v;
@@ -105,6 +106,7 @@ public class CacheMap<K, V> extends AbstractMap<K, V> {
 						@Override
 						public V getValue() {return(v);}
 
+						@SuppressWarnings("rawtypes")
 						@Override
 						public boolean equals(Object o) {
 							return((o instanceof IteredEntry) && (((IteredEntry)o).k == k) && (((IteredEntry)o).v == v));
@@ -143,6 +145,7 @@ public class CacheMap<K, V> extends AbstractMap<K, V> {
 		return(entries);
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void clean() {
 		Reference<? extends V> ref;
 		while((ref = cleanq.poll()) != null) {

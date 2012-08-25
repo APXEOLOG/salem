@@ -132,6 +132,11 @@ public class STextProcessor {
 		protected Color clr = Color.WHITE;
 		protected String data;
 
+		public TextColor(Color color) {
+			clr = color;
+			data = "";
+		}
+
 		public TextColor(Matcher match) {
 			if (match.groupCount() > 2) {
 				String[] parts = match.group(1).substring(1).split(",");

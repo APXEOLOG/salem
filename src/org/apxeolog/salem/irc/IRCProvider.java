@@ -60,8 +60,7 @@ public class IRCProvider {
 		Enumeration members = mainChannel.getMembers();
 		while (members.hasMoreElements()) {
 			Member member = (Member) members.nextElement();
-			System.out.println("Member: " + member.getNick() + " Ops: "
-					+ member.hasOps() + " Voice: " + member.hasVoice());
+			builder.append("Member: " + member.getNick() + "\n");
 		}
 		return builder.toString();
 	}

@@ -99,6 +99,7 @@ public class Session {
 		}
 	}
 
+	@SuppressWarnings("serial")
 	public static class LoadingIndir extends Loading {
 		public int resid;
 
@@ -454,6 +455,7 @@ public class Session {
 			}
 		}
 
+		@SuppressWarnings("unused")
 		private void handlerel(Message msg) {
 			if(msg.type == Message.RMSG_NEWWDG) {
 				synchronized(uimsgs) {

@@ -183,11 +183,20 @@ public class SChatWindow extends SWindow {
 		}
 	}
 
-	public void addPText(ProcessedText str, ChannelTypes type) {
+	public void addPText(ProcessedText str, ChannelTypes type, Object...objects) {
 		for (Entry<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> entry : chatWidgets.entrySet()) {
 			if (entry.getKey().containsChannel(type)) {
-				entry.getValue().getSecond().addPText(str);
-				entry.getValue().getFirst().setnotify();
+				if (type == ChannelTypes.IRC && objects.length > 0) {
+					String channel = (String) objects[0];
+					ALS.alDebugPrint("got channel msg", channel);
+					if (entry.getKey().getIRCChannel().equals(channel)) {
+						entry.getValue().getSecond().addPText(str);
+						entry.getValue().getFirst().setnotify();
+					}
+				} else {
+					entry.getValue().getSecond().addPText(str);
+					entry.getValue().getFirst().setnotify();
+				}
 			}
 		}
 	}

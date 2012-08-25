@@ -13,6 +13,7 @@ import org.apxeolog.salem.irc.RegisteredListener;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.apxeolog.salem.utils.STextProcessor.NodeAttribute;
 import org.apxeolog.salem.utils.STextProcessor.ProcessedText;
+import org.apxeolog.salem.utils.STextProcessor.TextColor;
 
 import f00f.net.irc.martyr.commands.RawCommand;
 import haven.BuddyWnd;
@@ -185,6 +186,14 @@ public class SChatWrapper {
 		}
 	}
 
+	public static void ircMessageRecieved(String channel, String msg, Color clr) {
+		if (gameUI != null) {
+			ProcessedText ptext = STextProcessor.fromString(channel);
+			ptext.addAttribute(new TextColor(clr));
+			gameUI.bdsChatB.addPText(ptext, ChannelTypes.IRC, channel);
+		}
+	}
+
 	public static void sendIRCMessage(String text, String channel) {
 		if (ircProvider != null && ircProvider.isReady()) {
 			if (text.startsWith("/")) {
@@ -196,8 +205,12 @@ public class SChatWrapper {
 				} else {
 					command = text.substring(1);
 				}
-				RawCommand raw = new RawCommand(command, params);
-				ircProvider.sendCommand(channel, raw);
+				if (command.equals("ml")) {
+					ircMessageRecieved(channel, ircProvider.getMembers(), Color.GRAY);
+				} else {
+					RawCommand raw = new RawCommand(command, params);
+					ircProvider.sendCommand(channel, raw);
+				}
 			} else {
 				ircProvider.say(channel, text);
 				ircMessageRecieved(channel, ircProvider.getNickName() + ": " + text);

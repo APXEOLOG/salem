@@ -14,7 +14,6 @@ import haven.Widget;
 import static haven.Inventory.invsq;
 
 public class SNativeToolbar extends SWindow implements DTarget, DropTarget {
-	private String[] tbActions;
 	private Indir<Resource>[] gameUIBelt;
 	private TBConfig tbConfig;
 
@@ -55,10 +54,6 @@ public class SNativeToolbar extends SWindow implements DTarget, DropTarget {
 				}
 			}
 		}
-	}
-
-	private void load() {
-
 	}
 
 	@Override
