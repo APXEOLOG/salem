@@ -303,6 +303,7 @@ public class SWindow extends Widget {
 		public void mousemove(Coord c) {
 			if (dragMode) {
 				parent.c = parent.c.add(c.add(doff.inv()));
+				((SWindow)parent).drag();
 			} else {
 				super.mousemove(c);
 			}

@@ -104,9 +104,11 @@ public class SChatWindow extends SWindow {
 
 		if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && !alt && !shift) {
 			// IRC
+			ALS.alDebugPrint("check");
 			if (currentTab.getFirst().containsChannel(ChannelTypes.IRC)) {
 				showLine(-255, ChannelTypes.IRC);
 			} else {
+				ALS.alDebugPrint("area");
 				// Area
 				int wdgId = getparent(GameUI.class).chat.getAreaChat();
 				if (wdgId != -1) {
@@ -178,6 +180,7 @@ public class SChatWindow extends SWindow {
 
 	@Override
 	public void drag() {
+		ALS.alDebugPrint("drag");
 		updateLine();
 	}
 
