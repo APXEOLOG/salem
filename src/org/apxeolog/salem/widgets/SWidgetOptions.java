@@ -226,7 +226,7 @@ public class SWidgetOptions extends Hidewnd {
 
 
 		{ /* IRC TAB */
-			tab = body.new Tab(new Coord(230, 10), 70, "IRC") {
+			tab = body.new Tab(new Coord(250, 10), 70, "IRC") {
 				@Override
 				public void draw(GOut g) {
 					g.chcolor(255, 255, 255, 255);
@@ -258,14 +258,14 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 
-			CheckBox checkb = new CheckBox(new Coord(20, 180), tab, "Connect automatically") {
+			CheckBox checkb = new CheckBox(new Coord(20, 140), tab, "Connect automatically") {
 				@Override
 				public void changed(boolean val) {
 					XConfig.mp_irc_autoconnect = val;
 				}
 			};
 			checkb.set(XConfig.mp_irc_autoconnect);
-			new Button(new Coord(40, 200), 50, tab, "Connect") {
+			new Button(new Coord(20, 180), 50, tab, "Connect") {
 				@Override
 				public void click() {
 					SChatWrapper.startIRCProvider();
