@@ -775,13 +775,13 @@ public class IRCConnection {
 		}
 
 		socketWriter = new BufferedWriter(new OutputStreamWriter(
-				socket.getOutputStream()));
+				socket.getOutputStream(), "UTF-8"));
 
 		/**
 		 * The reader to use for input. Managed by the InputHandler.
 		 */
 		BufferedReader socketReader = new BufferedReader(new InputStreamReader(
-				socket.getInputStream()));
+				socket.getInputStream(), "UTF-8"));
 
 		// A simple thread that waits for input from the server and passes
 		// it off to the IRCConnection class.

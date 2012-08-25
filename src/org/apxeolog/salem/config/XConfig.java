@@ -34,7 +34,7 @@ public class XConfig implements IConfigExport {
 	public static String 	mp_error_url = "http://unionclient.ru/salem/error/";
 	public static Integer	cl_grid_mode = MapView.GRID_MODE_NONE;
 	public static String	mp_guid = UUID.randomUUID().toString();
-	public static Boolean 	cl_debug_mode = true;
+	public static Boolean 	cl_debug_mode = false;
 	public static String	mp_irc_server = "irc.synirc.net";
 	public static Integer	mp_irc_port = 6667;
 	public static String	mp_irc_username = "";
@@ -74,10 +74,10 @@ public class XConfig implements IConfigExport {
 		NodeList list = sectionRoot.getElementsByTagName("property");
 		Element currentNode = null;
 		for (int i = 0; i < list.getLength(); i++) {
-			currentNode = (Element) list.item(i);
-			String fieldName = currentNode.getAttribute("name");
-			String fieldValue = currentNode.getChildNodes().item(0).getNodeValue();
 			try {
+				currentNode = (Element) list.item(i);
+				String fieldName = currentNode.getAttribute("name");
+				String fieldValue = currentNode.getChildNodes().item(0).getNodeValue();
 				Field optionField = XConfig.class.getField(fieldName);
 				if (Modifier.isStatic(optionField.getModifiers()) && Modifier.isPublic(optionField.getModifiers())) {
 					optionField.set(null, castToType(optionField.getType(), fieldValue));
@@ -86,6 +86,7 @@ public class XConfig implements IConfigExport {
 			} catch (SecurityException e) {
 			} catch (IllegalArgumentException e) {
 			} catch (IllegalAccessException e) {
+			} catch (NullPointerException e) {
 			}
 		}
 	}

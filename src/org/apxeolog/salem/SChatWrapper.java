@@ -218,8 +218,6 @@ public class SChatWrapper {
 		}
 	}
 
-
-
 	public static void sendMessage(int wdgId, String text) {
 		if (gameUI != null) {
 			Widget chat = gameUI.ui.getWidget(wdgId);

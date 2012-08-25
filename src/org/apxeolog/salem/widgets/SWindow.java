@@ -14,7 +14,6 @@ import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.config.UIConfig;
 import org.apxeolog.salem.config.XConfig;
 import org.apxeolog.salem.config.XMLConfigProvider;
@@ -303,6 +302,7 @@ public class SWindow extends Widget {
 		public void mousemove(Coord c) {
 			if (dragMode) {
 				parent.c = parent.c.add(c.add(doff.inv()));
+				((SWindow)parent).drag();
 			} else {
 				super.mousemove(c);
 			}
@@ -493,7 +493,6 @@ public class SWindow extends Widget {
 
 	@Override
 	public void pack() {
-		ALS.alDebugPrint("pack", this.getClass().getSimpleName());
 		resize(contentsz());
 	}
 
@@ -624,9 +623,11 @@ public class SWindow extends Widget {
 	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
 		if (msg.equals("swindow_close")) {
-			saveState();
-			if (ui.isRWidget(this)) wdgmsg("close");
-			else unlink();
+			if (windowHeader.isClosable()) {
+				saveState();
+				if (ui.isRWidget(this)) wdgmsg("close");
+				else unlink();
+			}
 		} else if (msg.equals("swindow_minimize")) {
 			minimize();
 		} else if (msg.equals("swindow_maximize")) {

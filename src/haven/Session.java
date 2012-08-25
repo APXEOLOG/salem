@@ -599,11 +599,14 @@ public class Session {
 								Session.this.notifyAll();
 							}
 							Session.this.close();
+							Thread.sleep(10);
 						} else {
 							throw(new MessageException("Unknown message type: " + msg.type, msg));
 						}
 					}
 				}
+			} catch (InterruptedException e) {
+				//
 			} finally {
 				synchronized(Session.this) {
 					state = "dead";
@@ -765,6 +768,7 @@ public class Session {
 							} catch(InterruptedException e2) {}
 						}
 					}
+
 				}
 			} finally {
 				ticker.interrupt();

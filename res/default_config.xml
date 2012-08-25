@@ -4,7 +4,7 @@
         <property name="cl_dump_minimaps">true</property>
         <property name="cl_minimap_show_grid">false</property>
         <property name="cl_render_on">true</property>
-        <property name="cl_tilify">false</property>
+        <property name="cl_tilify">true</property>
         <property name="cl_use_new_tempers">true</property>
         <property name="cl_sfx_volume">0</property>
         <property name="cl_swindow_header_align">1</property>
@@ -14,6 +14,11 @@
         <property name="mp_error_url">http://unionclient.ru/salem/error/</property>
         <property name="cl_grid_mode">0</property>
         <property name="cl_debug_mode">false</property>
+        <property name="mp_irc_server">irc.synirc.net</property>
+        <property name="mp_irc_port">6667</property>
+        <property name="mp_irc_username"/>
+        <property name="mp_irc_password"/>
+        <property name="mp_irc_autoconnect">false</property>
     </code>
 	<chat font-name="Serif" font-size="14" font-style-bold="true">
         <tab channels="AREA;PARTY;VILLAGE;PM;SYSTEM" name="Game"/>

@@ -211,6 +211,8 @@ public class ChatConfig implements IConfigExport {
 		STextProcessor.setFont(CHAT_FONT);
 
 		NodeList list = cachedElement.getElementsByTagName("tab");
+		if (list.getLength() == 0)
+			throw new NullPointerException();
 		Element currentNode = null;
 		for (int i = 0; i < list.getLength(); i++) {
 			currentNode = (Element) list.item(i);
