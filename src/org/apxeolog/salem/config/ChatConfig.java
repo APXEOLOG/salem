@@ -167,7 +167,7 @@ public class ChatConfig implements IConfigExport {
 	public String getDefaultLocaleChannel() {
 		String local = Locale.getDefault().getLanguage();
 		if (local.equals("ru")) {
-			return "#salem";
+			return "#salemrus";
 		} else return "#salem";
 	}
 

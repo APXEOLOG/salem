@@ -189,12 +189,18 @@ public class SChatWrapper {
 		if (ircProvider != null && ircProvider.isReady()) {
 			if (text.startsWith("/")) {
 				// Command
-				String command = text.substring(1, text.indexOf(' '));
-				String params = text.substring(text.indexOf(' '));
+				String command = null, params = "";
+				if (text.contains(" ")) {
+					command = text.substring(1, text.indexOf(' '));
+					params = text.substring(text.indexOf(' '));
+				} else {
+					command = text.substring(1);
+				}
 				RawCommand raw = new RawCommand(command, params);
 				ircProvider.sendCommand(channel, raw);
 			} else {
 				ircProvider.say(channel, text);
+				ircMessageRecieved(channel, ircProvider.getNickName() + ": " + text);
 			}
 		}
 	}

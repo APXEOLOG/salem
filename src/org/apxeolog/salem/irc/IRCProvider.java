@@ -54,20 +54,21 @@ public class IRCProvider {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public void printMembers() {
+	public String getMembers() {
 		// Print out a list of people in our channel.
+		StringBuilder builder = new StringBuilder();
 		Enumeration members = mainChannel.getMembers();
 		while (members.hasMoreElements()) {
 			Member member = (Member) members.nextElement();
 			System.out.println("Member: " + member.getNick() + " Ops: "
 					+ member.hasOps() + " Voice: " + member.hasVoice());
 		}
+		return builder.toString();
 	}
 
 	public void say(String channel, String msg) {
 		MessageCommand mc = new MessageCommand(connection.getClientState().getChannel(channel).getName(), msg);
 		connection.sendCommand(mc);
-		incomingMessage(mc);
 	}
 
 	public void sendCommand(String channel, OutCommand command) {
@@ -80,6 +81,10 @@ public class IRCProvider {
 
 	public void onRegistered() {
 		if (listener != null) listener.onRegister();
+	}
+
+	public String getNickName() {
+		return clientState.getNick().getNick();
 	}
 
 	public void incomingMessage(MessageCommand msg) {
