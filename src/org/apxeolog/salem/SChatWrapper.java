@@ -206,7 +206,7 @@ public class SChatWrapper {
 					command = text.substring(1);
 				}
 				if (command.equals("ml")) {
-					ircMessageRecieved(channel, ircProvider.getMembers(), Color.GRAY);
+					ircMessageRecieved(channel, ircProvider.getMembers(channel), Color.GRAY);
 				} else {
 					RawCommand raw = new RawCommand(command, params);
 					ircProvider.sendCommand(channel, raw);

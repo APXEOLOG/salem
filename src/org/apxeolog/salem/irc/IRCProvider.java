@@ -54,10 +54,10 @@ public class IRCProvider {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public String getMembers() {
+	public String getMembers(String channel) {
 		// Print out a list of people in our channel.
 		StringBuilder builder = new StringBuilder();
-		Enumeration members = mainChannel.getMembers();
+		Enumeration members = connection.getClientState().getChannel(channel).getMembers();
 		while (members.hasMoreElements()) {
 			Member member = (Member) members.nextElement();
 			builder.append("Member: " + member.getNick() + "\n");
