@@ -40,11 +40,17 @@ public class ToolbarsConfig implements IConfigExport {
 		public void rebuildString() {
 			slotString = "";
 			if((sMode & InputEvent.CTRL_DOWN_MASK) != 0)
-				slotString += "Ctrl+";
+				slotString += "C+";
 			if((sMode & (InputEvent.META_DOWN_MASK | InputEvent.ALT_DOWN_MASK)) != 0)
-				slotString += "Alt+";
+				slotString += "A+";
 			if((sMode & InputEvent.SHIFT_DOWN_MASK) != 0)
-				slotString += "Shift";
+				slotString += "S+";
+			if(slotString.contains("Numpad-"))
+				slotString.replace("Numpad-", "N+");
+			if(slotString.contains("Minus"))
+				slotString.replace("Minus", "-");
+			if(slotString.contains("Equals"))
+				slotString.replace("Equals", "=");
 			slotString += KeyEvent.getKeyText(sKey);
 		}
 
