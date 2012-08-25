@@ -4,7 +4,6 @@ import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import org.apxeolog.salem.ALS;
 import org.apxeolog.salem.Pair;
 import org.apxeolog.salem.SChatWrapper;
 import org.apxeolog.salem.config.ChatConfig;
@@ -104,11 +103,9 @@ public class SChatWindow extends SWindow {
 
 		if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && !alt && !shift) {
 			// IRC
-			ALS.alDebugPrint("check");
 			if (currentTab.getFirst().containsChannel(ChannelTypes.IRC)) {
 				showLine(-255, ChannelTypes.IRC);
 			} else {
-				ALS.alDebugPrint("area");
 				// Area
 				int wdgId = getparent(GameUI.class).chat.getAreaChat();
 				if (wdgId != -1) {
@@ -178,9 +175,27 @@ public class SChatWindow extends SWindow {
 		}
 	}
 
+	protected boolean lineWasShowed = false;
+
+	@Override
+	protected void minimize() {
+		super.minimize();
+		if (lineEdit != null) {
+			lineWasShowed = lineEdit.visible;
+			lineEdit.hide();
+		}
+	}
+
+	@Override
+	protected void maximize() {
+		super.maximize();
+		if (lineEdit != null) {
+			if (lineWasShowed) lineEdit.show();
+		}
+	}
+
 	@Override
 	public void drag() {
-		ALS.alDebugPrint("drag");
 		updateLine();
 	}
 
@@ -196,7 +211,6 @@ public class SChatWindow extends SWindow {
 			if (entry.getKey().containsChannel(type)) {
 				if (type == ChannelTypes.IRC && objects.length > 0) {
 					String channel = (String) objects[0];
-					ALS.alDebugPrint("got channel msg", channel);
 					if (entry.getKey().getIRCChannel().equals(channel)) {
 						entry.getValue().getSecond().addPText(str);
 						entry.getValue().getFirst().setnotify();
@@ -214,7 +228,6 @@ public class SChatWindow extends SWindow {
 			if (entry.getKey().containsChannel(type)) {
 				if (type == ChannelTypes.IRC && objects.length > 0) {
 					String channel = (String) objects[0];
-					ALS.alDebugPrint("got channel msg", channel);
 					if (entry.getKey().getIRCChannel().equals(channel)) {
 						entry.getValue().getSecond().addString(str);
 						entry.getValue().getFirst().setnotify();

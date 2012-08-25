@@ -85,6 +85,7 @@ public class IRCProvider {
 	}
 
 	public void incomingMessage(MessageCommand msg) {
+		String str = msg.getMessage();
 		SChatWrapper.ircMessageRecieved(msg.getDest(), msg.getSource().getNick() + ": " + msg.getMessage());
 	}
 

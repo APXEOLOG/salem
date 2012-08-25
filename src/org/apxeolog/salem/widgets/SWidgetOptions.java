@@ -245,7 +245,8 @@ public class SWidgetOptions extends Hidewnd {
 				}
 			};
 			new Label(new Coord(20, 100), tab, "Username:");
-			new TextEntry(new Coord(20, 120), new Coord(100, 20), tab, XConfig.mp_irc_username.isEmpty() ? Config.currentCharName : XConfig.mp_irc_username) {
+			if (XConfig.mp_irc_username.isEmpty()) XConfig.mp_irc_username = Config.currentCharName;
+			new TextEntry(new Coord(20, 120), new Coord(100, 20), tab, XConfig.mp_irc_username) {
 				@Override
 				public void changed() {
 					XConfig.mp_irc_username = this.text;
