@@ -83,6 +83,7 @@ public class STextProcessor {
 	}
 
 	public static class TextUrl extends NodeAttribute {
+		private final static Color urlColor = new Color(0, 153, 255);
 		protected String url;
 
 		public TextUrl(Matcher match) {
@@ -111,7 +112,7 @@ public class STextProcessor {
 
 		@Override
 		public Color getColor() {
-			return Color.BLUE;
+			return urlColor;
 		}
 
 		@Override
