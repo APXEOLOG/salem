@@ -14,6 +14,7 @@ import org.apxeolog.salem.config.ChatConfig.ChannelTypes;
 import org.apxeolog.salem.config.ChatConfig.ChatTabConfig;
 import org.apxeolog.salem.utils.STextProcessor;
 import org.apxeolog.salem.utils.STextProcessor.ProcessedText;
+import org.apxeolog.salem.utils.Triplet;
 
 import haven.Coord;
 import haven.GameUI;
@@ -22,7 +23,7 @@ import haven.Widget;
 
 public class SChatWindow extends SWindow {
 	protected HashMap<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> chatWidgets;
-	protected Pair<SVerticalTextButton, STextArea> currentTab = null;
+	protected Triplet<ChatTabConfig, SVerticalTextButton, STextArea> currentTab = null;
 	protected SLineEdit lineEdit = null;
 
 	public SChatWindow(Coord c, Coord sz, Widget parent, String cap) {
@@ -60,9 +61,9 @@ public class SChatWindow extends SWindow {
 		if (chatWidgets == null) return;
 		for (Entry<ChatTabConfig, Pair<SVerticalTextButton, STextArea>> entry : chatWidgets.entrySet()) {
 			if (entry.getKey().getName().equals(tabName)) {
-				currentTab = entry.getValue();
-				currentTab.getSecond().show();
-				currentTab.getFirst().select();
+				currentTab = new Triplet<ChatConfig.ChatTabConfig, SVerticalTextButton, STextArea>(entry.getKey(), entry.getValue().getFirst(), entry.getValue().getSecond());
+				currentTab.getThird().show();
+				currentTab.getSecond().select();
 			} else {
 				entry.getValue().getFirst().unselect();
 				entry.getValue().getSecond().hide();
@@ -102,10 +103,15 @@ public class SChatWindow extends SWindow {
 		boolean shift = ev.isShiftDown();
 
 		if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && !alt && !shift) {
-			// Area
-			int wdgId = getparent(GameUI.class).chat.getAreaChat();
-			if (wdgId != -1) {
-				showLine(wdgId, ChannelTypes.AREA);
+			// IRC
+			if (currentTab.getFirst().containsChannel(ChannelTypes.IRC)) {
+				showLine(-255, ChannelTypes.IRC);
+			} else {
+				// Area
+				int wdgId = getparent(GameUI.class).chat.getAreaChat();
+				if (wdgId != -1) {
+					showLine(wdgId, ChannelTypes.AREA);
+				}
 			}
 		} else if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && !alt && shift) {
 			// Village
@@ -120,11 +126,10 @@ public class SChatWindow extends SWindow {
 				showLine(wdgId, ChannelTypes.PARTY);
 			}
 		} else if (ev.getKeyCode() == KeyEvent.VK_ENTER && !ctrl && alt && !shift) {
-			showLine(-255, ChannelTypes.IRC);
-			/*int wdgId = SChatWrapper.getLastPMWidget();
+			int wdgId = SChatWrapper.getLastPMWidget();
 			if (wdgId != -1) {
 				showLine(wdgId, ChannelTypes.PM);
-			}*/
+			}
 		} else return super.globtype(key, ev);
 		return true;
 	}
@@ -146,7 +151,7 @@ public class SChatWindow extends SWindow {
 				if (!text.equals("")) {
 					if (wdgId == -255) {
 						// IRC
-						SChatWrapper.sendIRCMessage(text, ((ChatTabConfig)currentTab.getFirst().getData()).getIRCChannel());
+						SChatWrapper.sendIRCMessage(text, currentTab.getFirst().getIRCChannel());
 					} else SChatWrapper.sendMessage(wdgId, text);
 				}
 			}

@@ -15,6 +15,17 @@
         <property name="cl_grid_mode">0</property>
         <property name="cl_debug_mode">false</property>
     </code>
+	<chat font-name="Serif" font-size="14" font-style-bold="true">
+        <tab channels="AREA;PARTY;VILLAGE;PM;SYSTEM" name="Game"/>
+        <tab channels="IRC" name="IRC"/>
+        <mode color="0x006600" long-tag="[Village]: " short-tag="[V]" type="VILLAGE"/>
+        <mode color="0xFFFFFF" long-tag="[IRC]: " short-tag="" type="IRC"/>
+        <mode color="0xFFFFFF" long-tag="[Area]: " short-tag="[A]" type="AREA"/>
+        <mode color="0xFFFFFF" long-tag="[NONE]: " short-tag="" type="NONE"/>
+        <mode color="0x00CCCC" long-tag="[Party]: " short-tag="[P]" type="PARTY"/>
+        <mode color="0xFF33CC" long-tag="[PM]: " short-tag="[W]" type="PM"/>
+        <mode color="0xFFFFFF" long-tag="[System]: " short-tag="" type="SYSTEM"/>
+    </chat>
     <minimap dot-size="(5, 5)" icon-size="(24, 24)">
         <highlight clickable="true" icon="gfx/invobjs/herbs/lobstermushroom" mmap-tooltip="false" res="gfx/terobjs/herbs/lobstermushroom" tooltip="Lobster Mushroom" type="ICON" val="true"/>
         <highlight clickable="true" icon="gfx/invobjs/herbs/milkweed" mmap-tooltip="false" res="gfx/terobjs/herbs/milkweed" tooltip="Milkweed Roots" type="ICON" val="true"/>
