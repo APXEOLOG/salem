@@ -152,12 +152,12 @@ public class SToolbar extends SWindow implements DTarget, DropTarget {
 			int height = 0;
 			for(int i = 0; i < barSize.y; i++)
 				height += bGSize.y;
-			newSize = new Coord(bGSize.x, height + 15);
+			newSize = new Coord(bGSize.x + 2, height + 5);
 		} else {
 			int width = 0;
 			for(int i = 0; i < barSize.x; i++)
 				width += bGSize.x;
-			newSize = new Coord(width + 15, bGSize.y);
+			newSize = new Coord(width + 5, bGSize.y + 2);
 		}
 		resize(newSize);
 	}
