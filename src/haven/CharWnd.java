@@ -549,9 +549,10 @@ public class CharWnd extends SWindow {
 		public boolean mousedown(Coord c, int btn) {
 			if ((btn == 1) && c.isect(expc, expsz)) {
 				if (ui.modctrl) {
-					if (!watchingAttr.equals(nm))
+					if (!watchingAttr.equals(nm)) {
+						((CharWndWindowHeader)windowHeader).setShortName(nm);
 						watchingAttr = nm;
-					else
+					} else
 						watchingAttr = "";
 					return true;
 				}
@@ -650,20 +651,16 @@ public class CharWnd extends SWindow {
 		boolean haveWatching = false;
 		for (Attr atr : attrs.values()) {
 			if (atr.nm.equals(watchingAttr)) {
-				((CharWndWindowHeader) windowHeader).setShortName(atr.nm);
 				atr.drawAsWatching(true);
 				int maxlp = atr.attr.comp * 100;
 				int currentlp = atr.hexp;
 				double op = maxlp / 100.;
 				double meterperc = currentlp / op;
-				((CharWndWindowHeader) windowHeader)
-				.setMeterValue((int) meterperc);
+				((CharWndWindowHeader) windowHeader).setMeterValue((int) meterperc);
 				if (meterperc != 100)
-					((CharWndWindowHeader) windowHeader)
-					.setMeterColor(new Color(0, 0, 255, 225));
+					((CharWndWindowHeader) windowHeader).setMeterColor(new Color(0, 0, 255, 225));
 				else
-					((CharWndWindowHeader) windowHeader)
-					.setMeterColor(new Color(0, 255, 0, 225));
+					((CharWndWindowHeader) windowHeader).setMeterColor(new Color(0, 255, 0, 225));
 
 				if (ui.lasttip instanceof WItem.ItemTip) {
 					try {
@@ -678,14 +675,10 @@ public class CharWnd extends SWindow {
 									double futureperc = (itemExp * 1.) / op;
 									((CharWndWindowHeader) windowHeader)
 									.setFutureValue((int) futureperc);
-									if ((int) futureperc > 100)
-										((CharWndWindowHeader) windowHeader)
-										.setFutureColor(new Color(255, 255,
-												0));
+									if ((int) futureperc >= 100)
+										((CharWndWindowHeader) windowHeader).setFutureColor(new Color(255, 255, 0));
 									else
-										((CharWndWindowHeader) windowHeader)
-										.setFutureColor(new Color(200, 200,
-												0));
+										((CharWndWindowHeader) windowHeader).setFutureColor(new Color(200, 200, 0));
 									break;
 								}
 							}

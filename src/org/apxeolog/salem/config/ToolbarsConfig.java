@@ -54,13 +54,13 @@ public class ToolbarsConfig implements IConfigExport {
 				slotString += "A+";
 			if((sMode & InputEvent.SHIFT_DOWN_MASK) != 0)
 				slotString += "S+";
-			if(slotString.contains("Numpad-"))
-				slotString.replace("Numpad-", "N+");
-			if(slotString.contains("Minus"))
-				slotString.replace("Minus", "-");
-			if(slotString.contains("Equals"))
-				slotString.replace("Equals", "=");
 			slotString += KeyEvent.getKeyText(sKey);
+			if(slotString.contains("Numpad-"))
+				slotString = slotString.replace("Numpad-", "N+");
+			if(slotString.contains("Minus"))
+				slotString = slotString.replace("Minus", "-");
+			if(slotString.contains("Equals"))
+				slotString = slotString.replace("Equals", "=");
 		}
 
 		public String getString() {
