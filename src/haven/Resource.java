@@ -1366,6 +1366,33 @@ Serializable {
 		});
 	}
 
+	public class Font extends Layer {
+		public transient final java.awt.Font font;
+
+		public Font(byte[] buf) {
+			int[] off = {0};
+			int ver = buf[off[0]++];
+			if(ver == 1) {
+				int type = buf[off[0]++];
+				if(type == 0) {
+					try {
+						this.font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, new ByteArrayInputStream(buf, off[0], buf.length - off[0]));
+					} catch(Exception e) {
+						throw(new RuntimeException(e));
+					}
+				} else {
+					throw(new LoadException("Unknown font type: " + type, Resource.this));
+				}
+			} else {
+				throw(new LoadException("Unknown font layer version: " + ver, Resource.this));
+			}
+		}
+
+		@Override
+		public void init() {}
+	}
+	static {addltype("font", Font.class);}
+
 	public class Music extends Resource.Layer {
 		transient javax.sound.midi.Sequence seq;
 

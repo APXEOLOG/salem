@@ -101,7 +101,10 @@ public class SChatWrapper {
 	}
 
 	public static Color getColor(ChannelTypes type) {
-		return ChatConfig.getModeInfo(type).getColor();
+		ChatModeInfo modeInfo = ChatConfig.getModeInfo(type);
+		if (modeInfo != null)
+			return modeInfo.getColor();
+		else return Color.WHITE;
 	}
 
 	public static String getPrefix(ChannelTypes type) {

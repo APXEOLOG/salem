@@ -58,7 +58,8 @@ public class IRCProvider {
 		Enumeration members = connection.getClientState().getChannel(channel).getMembers();
 		while (members.hasMoreElements()) {
 			Member member = (Member) members.nextElement();
-			builder.append("Member: " + member.getNick() + "\n");
+			if (member.getNick() != null)
+				builder.append("Member: " + member.getNick().getNick() + "\n");
 		}
 		return builder.toString();
 	}
@@ -85,8 +86,11 @@ public class IRCProvider {
 	}
 
 	public void incomingMessage(MessageCommand msg) {
-		String str = msg.getMessage();
-		SChatWrapper.ircMessageRecieved(msg.getDest(), msg.getSource().getNick() + ": " + msg.getMessage());
+		try {
+			SChatWrapper.ircMessageRecieved(msg.getDest(), msg.getSource().getNick() + ": " + msg.getMessage());
+		} catch (Exception ex) {
+
+		}
 	}
 
 	public void disconnect() {

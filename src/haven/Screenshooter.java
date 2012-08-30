@@ -1,7 +1,7 @@
 /*
  *  This file is part of the Haven & Hearth game client.
  *  Copyright (C) 2009 Fredrik Tolf <fredrik@dolda2000.com>, and
- *                     Björn Johannessen <johannessen.bjorn@gmail.com>
+ *                     BjГ¶rn Johannessen <johannessen.bjorn@gmail.com>
  *
  *  Redistribution and/or modification of this file is subject to the
  *  terms of the GNU Lesser General Public License, version 3, as
@@ -26,13 +26,18 @@
 
 package haven;
 
+import java.awt.image.BufferedImage;
 import javax.imageio.*;
+import javax.imageio.metadata.*;
+import javax.imageio.stream.*;
+import org.w3c.dom.*;
 import java.io.*;
 import java.net.*;
 
 public class Screenshooter extends Window {
 	public final URL tgt;
 	public final TexI[] ss;
+	private final TextEntry comment;
 	private final CheckBox decobox;
 	private final int w, h;
 	private Label prog;
@@ -45,8 +50,10 @@ public class Screenshooter extends Window {
 		this.ss = ss;
 		this.w = Math.min(200 * ss[0].sz().x / ss[0].sz().y, 150);
 		this.h = w * ss[0].sz().y / ss[0].sz().x;
-		this.decobox = new CheckBox(new Coord(w, (h / 2) - CheckBox.box.sz().y
-				+ 5), this, "Include interface");
+		this.decobox = new CheckBox(new Coord(w, (h / 2) - CheckBox.box.sz().y + 5), this, "Include interface") {
+			@Override
+			public void changed(boolean val) {}
+		};
 		btnc = new Coord(w + 5, h - 19);
 		btn = new Button(btnc, 125, this, "Upload") {
 			@Override
@@ -54,13 +61,14 @@ public class Screenshooter extends Window {
 				upload();
 			}
 		};
-		Coord csz = contentsz();
-		resize(new Coord(Math.max(csz.x, 300), csz.y));
+		Label clbl = new Label(new Coord(0, h + 5), this, "If you wish, leave a comment:");
+		this.comment = new TextEntry(new Coord(0, clbl.c.y + clbl.sz.y + 5), new Coord(w + 130, 20), this, "");
+		pack();
 	}
 
 	@Override
 	public void wdgmsg(Widget sender, String msg, Object... args) {
-		if ((sender == this) && (msg == "close")) {
+		if((sender == this) && (msg == "close")) {
 			ui.destroy(this);
 		} else {
 			super.wdgmsg(sender, msg, args);
@@ -69,8 +77,8 @@ public class Screenshooter extends Window {
 
 	@Override
 	public void cdraw(GOut g) {
-		TexI tex = ss[this.decobox.a ? 1 : 0];
-		g.image(tex, new Coord(0, (asz.y - h) / 2), new Coord(w, h));
+		TexI tex = ss[this.decobox.a?1:0];
+		g.image(tex, Coord.z, new Coord(w, h));
 	}
 
 	public class Uploader extends HackThread {
@@ -85,9 +93,9 @@ public class Screenshooter extends Window {
 		public void run() {
 			try {
 				upload(img);
-			} catch (InterruptedIOException e) {
+			} catch(InterruptedIOException e) {
 				setstate("Cancelled");
-				synchronized (ui) {
+				synchronized(ui) {
 					ui.destroy(btn);
 					btn = new Button(btnc, 125, Screenshooter.this, "Retry") {
 						@Override
@@ -96,9 +104,9 @@ public class Screenshooter extends Window {
 						}
 					};
 				}
-			} catch (IOException e) {
+			} catch(IOException e) {
 				setstate("Could not upload image");
-				synchronized (ui) {
+				synchronized(ui) {
 					ui.destroy(btn);
 					btn = new Button(btnc, 125, Screenshooter.this, "Retry") {
 						@Override
@@ -111,17 +119,59 @@ public class Screenshooter extends Window {
 		}
 
 		private void setstate(String t) {
-			synchronized (ui) {
-				if (prog != null)
+			synchronized(ui) {
+				if(prog != null)
 					ui.destroy(prog);
 				prog = new Label(btnc.sub(0, 15), Screenshooter.this, t);
 			}
 		}
 
+		private void writepng(OutputStream out, BufferedImage img, String comment) throws IOException {
+			ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(img);
+			ImageWriter wr = ImageIO.getImageWriters(type, "PNG").next();
+			IIOMetadata dat = wr.getDefaultImageMetadata(type, null);
+			if(comment != null) {
+				Node root = dat.getAsTree("javax_imageio_1.0");
+				Element cmt = new IIOMetadataNode("TextEntry");
+				cmt.setAttribute("keyword", "Title");
+				cmt.setAttribute("value", comment);
+				cmt.setAttribute("encoding", "utf-8");
+				cmt.setAttribute("language", "");
+				cmt.setAttribute("compression", "none");
+				Node tlist = new IIOMetadataNode("Text");
+				tlist.appendChild(cmt);
+				root.appendChild(tlist);
+				dat.setFromTree("javax_imageio_1.0", root);
+			}
+			ImageOutputStream iout = ImageIO.createImageOutputStream(out);
+			wr.setOutput(iout);
+			wr.write(new IIOImage(img, null, dat));
+		}
+
+		private void writejpeg(OutputStream out, BufferedImage img, String comment) throws IOException {
+			ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(img);
+			ImageWriter wr = ImageIO.getImageWriters(type, "JPEG").next();
+			IIOMetadata dat = wr.getDefaultImageMetadata(type, null);
+			if(comment != null) {
+				Node root = dat.getAsTree("javax_imageio_1.0");
+				Element cmt = new IIOMetadataNode("TextEntry");
+				cmt.setAttribute("keyword", "comment");
+				cmt.setAttribute("value", comment);
+				Node tlist = new IIOMetadataNode("Text");
+				tlist.appendChild(cmt);
+				root.appendChild(tlist);
+				dat.setFromTree("javax_imageio_1.0", root);
+			}
+			ImageOutputStream iout = ImageIO.createImageOutputStream(out);
+			wr.setOutput(iout);
+			wr.write(new IIOImage(img, null, dat));
+		}
+
 		public void upload(TexI ss) throws IOException {
 			setstate("Connecting...");
 			ByteArrayOutputStream buf = new ByteArrayOutputStream();
-			ImageIO.write(ss.back, "PNG", buf);
+			/* XXX: For some reason, JPEG doesn't seem to work properly. */
+			writepng(buf, ss.back, comment.text);
 			byte[] data = buf.toByteArray();
 			buf = null;
 			URLConnection conn = tgt.openConnection();
@@ -130,15 +180,13 @@ public class Screenshooter extends Window {
 			Message auth = new Message(0);
 			auth.addstring2(ui.sess.username + "/");
 			auth.addbytes(ui.sess.sesskey);
-			conn.addRequestProperty("Authorization",
-					"Haven " + Utils.base64enc(auth.blob));
+			conn.addRequestProperty("Authorization", "Haven " + Utils.base64enc(auth.blob));
 			conn.connect();
 			OutputStream out = conn.getOutputStream();
 			try {
 				int off = 0;
-				while (off < data.length) {
-					setstate(String.format("Uploading (%d%%)...", (off * 100)
-							/ data.length));
+				while(off < data.length) {
+					setstate(String.format("Uploading (%d%%)...", (off * 100) / data.length));
 					int len = Math.min(1024, data.length - off);
 					out.write(data, off, len);
 					off += len;
@@ -150,27 +198,24 @@ public class Screenshooter extends Window {
 			InputStream in = conn.getInputStream();
 			final URL result;
 			try {
-				if (!conn.getContentType().equals("text/x-target-url"))
-					throw (new IOException(
-							"Unexpected type of reply from server"));
+				if(!conn.getContentType().equals("text/x-target-url"))
+					throw(new IOException("Unexpected type of reply from server"));
 				byte[] b = Utils.readall(in);
 				try {
 					result = new URL(new String(b, "utf-8"));
-				} catch (MalformedURLException e) {
-					throw ((IOException) new IOException(
-							"Unexpected reply from server").initCause(e));
+				} catch(MalformedURLException e) {
+					throw((IOException)new IOException("Unexpected reply from server").initCause(e));
 				}
 			} finally {
 				in.close();
 			}
 			setstate("Done");
-			synchronized (ui) {
+			synchronized(ui) {
 				ui.destroy(btn);
-				btn = new Button(btnc, 125, Screenshooter.this,
-						"Open in browser") {
+				btn = new Button(btnc, 125, Screenshooter.this, "Open in browser") {
 					@Override
 					public void click() {
-						if (WebBrowser.self != null)
+						if(WebBrowser.self != null)
 							WebBrowser.self.show(result);
 					}
 				};
@@ -179,8 +224,7 @@ public class Screenshooter extends Window {
 	}
 
 	public void upload() {
-		final Uploader th = new Uploader(Screenshooter.this.ss[decobox.a ? 1
-				: 0]);
+		final Uploader th = new Uploader(Screenshooter.this.ss[decobox.a?1:0]);
 		th.start();
 		ui.destroy(btn);
 		btn = new Button(btnc, 125, this, "Cancel") {
@@ -193,7 +237,7 @@ public class Screenshooter extends Window {
 
 	public static void take(final GameUI gameui, final URL tgt) {
 		new Object() {
-			TexI[] ss = { null, null };
+			TexI[] ss = {null, null};
 			{
 				gameui.map.delay2(new MapView.Delayed() {
 					@Override
@@ -213,7 +257,7 @@ public class Screenshooter extends Window {
 			}
 
 			private void checkcomplete() {
-				if ((ss[0] != null) && (ss[1] != null)) {
+				if((ss[0] != null) && (ss[1] != null)) {
 					new Screenshooter(new Coord(100, 100), gameui, tgt, ss);
 				}
 			}
